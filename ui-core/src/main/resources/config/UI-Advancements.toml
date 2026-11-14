@@ -2,21 +2,21 @@
 # Custom achievements of the bundled datapack (ui:datapack/*).
 #
 # Advancements are data-driven in Minecraft: they are JSON files, not a registry,
-# so there is no Paper API to register them at runtime. UI-Datapack extracts the
-# enabled subset from the JAR before the worlds load (Paper DATAPACK_DISCOVERY),
-# which is why changing anything here requires a server restart.
+# so there is no Paper API to register them at runtime. UI-Datapack writes the
+# enabled subset into the pack zip from the JAR before the worlds load (Paper
+# DATAPACK_DISCOVERY), which is why changing anything here requires a server restart.
 #
 # [advancements] holds the master switch; every achievement gets its own table
 # [advancements.<id>] with "enabled" plus its tunable values. A disabled
-# achievement is not extracted at all, its plugin module (if it has one) is not
-# registered, and any achievement that had it as a parent is re-attached to the
-# nearest enabled ancestor — the tree never breaks.
+# achievement is not written into the pack at all, its plugin module (if it has one)
+# is not registered, and any achievement that had it as a parent is re-attached to
+# the nearest enabled ancestor — the tree never breaks.
 #
 # The id is the datapack file name, so /advancement and the config match 1:1.
 
 # Global switch for every custom achievement.
-# false = no ui:datapack/* advancement is extracted or granted, none of the
-# achievement listener modules are registered.
+# false = no ui:datapack/* advancement is written into the pack or granted, none of
+# the achievement listener modules are registered.
 # Default: true
 [advancements]
 enabled = true

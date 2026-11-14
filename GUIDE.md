@@ -36,9 +36,11 @@ This is the complete guide: installation, every command, custom items, enchantme
 2. Drop **all** the jars into `plugins/` — the family ships as **21 plugins**
    (UI-Core + 20 addons). They form one system; a set of just a few of them is
    not supported.
-3. Restart the server **once**. The bundled datapack is extracted from the
-   UI-Datapack jar and enabled automatically **before worlds load**
-   (Paper bootstrapper) — no `/datapack enable`, no double restart.
+3. Restart the server **once**. The bundled datapack is built from the
+   UI-Datapack jar as a single zip
+   (`plugins/UltimateImprovments/datapack/UI-Datapack-<lang>.zip`) and enabled
+   automatically **before worlds load** (Paper bootstrapper) — no
+   `/datapack enable`, no double restart.
 
 > The datapack lives in its own plugin part — **UI-Datapack**. It ships in two
 > language variants (`UI-Datapack-en` / `UI-Datapack-ru` — identical content,
@@ -589,7 +591,8 @@ The jars land in `build/libs/UI-<Addon>-<version>-all.jar`. Requirements: JDK 26
 **Updating:**
 1. Replace all `UI-*-all.jar` files in `plugins/` with the new version.
 2. Run `/ui reload` (or restart).
-3. The datapack re-extracts itself on server start; config auto-repair adds new sections.
+3. The datapack zip is rebuilt on server start only when its content changed
+   (`hash.txt` next to it); config auto-repair adds new sections.
 
 ---
 

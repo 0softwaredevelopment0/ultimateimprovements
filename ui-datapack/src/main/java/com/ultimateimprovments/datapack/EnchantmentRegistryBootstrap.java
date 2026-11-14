@@ -31,7 +31,7 @@ import java.util.Set;
  * experimental {@code RegistryEvents} API instead of shipping
  * {@code data/ui/enchantment/*.json} in the bundled datapack.
  * <p>
- * Why: the datapack is extracted and discovered at server start, so a malformed
+ * Why: the datapack is built and discovered at server start, so a malformed
  * enchantment only showed up as a warning in the log and a silently missing entry,
  * while plugin code kept referencing {@code ui:<id>}. Registering in the bootstrap phase
  * makes the server validate every builder before it accepts a world, and the registry is

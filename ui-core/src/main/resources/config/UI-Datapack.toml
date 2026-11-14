@@ -11,10 +11,13 @@
 
 
 # Bundled datapack: which custom content is enabled.
-# The pack is registered by UI-Datapack's bootstrapper (Paper DATAPACK_DISCOVERY)
-# BEFORE the worlds load and auto-enabled on every start, so installing/updating the
-# plugin no longer needs a restart or /datapack enable. Changing these toggles still
-# requires a server restart (discovery happens at startup only).
+# The pack is built from the JAR as a single zip
+# (plugins/UltimateImprovments/datapack/UI-Datapack-<lang>.zip) and registered by
+# UI-Datapack's bootstrapper (Paper DATAPACK_DISCOVERY) BEFORE the worlds load and
+# auto-enabled on every start, so installing/updating the plugin no longer needs a
+# restart or /datapack enable. The zip is only rebuilt when its content changes
+# (hash.txt next to it); changing these toggles still requires a server restart
+# (discovery happens at startup only).
 [datapack]
 # Master switch (true = feature on).
 # false = the pack is not registered at all (no recipes, structures, worldgen,
@@ -40,8 +43,8 @@ lang = "auto"
 position = "top"
 
 # Datapack parts. Each part covers the listed files inside the pack; a disabled
-# part is not extracted from the JAR and its plugin code modules are not registered.
-# Files that belong to no part are always extracted.
+# part is not written into the built zip and its plugin code modules are not registered.
+# Files that belong to no part are always written.
 #
 # Custom enchantments and achievements are NOT here: they have their own files,
 # configs/UI-Enchantments.toml and configs/UI-Advancements.toml (master switch,

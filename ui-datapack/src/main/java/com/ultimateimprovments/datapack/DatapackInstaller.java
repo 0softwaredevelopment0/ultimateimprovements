@@ -16,10 +16,11 @@ import java.util.Comparator;
  * <p>
  * The datapack itself is registered <b>before the worlds load</b> by
  * {@link UIDatapackBootstrap} through Paper's {@code DATAPACK_DISCOVERY} lifecycle
- * event (extracted fresh from the addon JAR on every server start). This class no
- * longer copies the pack into {@code world/datapacks} and no longer needs a
- * {@code /datapack enable} + reload/restart dance: it only verifies and, if needed,
- * enables the already-discovered pack.
+ * event (built as a fresh zip from the addon JAR, or reused when the hash of the
+ * rebuilt archive matches {@code plugins/UltimateImprovments/datapack/hash.txt}).
+ * This class no longer copies the pack into {@code world/datapacks} and no longer
+ * needs a {@code /datapack enable} + reload/restart dance: it only verifies and, if
+ * needed, enables the already-discovered pack.
  */
 public class DatapackInstaller {
 
@@ -114,17 +115,17 @@ public class DatapackInstaller {
     }
 
     /**
-     * Finds the discovered UI-Datapack by name. Paper registers the pack under the id
-     * the bootstrapper passed (the extracted folder name), so an exact match is
-     * preferred; the {@code contains} pass stays as a fallback for older versions that
-     * prefixed the id with the plugin name.
+     * Finds the discovered UI-Datapack by name. Paper registers plugin packs under
+     * {@code "<plugin>/<id>"} (e.g. {@code UI-Datapack/UI-Datapack-ru}), so both the
+     * bare id and the namespaced form are accepted; {@code contains} stays as a
+     * fallback for older registration formats.
      */
     private static Datapack findPack(String expectedName) {
         Datapack fallback = null;
         for (Datapack p : Bukkit.getDatapackManager().getPacks()) {
             String name = p.getName();
             if (name == null) continue;
-            if (name.equals(expectedName)) return p;
+            if (name.equals(expectedName) || name.endsWith("/" + expectedName)) return p;
             if (fallback == null && name.contains("UI-Datapack")) fallback = p;
         }
         return fallback;

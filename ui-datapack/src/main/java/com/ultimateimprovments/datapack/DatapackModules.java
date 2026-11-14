@@ -19,8 +19,9 @@ import java.util.Map;
  * The part list and the file paths behind it live in {@link DatapackParts}, so
  * this class and the bootstrapper can never disagree about what a part covers.
  * <p>
- * Disabled parts are NOT extracted into the pack folder, and the plugin code
- * modules bound to those parts are not registered either.
+ * Disabled parts are NOT written into the built archive (the zip in
+ * {@code plugins/UltimateImprovments/datapack/}), and the plugin code modules bound
+ * to those parts are not registered either.
  * <p>
  * Custom enchantments and achievements are <b>not</b> datapack parts any more:
  * each has its own config ({@code UI-Enchantments.toml} /

@@ -10,24 +10,26 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
  * datapacks) are loaded</b>.
  * <p>
  * This replaces the old "copy into {@code world/datapacks} then /datapack enable +
- * reload/restart" flow: the pack is extracted fresh from the plugin JAR on every
- * server start and discovered with {@code autoEnableOnServerStart(true)}, so it is
- * active from the first world load with no restart.
+ * reload/restart" flow: the pack is built from the plugin JAR on the first discovery
+ * event and registered with {@code autoEnableOnServerStart(true)}, so it is active
+ * from the first world load with no restart.
  * <p>
  * The addon also registers the 18 custom enchantments through
  * {@link EnchantmentRegistryBootstrap}: they used to be datapack files, and the item tags
  * that survived the migration still ship here.
  * <p>
- * The extracted folder is <b>language-specific</b> ({@code UI-Datapack-en} or
- * {@code UI-Datapack-ru}, see {@link DatapackPackBootstrap}) and its name is used as
- * the pack id, so {@code /datapack list} shows which variant is active.
+ * The archive is language-specific ({@code UI-Datapack-en.zip} or
+ * {@code UI-Datapack-ru.zip}, see {@link DatapackPackBootstrap}) and its pack id is
+ * used for {@code /datapack list}, so the active variant is visible there. Paper reads
+ * a zip exactly like a folder ({@code FilePackResources}).
  */
 public class UIDatapackBootstrap implements PluginBootstrap {
 
     /**
      * The discovery event can fire several times (each time the server scans for
-     * datapacks). The pack is extracted exactly once and the same path is
-     * re-registered afterwards, so in-use datapack files are never rewritten.
+     * datapacks). The archive is built exactly once and the same path is
+     * re-registered afterwards, so an in-use datapack file is never rewritten
+     * (Windows would refuse to replace an open zip anyway).
      */
     private DatapackPackBootstrap.Prepared preparedPack;
 
@@ -45,13 +47,15 @@ public class UIDatapackBootstrap implements PluginBootstrap {
                 if (preparedPack == null) {
                     return; // master toggle off — nothing to register
                 }
-                // The folder name carries the language (UI-Datapack-en / UI-Datapack-ru).
-                String packId = preparedPack.path().getFileName().toString();
+                // The pack id carries the language (UI-Datapack-en / UI-Datapack-ru).
+                String packId = preparedPack.packId();
                 event.registrar().discoverPack(preparedPack.path(), packId, configurer -> configurer
                         .autoEnableOnServerStart(true)
                         .position(true, preparedPack.position()));
                 context.getLogger().info("Registered bundled datapack '" + packId
-                        + "' for discovery (auto-enabled on start, "
+                        + "' (" + preparedPack.path().getFileName()
+                        + (preparedPack.reused() ? ", unchanged" : ", rebuilt")
+                        + ", auto-enabled on start, "
                         + preparedPack.position().name().toLowerCase(java.util.Locale.ROOT) + ").");
             } catch (Throwable t) {
                 context.getLogger().error("Failed to register the bundled datapack: "

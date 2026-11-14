@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  * AdvancementFilter — per-achievement filtering for the bundled advancement JSON.
  * <p>
  * Advancements are data-driven in Minecraft, not a registry, so the only way to
- * switch one off is to keep its file out of the extracted pack. Doing that naively
+ * switch one off is to keep its file out of the built pack. Doing that naively
  * breaks the tree: every child names its parent, and a missing parent makes the
  * server drop the child too. This class therefore
  * <ul>
@@ -100,13 +100,13 @@ final class AdvancementFilter {
             }
         } else if (legacyOff) {
             log.info("datapack.modules.advancements=false (legacy key) — "
-                    + "custom achievements are not extracted. Move it to advancements.enabled.");
+                    + "custom achievements are not included. Move it to advancements.enabled.");
         }
 
         AdvancementFilter filter = new AdvancementFilter(reader, master, tables);
         int disabled = filter.disabledCount();
         if (!master) {
-            log.info("advancements.enabled=false — no custom achievement is extracted.");
+            log.info("advancements.enabled=false — no custom achievement is included.");
         } else if (disabled > 0) {
             log.info("Custom achievements: " + disabled + " disabled, the rest stay in the tree.");
         }
@@ -118,7 +118,7 @@ final class AdvancementFilter {
         return relPath != null && relPath.startsWith(PATH_PREFIX) && relPath.endsWith(".json");
     }
 
-    /** @return true when the file must be copied into the extracted pack */
+    /** @return true when the file must be written into the built pack */
     boolean allows(String relPath) {
         if (!isAdvancementPath(relPath)) return true;
         if (!master) return false;

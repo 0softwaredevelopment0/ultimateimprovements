@@ -5,11 +5,13 @@ import com.ultimateimprovments.module.PluginModule;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * Datapack — installs the bundled UI-Datapack into the world's
- * {@code datapacks/} folder and verifies it is enabled in the world.
+ * Datapack — reports the state of the bundled UI-Datapack and verifies that the
+ * discovered pack is enabled in the world (the pack itself is built into
+ * {@code plugins/UltimateImprovments/datapack/UI-Datapack-<lang>.zip} by the
+ * bootstrapper, before the worlds load).
  * <p>
- * Installation mode and enabled parts are read from {@code datapack.*}
- * in the UI-Datapack config (see {@code DatapackModules}).
+ * Enabled parts are read from {@code datapack.*} in the UI-Datapack config
+ * (see {@code DatapackModules}).
  */
 public final class DatapackModule extends PluginModule {
 

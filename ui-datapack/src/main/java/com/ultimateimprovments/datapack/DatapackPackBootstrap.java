@@ -4,23 +4,31 @@ import com.moandjiezana.toml.Toml;
 import io.papermc.paper.datapack.Datapack;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
-import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 /**
- * DatapackPackBootstrap — prepares the bundled UI-Datapack on disk for the
+ * DatapackPackBootstrap — prepares the bundled UI-Datapack for the
  * {@code DATAPACK_DISCOVERY} event (runs very early, before UI-Core is loaded, so it
  * cannot use the family's {@code CompositeConfig}).
  * <p>
@@ -32,13 +40,22 @@ import java.util.zip.ZipFile;
  * {@code auto} follows {@code messages.lang} from {@code UI-Core.toml}).
  * <p>
  * It also reads {@code datapack.enabled} / {@code datapack.position} /
- * {@code datapack.modules.*} from the same TOML, extracts the enabled subset of the
- * selected pack into {@code plugins/UltimateImprovments/datapack/UI-Datapack-<lang>},
- * and returns that folder (or {@code null} when the master toggle is off).
+ * {@code datapack.modules.*} from the same TOML, builds the enabled subset of the
+ * selected pack <b>in memory as a zip</b> and materialises it as
+ * {@code plugins/UltimateImprovments/datapack/UI-Datapack-<lang>.zip} (or returns
+ * {@code null} when the master toggle is off). Paper discovers a {@code .zip} file
+ * just like a folder ({@code FilePackResources}), so no file tree is written.
+ * <p>
+ * The archive is built deterministically (sorted entries, fixed entry timestamp,
+ * fixed deflate level), which lets the next server start hash it and skip the write
+ * entirely when the bytes did not change. {@code datapack/hash.txt} stores
+ * {@code <sha256>  <zip name>}; a missing file, a different hash, a damaged archive
+ * or a stale entry all force a rebuild. The zip is only written before the pack is
+ * discovered — never while the server holds it open (Windows file locks).
  * <p>
  * Custom achievements are filtered per achievement by {@link AdvancementFilter}
  * from {@code configs/UI-Advancements.toml}: they are datapack JSON, not a registry,
- * so this extraction is the only place a single achievement can be switched off.
+ * so this build is the only place a single achievement can be switched off.
  */
 final class DatapackPackBootstrap {
 
@@ -50,17 +67,28 @@ final class DatapackPackBootstrap {
     /** Name prefix of the pack on disk (the language suffix follows). */
     static final String PACK_PREFIX = "UI-Datapack";
 
+    /** Every materialised pack is a single zip file. */
+    private static final String ZIP_SUFFIX = ".zip";
+
+    /** File next to the zip holding {@code "<sha256>  <zip name>"}. */
+    private static final String HASH_FILE = "hash.txt";
+
+    /**
+     * Fixed zip entry timestamp (2000-01-01 00:00, local fields). The content, not
+     * the build time, must decide the bytes: otherwise the hash changes every start
+     * and the cache never hits.
+     */
+    private static final LocalDateTime ENTRY_TIME = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
+
     private static final String EN = PackLanguage.EN;
     private static final String RU = PackLanguage.RU;
 
-    /** Language used when nothing is configured and UI-Core has no preference yet. */
-    private static final String DEFAULT_LANG = PackLanguage.DEFAULT_LANG;
-
     /**
-     * The prepared pack and where it goes in the datapack stack
-     * ({@code datapack.position}: "top" by default, "bottom" to let other packs win).
+     * The prepared pack, where it goes in the datapack stack
+     * ({@code datapack.position}: "top" by default, "bottom" to let other packs win),
+     * its pack id, and whether the archive was reused instead of rebuilt.
      */
-    record Prepared(Path path, Datapack.Position position) {}
+    record Prepared(Path path, Datapack.Position position, String packId, boolean reused) {}
 
     static Prepared prepare(ComponentLogger log) throws Exception {
         File shared = new File(new File("plugins"), "UltimateImprovments");
@@ -126,27 +154,43 @@ final class DatapackPackBootstrap {
         log.info("Datapack language: " + lang + " (datapack.lang: " + configuredLang + ")");
 
         String packName = PACK_PREFIX + "-" + lang;
-        File packRoot = new File(shared, "datapack");
-        deleteStalePacks(packRoot);
-        File target = new File(packRoot, packName);
-        if (!target.mkdirs() && !target.isDirectory()) {
-            throw new IOException("Cannot create datapack folder: " + target.getAbsolutePath());
+        String zipName = packName + ZIP_SUFFIX;
+        File packRootFile = new File(shared, "datapack");
+        if (!packRootFile.isDirectory() && !packRootFile.mkdirs() && !packRootFile.isDirectory()) {
+            throw new IOException("Cannot create datapack folder: " + packRootFile.getAbsolutePath());
         }
+        Path packRoot = packRootFile.toPath();
+        Path target = packRoot.resolve(zipName);
+        Path hashFile = packRoot.resolve(HASH_FILE);
 
         String jarPrefix = JAR_PREFIX + lang + "/";
         AdvancementFilter filter = AdvancementFilter.load(shared,
                 advancementReader(source, lang), log, legacyAdvancementsOff);
-        int copied = source.isDirectory()
-                ? copyFromDirectory(source, target, parts, filter, log, jarPrefix)
-                : copyFromJar(source, target, parts, filter, jarPrefix);
-        if (copied == 0) {
-            throw new IOException(packName + " extraction copied 0 files");
+
+        byte[] archive = buildZip(source, jarPrefix, parts, filter);
+        if (archive == null) {
+            throw new IOException(packName + " build produced no files");
+        }
+        String hash = sha256(archive);
+
+        boolean reused = isCached(target, hashFile, zipName, hash);
+        if (reused) {
+            log.info("Bundled datapack unchanged (sha256 " + shortHash(hash)
+                    + ") — reusing " + target);
+        } else {
+            writeAtomically(target, archive);
+            writeHash(hashFile, hash, zipName);
+            log.info("Built bundled datapack " + zipName + " (" + archive.length / 1024
+                    + " KB, sha256 " + shortHash(hash) + ") at " + target);
         }
 
-        log.info("Extracted " + copied + " datapack file(s) from " + packName
-                + " to " + target.getAbsolutePath() + " (position: "
-                + position.name().toLowerCase(java.util.Locale.ROOT) + ")");
-        return new Prepared(target.toPath(), position);
+        // Only after the current archive is in place: drop older variants and the
+        // folders written by previous releases (they would be duplicate packs).
+        cleanupStale(packRoot, zipName, log);
+
+        log.info("Datapack position: " + position.name().toLowerCase(Locale.ROOT)
+                + " (datapack.position: " + configuredPosition + ")");
+        return new Prepared(target, position, packName, reused);
     }
 
     /** @return the configured stack position; unknown values fall back to TOP */
@@ -252,86 +296,192 @@ final class DatapackPackBootstrap {
     }
 
     // =========================
-    // EXTRACTION
+    // ARCHIVE BUILD
     // =========================
 
-    private static int copyFromJar(File jar, File target, Map<String, Boolean> parts,
-                                   AdvancementFilter filter, String jarPrefix) throws Exception {
-        int copied = 0;
-        try (ZipFile zip = new ZipFile(jar)) {
-            var entries = zip.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
-                if (!entry.getName().startsWith(jarPrefix)) continue;
+    /**
+     * Reads the enabled subset of one language variant from the pack source.
+     * Single pass: the JAR is opened once, not once per file.
+     *
+     * @return relative pack path to file content (unsorted; callers sort)
+     */
+    private static Map<String, byte[]> collect(File source, String jarPrefix,
+                                               Map<String, Boolean> parts,
+                                               AdvancementFilter filter) throws Exception {
+        Map<String, byte[]> entries = new HashMap<>();
+        if (source.isDirectory()) {
+            Path root = source.toPath().resolve(jarPrefix);
+            if (!Files.isDirectory(root)) return entries;
+            try (var walk = Files.walk(root)) {
+                for (Path file : (Iterable<Path>) walk.filter(Files::isRegularFile)::iterator) {
+                    String rel = root.relativize(file).toString().replace('\\', '/');
+                    if (!keep(rel, parts, filter)) continue;
+                    entries.put(rel, Files.readAllBytes(file));
+                }
+            }
+            return entries;
+        }
+        try (ZipFile zip = new ZipFile(source)) {
+            var iterator = zip.entries();
+            while (iterator.hasMoreElements()) {
+                ZipEntry entry = iterator.nextElement();
+                if (entry.isDirectory() || !entry.getName().startsWith(jarPrefix)) continue;
                 String rel = entry.getName().substring(jarPrefix.length());
-                if (rel.isEmpty()) continue;
-                if (entry.isDirectory()) {
-                    new File(target, rel).mkdirs();
-                    continue;
-                }
-                if (!isPathEnabled(parts, rel)) continue;
-                if (!filter.allows(rel)) continue;
+                if (rel.isEmpty() || !keep(rel, parts, filter)) continue;
                 try (InputStream in = zip.getInputStream(entry)) {
-                    byte[] data = AdvancementFilter.isAdvancementPath(rel)
-                            ? filter.rewrite(rel, in.readAllBytes())
-                            : null;
-                    if (write(target, rel, data != null ? new ByteArrayInputStream(data) : in)) copied++;
+                    entries.put(rel, in.readAllBytes());
                 }
             }
         }
-        return copied;
+        return entries;
     }
 
-    private static int copyFromDirectory(File root, File target, Map<String, Boolean> parts,
-                                         AdvancementFilter filter, ComponentLogger log,
-                                         String jarPrefix) throws Exception {
-        Path packRoot = root.toPath().resolve(jarPrefix);
-        if (!Files.isDirectory(packRoot)) return 0;
-        List<Path> files;
-        try (var walk = Files.walk(packRoot)) {
-            files = walk.filter(Files::isRegularFile).toList();
-        }
-        int copied = 0;
-        for (Path file : files) {
-            String rel = packRoot.relativize(file).toString().replace('\\', '/');
-            if (!isPathEnabled(parts, rel)) continue;
-            if (!filter.allows(rel)) continue;
-            byte[] data = Files.readAllBytes(file);
-            if (AdvancementFilter.isAdvancementPath(rel)) data = filter.rewrite(rel, data);
-            if (write(target, rel, new ByteArrayInputStream(data))) copied++;
-        }
-        return copied;
-    }
-
-    private static boolean write(File target, String rel, InputStream in) throws Exception {
-        try (in) {
-            File outFile = new File(target, rel);
-            File parent = outFile.getParentFile();
-            if (parent != null) parent.mkdirs();
-            try (FileOutputStream out = new FileOutputStream(outFile)) {
-                in.transferTo(out);
-            }
-            return true;
-        }
-    }
-
-    /** Delegates to the shared part registry so the copy step and the gate agree. */
-    private static boolean isPathEnabled(Map<String, Boolean> parts, String relPath) {
-        return DatapackParts.isPathEnabled(parts, relPath);
+    private static boolean keep(String relPath, Map<String, Boolean> parts, AdvancementFilter filter) {
+        // Delegates to the shared part registry so the build and the gate agree.
+        return DatapackParts.isPathEnabled(parts, relPath) && filter.allows(relPath);
     }
 
     /**
-     * Removes every previously extracted pack ({@code UI-Datapack},
-     * {@code UI-Datapack-en}, {@code UI-Datapack-ru}, ...) so switching the language
-     * never leaves a stale copy behind.
+     * Builds the zip in memory. Deterministic on purpose: entries are sorted by
+     * name, every entry gets {@link #ENTRY_TIME} and the deflate level is fixed, so
+     * identical inputs always produce identical bytes (and the same SHA-256).
+     *
+     * @return the archive, or {@code null} when the pack source is empty
      */
-    private static void deleteStalePacks(File packRoot) {
-        File[] children = packRoot.listFiles();
+    static byte[] buildZip(File source, String jarPrefix,
+                           Map<String, Boolean> parts,
+                           AdvancementFilter filter) throws Exception {
+        Map<String, byte[]> files = collect(source, jarPrefix, parts, filter);
+        if (files.isEmpty()) return null;
+
+        List<String> names = new ArrayList<>(files.keySet());
+        names.sort(Comparator.naturalOrder());
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream(1 << 20);
+        try (ZipOutputStream out = new ZipOutputStream(bytes, StandardCharsets.UTF_8)) {
+            out.setLevel(Deflater.DEFAULT_COMPRESSION);
+            for (String rel : names) {
+                byte[] data = files.get(rel);
+                if (AdvancementFilter.isAdvancementPath(rel)) {
+                    data = filter.rewrite(rel, data);
+                }
+                ZipEntry entry = new ZipEntry(rel);
+                // Local fields (no time zone dependency, no extra timestamp field).
+                entry.setTimeLocal(ENTRY_TIME);
+                out.putNextEntry(entry);
+                out.write(data);
+                out.closeEntry();
+            }
+        }
+        return bytes.toByteArray();
+    }
+
+    // =========================
+    // CACHE (zip + hash.txt)
+    // =========================
+
+    /**
+     * Whether the existing archive can be kept: it must exist, the hash file must
+     * describe that same file with that same hash, and the file on disk must still
+     * hash to it (catches a truncated write or a manual edit).
+     */
+    private static boolean isCached(Path target, Path hashFile, String zipName, String expectedHash) {
+        if (!Files.isRegularFile(target)) return false;
+        HashRecord stored = readHash(hashFile);
+        if (stored == null || !stored.file().equals(zipName) || !stored.hash().equals(expectedHash)) {
+            return false;
+        }
+        try {
+            return expectedHash.equals(sha256(target));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static String sha256(byte[] data) throws Exception {
+        return hex(MessageDigest.getInstance("SHA-256").digest(data));
+    }
+
+    private static String sha256(Path file) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        try (DigestInputStream in = new DigestInputStream(Files.newInputStream(file), digest)) {
+            byte[] buffer = new byte[8192];
+            while (in.read(buffer) != -1) {
+                // The digest is updated by the stream itself; only the read matters.
+            }
+        }
+        return hex(digest.digest());
+    }
+
+    private static String hex(byte[] bytes) {
+        StringBuilder out = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            out.append(Character.forDigit((b >> 4) & 0xF, 16));
+            out.append(Character.forDigit(b & 0xF, 16));
+        }
+        return out.toString();
+    }
+
+    private static String shortHash(String hash) {
+        return hash.length() <= 12 ? hash : hash.substring(0, 12);
+    }
+
+    /** One parsed line of {@code hash.txt}. */
+    private record HashRecord(String hash, String file) {}
+
+    private static HashRecord readHash(Path hashFile) {
+        if (!Files.isRegularFile(hashFile)) return null;
+        try {
+            for (String line : Files.readAllLines(hashFile, StandardCharsets.UTF_8)) {
+                String trimmed = line.trim();
+                if (trimmed.isEmpty() || trimmed.startsWith("#")) continue;
+                String[] tokens = trimmed.split("\\s+");
+                if (tokens.length < 2) return null;
+                return new HashRecord(tokens[0].toLowerCase(Locale.ROOT), tokens[1]);
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    private static void writeHash(Path hashFile, String hash, String zipName) throws IOException {
+        byte[] data = (hash + "  " + zipName + "\n").getBytes(StandardCharsets.UTF_8);
+        writeAtomically(hashFile, data);
+    }
+
+    private static void writeAtomically(Path target, byte[] data) throws IOException {
+        Path temp = target.resolveSibling(target.getFileName() + ".tmp");
+        try {
+            Files.write(temp, data);
+            try {
+                Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(temp);
+        }
+    }
+
+    /**
+     * Removes everything in {@code datapack/} that is not the current archive or its
+     * hash file: the other language variant, {@code .tmp} leftovers and the folder
+     * every release before 1.8.5-beta.49 extracted. Unknown files are left alone.
+     */
+    private static void cleanupStale(Path packRoot, String keepZip, ComponentLogger log) {
+        File[] children = packRoot.toFile().listFiles();
         if (children == null) return;
         for (File child : children) {
-            if (child.isDirectory() && child.getName().startsWith(PACK_PREFIX)) {
-                deleteRecursively(child.toPath());
+            String name = child.getName();
+            if (HASH_FILE.equals(name) || name.equals(keepZip)) continue;
+            boolean temp = name.endsWith(".tmp");
+            if (!temp && !name.startsWith(PACK_PREFIX)) continue;
+            if (child.isDirectory()) {
+                log.info("Removing legacy extracted datapack folder '" + name
+                        + "' — the bundled pack is a single zip now.");
             }
+            deleteRecursively(child.toPath());
         }
     }
 

@@ -7,6 +7,14 @@ dependencies {
     paperweight.paperDevBundle("26.3.build.+")
     implementation project(':ui-core')
     implementation 'com.moandjiezana.toml:toml4j:0.7.2'
+
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }
 
 // The bundled UI-Datapack resources live in this module's own

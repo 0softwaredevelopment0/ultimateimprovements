@@ -3,6 +3,34 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-beta.49] - 2026-11-15
+
+### Changed
+- **The bundled datapack is a single zip now, not a 243-file folder.**
+  `plugins/UltimateImprovments/datapack/` holds `UI-Datapack-<lang>.zip` (Paper
+  discovers a zip exactly like a folder via `FilePackResources`) instead of
+  `UI-Datapack-<lang>/` with the whole tree. The archive is assembled **in memory**
+  from the addon JAR — part toggles (`datapack.modules.*`) and per-achievement
+  switches (`UI-Advancements.toml`) are still applied, including the
+  advancement-parent rewrite — and then written atomically.
+- **`datapack/hash.txt` caches the build.** It stores
+  `<sha256>  <zip name>`; the archive is built deterministically (entries sorted by
+  name, fixed 2000-01-01 entry timestamp, fixed deflate level), so an unchanged
+  pack produces the same bytes and is not rewritten at all. A missing hash file, a
+  different hash, a damaged/edited zip or a switched language rebuilds it and
+  rewrites both files.
+- **Old extracted folders are removed automatically** on the first start after the
+  update, together with the other language variant and any `.tmp` leftovers — two
+  copies of the same pack id can never be discovered at once.
+- `datapack.position` no longer influences the archive: it only affects the
+  discovery call, so moving the pack in the stack does not rebuild it.
+
+### Fixed
+- **`DatapackInstaller` matched the pack by a fallback only.** Paper registers
+  plugin packs as `UI-Datapack/UI-Datapack-<lang>`, while the exact-name lookup
+  used `UI-Datapack-<lang>`; the `contains` fallback hid it. Both the bare id and
+  the namespaced form are accepted now.
+
 ## [1.8.5-beta.48] - 2026-11-15
 
 ### Changed
