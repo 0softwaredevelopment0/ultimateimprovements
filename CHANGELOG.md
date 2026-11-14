@@ -3,6 +3,43 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-beta.47] - 2026-11-15
+
+### Added
+- **`configs/UI-Enchantments.toml` — the custom enchantments get their own config.**
+  Master switch (`enchantments.enabled`), one `enabled` flag per enchantment (all
+  18), and per-enchantment values that used to be constants in
+  `EnchantmentDefinition`: `name_en` / `name_ru` (display names, so a restart can
+  translate the registry tooltip), `max_level`, `anvil_cost`, `active_slots`
+  (`MAINHAND`/`ARMOR`/`ANY`/...).
+- **`[enchantments.defaults]`** carries the values shared by all of them: `weight`
+  and the enchanting-table cost curve (`min_cost_base`, `min_cost_per_level`,
+  `max_cost_base`, `max_cost_per_level`).
+- Config validation for the whole section (master, defaults, 18 × 6 keys), so a
+  typo — including an unknown `active_slots` name — is reported instead of being
+  silently ignored.
+
+### Changed
+- **Enchantments are no longer a datapack part.** `datapack.modules.enchantments`
+  and `datapack.disabled_enchantments` are gone; the pack always copies the
+  enchantment item tags (`ui/tags/item/`, `minecraft/tags/enchantment/`) because
+  the registry needs them. Both legacy keys are still honoured as a fallback for
+  installs that have not migrated yet.
+- **`enchant.custom_enchantments` removed from `UI-Enchant.toml`.** The list only
+  fed tab-complete and had already drifted from the registry (15 entries instead
+  of 18 — the three curses were missing). Tab-complete and `/ui enchant` now read
+  the real list from `EnchantmentDefinition` through `Enchantments.IDS`, showing
+  only the enabled ids.
+- `datapack.enabled=false` no longer switches custom enchantments off — they are
+  registry entries, not pack content. `enchantments.enabled` is their switch. A
+  warning is logged when the pack is off while tag-based enchantments are on.
+
+### Runtime
+- New `com.ultimateimprovments.enchant.Enchantments` (ui-core): master/per-id
+  checks, per-enchantment typed getters and the `active_slots` parser used by the
+  bootstrap; the module gate now prunes the effect engine of a disabled
+  enchantment from the same source.
+
 ## [1.8.5-beta.46] - 2026-11-15
 
 ### Added

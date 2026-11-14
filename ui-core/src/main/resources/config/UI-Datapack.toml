@@ -17,8 +17,9 @@
 # requires a server restart (discovery happens at startup only).
 [datapack]
 # Master switch (true = feature on).
-# false = the pack is not registered at all AND the custom enchantments are not
-# registered through the registry (nothing of the bundled content exists).
+# false = the pack is not registered at all (no recipes, structures, worldgen,
+# advancements or item tags). Custom enchantments live in the registry and are
+# controlled by configs/UI-Enchantments.toml, not by this key.
 # Default: true
 enabled = true
 
@@ -38,32 +39,16 @@ lang = "auto"
 # Default: "top"
 position = "top"
 
-# Custom enchantments to leave out, by id: ["flight", "veinminer"].
-# An entry here removes BOTH the registry entry (it can no longer be obtained or
-# applied, and existing items lose the tooltip) and the plugin module implementing
-# its effect. The "enchantments" part below stays on; this is the per-enchantment
-# switch on top of it. A "ui:" prefix is accepted and ignored.
-# Known ids: aoe, attack_aoe, autosmelt, blunting, container_stealing, degradation,
-# disappearance, flight, igniting, item_stealing, lava_walker, levitation, magnet,
-# repairing, self_destruct, treecapitator, veinminer, vulnerability.
-# Unknown ids are reported in the console and skipped.
-# Requires a server restart (the registry is filled once, at bootstrap).
-# Default: []
-disabled_enchantments = []
-
 # Datapack parts. Each part covers the listed files inside the pack; a disabled
 # part is not extracted from the JAR and its plugin code modules are not registered.
 # Files that belong to no part are always extracted.
 #
-# Custom advancements are NOT here: they are toggled one by one in
-# configs/UI-Advancements.toml (master switch + per-achievement settings).
+# Custom enchantments and achievements are NOT here: they have their own files,
+# configs/UI-Enchantments.toml and configs/UI-Advancements.toml (master switch,
+# one toggle per entry and the values that used to be constants in the code).
 #
 # Requires a server restart.
 [datapack.modules]
-# Custom enchantment item tags (ui/tags/item/*, minecraft/tags/enchantment/*).
-# Turning this off also stops all custom enchantments from being registered.
-# Default: true
-enchantments = true
 # Custom recipes that add new items (ui/recipe/*).
 # Default: true
 custom_recipes = true

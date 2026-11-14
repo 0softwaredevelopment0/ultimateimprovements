@@ -1,5 +1,6 @@
 package com.ultimateimprovments.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -88,7 +89,21 @@ final class ConfigRules {
     // =========================
     // VALIDATION RULES
     // =========================
-    static final List<Rule> ALL = List.of(
+
+    /** Equipment slots accepted by {@code enchantments.<id>.active_slots}. */
+    private static final String[] ACTIVE_SLOT_GROUPS = {
+            "ANY", "MAINHAND", "OFFHAND", "HAND", "FEET", "LEGS", "CHEST", "HEAD",
+            "ARMOR", "BODY", "SADDLE"};
+
+    static final List<Rule> ALL = build();
+
+    /**
+     * Builds the rule list. Most rules are literal; the custom enchantments are
+     * generated from {@code Enchantments.IDS} so a new enchantment cannot be
+     * forgotten here.
+     */
+    private static List<Rule> build() {
+        List<Rule> rules = new ArrayList<>(List.of(
             integer("config.read_timeout_sec", 1, 300, "Таймаут чтения одного конфиг-TOML, сек (медленный файл = бэкап + регенерация)"),
 
             bool("energy.generator.enabled"),
@@ -662,16 +677,13 @@ final class ConfigRules {
             bool("enchant.enabled"),
             integer("enchant.max_level", 1, 1_000_000),
             string("enchant.permission", false, 128),
-            stringList("enchant.custom_enchantments"),
 
             // ── UI-Datapack · bundled pack ──
-            // Types are checked here; unknown enchantment ids in the list are
-            // reported by DatapackModules at load (it knows the valid ids).
+            // Custom enchantments and achievements are validated in their own
+            // sections below (UI-Enchantments / UI-Advancements).
             bool("datapack.enabled"),
             stringEnum("datapack.lang", "en", "ru", "auto"),
             stringEnum("datapack.position", "top", "bottom"),
-            stringList("datapack.disabled_enchantments"),
-            bool("datapack.modules.enchantments"),
             bool("datapack.modules.custom_recipes"),
             bool("datapack.modules.vanilla_recipes"),
             bool("datapack.modules.loot_tables"),
@@ -829,5 +841,27 @@ final class ConfigRules {
 
             notBlank("plugin_version", 32),
             string("prefix", false, 512)
-    );
+        ));
+
+        // ── UI-Enchantments · custom enchantment registry entries ──
+        // The registry is filled once at bootstrap, so every value here is
+        // restart-only. Supported items stay code-side (they are tag/list unions
+        // the registry API cannot express through a config string).
+        rules.add(bool("enchantments.enabled"));
+        rules.add(integer("enchantments.defaults.weight", 1, 1024));
+        rules.add(integer("enchantments.defaults.min_cost_base", 0, 1_000_000));
+        rules.add(integer("enchantments.defaults.min_cost_per_level", 0, 1_000_000));
+        rules.add(integer("enchantments.defaults.max_cost_base", 0, 1_000_000));
+        rules.add(integer("enchantments.defaults.max_cost_per_level", 0, 1_000_000));
+
+        for (String id : com.ultimateimprovments.enchant.Enchantments.IDS) {
+            rules.add(bool("enchantments." + id + ".enabled"));
+            rules.add(notBlank("enchantments." + id + ".name_en", 128));
+            rules.add(notBlank("enchantments." + id + ".name_ru", 128));
+            rules.add(integer("enchantments." + id + ".max_level", 1, 255));
+            rules.add(integer("enchantments." + id + ".anvil_cost", 0, 1_000_000));
+            rules.add(stringEnum("enchantments." + id + ".active_slots", ACTIVE_SLOT_GROUPS));
+        }
+        return List.copyOf(rules);
+    }
 }

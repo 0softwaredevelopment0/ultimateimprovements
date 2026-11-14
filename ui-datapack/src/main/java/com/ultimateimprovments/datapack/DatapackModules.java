@@ -7,11 +7,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * DatapackModules — modular loading of the bundled UI-Datapack.
@@ -22,10 +20,12 @@ import java.util.Set;
  * this class and the bootstrapper can never disagree about what a part covers.
  * <p>
  * Disabled parts are NOT extracted into the pack folder, and the plugin code
- * modules bound to those parts are not registered either. Individual custom
- * enchantments can additionally be switched off with
- * {@code datapack.disabled_enchantments = ["flight", ...]}, which skips both the
- * registry entry and the code module behind it.
+ * modules bound to those parts are not registered either.
+ * <p>
+ * Custom enchantments and achievements are <b>not</b> datapack parts any more:
+ * each has its own config ({@code UI-Enchantments.toml} /
+ * {@code UI-Advancements.toml}) and its own per-entry switch. Their effect
+ * modules are pruned through {@link ModuleManager.DatapackGate#isModuleDisabled}.
  */
 public final class DatapackModules {
 
@@ -35,7 +35,6 @@ public final class DatapackModules {
     // PARTS (re-exported for callers)
     // =========================
 
-    public static final String ENCHANTMENTS = DatapackParts.ENCHANTMENTS;
     public static final String CUSTOM_RECIPES = DatapackParts.CUSTOM_RECIPES;
     public static final String VANILLA_RECIPES = DatapackParts.VANILLA_RECIPES;
     public static final String LOOT_TABLES = DatapackParts.LOOT_TABLES;
@@ -48,8 +47,8 @@ public final class DatapackModules {
      * Plugin code modules (ModuleManager names) bound to a datapack part.
      * If the part is disabled, these modules are skipped at registration.
      * <p>
-     * Achievements are deliberately absent: they are switched individually in
-     * {@code UI-Advancements.toml}, see {@link #ADVANCEMENT_MODULES}.
+     * Enchantments and achievements are deliberately absent: they are switched
+     * individually, see {@link #ENCHANTMENT_MODULES} and {@link #ADVANCEMENT_MODULES}.
      */
     private static final Map<String, List<String>> CODE_MODULES;
 
@@ -64,20 +63,14 @@ public final class DatapackModules {
 
     /**
      * Custom enchantment id ({@code ui:<id>}) -> the code module implementing it.
-     * Used by {@code datapack.disabled_enchantments} to drop the effect engine
-     * together with the registry entry; an id with no module here (the curses
+     * Used by {@code enchantments.<id>.enabled} to drop the effect engine together
+     * with the registry entry; an id with no module here (the curses
      * {@code blunting}, {@code disappearance}, {@code vulnerability}) is pure data.
      */
     private static final Map<String, String> ENCHANTMENT_MODULES;
 
     static {
         Map<String, List<String>> modules = new LinkedHashMap<>();
-        modules.put(ENCHANTMENTS, List.of(
-                "AOEEnchantment", "AutoSmeltEnchantment", "VeinMinerEnchantment",
-                "TreeCapitatorEnchantment", "FlightEnchantment", "MagnetEnchantment",
-                "IgnitingEnchantment", "LevitationEnchantment", "SelfDestructEnchantment",
-                "DegradationEnchantment", "AttackAoeEnchantment", "ItemStealingEnchantment",
-                "RepairingEnchantment", "ContainerStealingEnchantment", "LavaWalkerEnchantment"));
         CODE_MODULES = java.util.Collections.unmodifiableMap(modules);
 
         Map<String, String> advancementModules = new LinkedHashMap<>();
@@ -111,7 +104,6 @@ public final class DatapackModules {
     }
 
     private static final Map<String, Boolean> CACHE = new HashMap<>();
-    private static final Set<String> DISABLED_ENCHANTMENTS = new LinkedHashSet<>();
     private static boolean masterEnabled = true;
     private static String language = "en";
 
@@ -135,45 +127,20 @@ public final class DatapackModules {
             CACHE.put(part, cfg.getBoolean(DatapackParts.CONFIG_ROOT + "." + part, true));
         }
 
-        DISABLED_ENCHANTMENTS.clear();
-        List<String> disabled = cfg.getStringList(DatapackParts.DISABLED_ENCHANTMENTS_KEY);
-        for (String id : disabled) {
-            String normalized = normalizeEnchantmentId(id);
-            if (normalized == null) continue;
-            if (!ENCHANTMENT_MODULES.containsKey(normalized) && !isDataOnlyCurse(normalized)) {
-                ConsoleLogger.warn("[Datapack] datapack.disabled_enchantments: unknown enchantment '"
-                        + id + "' — ignored. Known ids: " + String.join(", ", knownEnchantmentIds()) + ".");
-                continue;
-            }
-            DISABLED_ENCHANTMENTS.add(normalized);
-        }
-
         ConsoleLogger.info("[Datapack] " + (isMasterEnabled()
                 ? "Master: ON | Language: " + language + " | Modules: " + describe()
-                  + (DISABLED_ENCHANTMENTS.isEmpty() ? ""
-                     : " | Disabled enchantments: " + String.join(", ", DISABLED_ENCHANTMENTS))
+                  + " | Enchantments: " + enabledEnchantmentCount() + "/"
+                  + com.ultimateimprovments.enchant.Enchantments.IDS.size()
                 : "Master: OFF (datapack.enabled: false) — datapack disabled entirely."));
     }
 
-    /** @return the id without a {@code ui:} prefix, lower-cased, or null for blank input */
-    private static String normalizeEnchantmentId(String id) {
-        if (id == null) return null;
-        String value = id.trim().toLowerCase(Locale.ROOT);
-        if (value.startsWith("ui:")) value = value.substring(3);
-        return value.isEmpty() ? null : value;
-    }
-
-    /** The three curses that are pure datapack data and have no code module. */
-    private static boolean isDataOnlyCurse(String id) {
-        return "blunting".equals(id) || "disappearance".equals(id) || "vulnerability".equals(id);
-    }
-
-    private static Set<String> knownEnchantmentIds() {
-        Set<String> ids = new LinkedHashSet<>(ENCHANTMENT_MODULES.keySet());
-        ids.add("blunting");
-        ids.add("disappearance");
-        ids.add("vulnerability");
-        return ids;
+    /** How many custom enchantments the new config leaves enabled (diagnostics only). */
+    private static int enabledEnchantmentCount() {
+        int count = 0;
+        for (String id : com.ultimateimprovments.enchant.Enchantments.IDS) {
+            if (com.ultimateimprovments.enchant.Enchantments.isEnabled(id)) count++;
+        }
+        return count;
     }
 
     /**
@@ -211,20 +178,7 @@ public final class DatapackModules {
         return masterEnabled;
     }
 
-    /** Custom enchantments the admin switched off ({@code datapack.disabled_enchantments}). */
-    public static Set<String> getDisabledEnchantments() {
-        return java.util.Collections.unmodifiableSet(DISABLED_ENCHANTMENTS);
-    }
-
-    /** Whether one custom enchantment ({@code ui:<id>}) may be registered and implemented. */
-    public static boolean isEnchantmentEnabled(String id) {
-        String normalized = normalizeEnchantmentId(id);
-        if (normalized == null) return true;
-        if (!masterEnabled) return false;
-        return !DISABLED_ENCHANTMENTS.contains(normalized);
-    }
-
-    /** Human-readable state, e.g. "enchantments ✔, advancements ✘, ...". */
+    /** Human-readable state, e.g. "custom_recipes ✔, worldgen ✘, ...". */
     public static String describe() {
         StringBuilder sb = new StringBuilder();
         for (String part : DatapackParts.all()) {
@@ -270,18 +224,16 @@ public final class DatapackModules {
     }
 
     /**
-     * Whether a module implements a custom enchantment the admin disabled via
-     * {@code datapack.disabled_enchantments}, or the trigger of a disabled custom
+     * Whether a module implements a custom enchantment disabled in
+     * {@code UI-Enchantments.toml}, or the trigger of a disabled custom
      * achievement ({@code UI-Advancements.toml}). Such a module must not register
      * even when its part as a whole is on.
      */
     public static boolean isModuleDisabled(String moduleName) {
         if (moduleName == null) return false;
-        if (!DISABLED_ENCHANTMENTS.isEmpty()) {
-            for (Map.Entry<String, String> e : ENCHANTMENT_MODULES.entrySet()) {
-                if (e.getValue().equals(moduleName)) {
-                    return DISABLED_ENCHANTMENTS.contains(e.getKey());
-                }
+        for (Map.Entry<String, String> e : ENCHANTMENT_MODULES.entrySet()) {
+            if (e.getValue().equals(moduleName)) {
+                return !com.ultimateimprovments.enchant.Enchantments.isEnabled(e.getKey());
             }
         }
         String achievement = ADVANCEMENT_MODULES.get(moduleName);

@@ -14,11 +14,17 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemType;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * EnchantmentRegistryBootstrap — registers the 18 custom enchantments through Paper's
@@ -37,17 +43,21 @@ import java.util.List;
  *       comes from the registry entry, which the server sends once for everyone. Only a
  *       resource pack could localise it per player, so the name follows the server-wide
  *       {@code datapack.lang} / {@code messages.lang} resolution in {@link PackLanguage} —
- *       exactly the language the old extracted pack was picked for. Changing it needs a
- *       restart, since bootstrap runs once.</li>
+ *       and both {@code name_en} / {@code name_ru} come from
+ *       {@code configs/UI-Enchantments.toml}, so a restart can change them.</li>
  *   <li><b>Keys are unchanged</b> ({@code ui:aoe}, {@code ui:veinminer}, ...), so items
  *       already carrying these enchantments keep working; no migration pass over
  *       inventories, ender chests or stored player data is needed.</li>
  * </ul>
- * Registration is skipped entirely when {@code datapack.modules.enchantments} is false or
- * when the master toggle {@code datapack.enabled} is false (the old behaviour kept 12
- * entries registered while their modules were gated off, i.e. obtainable but inert).
- * A single entry can be left out with {@code datapack.disabled_enchantments = ["flight"]},
- * which also skips the plugin module implementing it.
+ * Everything that used to be a constant in {@link EnchantmentDefinition} and can be
+ * tuned per server — display names, max level, anvil cost, active slots, and the
+ * shared weight/cost curve — is read from {@code UI-Enchantments.toml} here. Supported
+ * items stay code-side: three entries need tag unions the registry API cannot build
+ * from a config string.
+ * <p>
+ * Registration skips a single disabled enchantment ({@code enchantments.<id>.enabled}),
+ * and the whole system when the master switch is off. The validation still runs before
+ * any world loads.
  */
 final class EnchantmentRegistryBootstrap {
 
@@ -57,19 +67,24 @@ final class EnchantmentRegistryBootstrap {
     static void register(BootstrapContext context) {
         ComponentLogger log = context.getLogger();
         File shared = new File(new File("plugins"), "UltimateImprovments");
-        Settings settings = Settings.read(new File(new File(shared, "configs"), "UI-Datapack.toml"), log);
+        Settings settings = Settings.read(shared, log);
 
-        if (!settings.datapackEnabled()) {
-            // The master toggle means "no bundled datapack content at all". Registering
-            // the enchantments anyway used to leave 12 entries obtainable in the
-            // enchanting table with no code behind them (the gate disables their
-            // modules), i.e. inert enchantments.
-            log.info("datapack.enabled=false — custom enchantments are not registered.");
+        if (!settings.enabled()) {
+            log.info("enchantments.enabled=false — custom enchantments are not registered.");
             return;
         }
-        if (!settings.enchantments()) {
-            log.info("datapack.modules.enchantments=false — custom enchantments are not registered.");
-            return;
+        if (!settings.packEnabled()) {
+            List<String> tagBased = new ArrayList<>();
+            for (EnchantmentDefinition definition : EnchantmentDefinition.all()) {
+                if (definition.itemTag() != null && settings.isEnabled(definition.id())) {
+                    tagBased.add(definition.id());
+                }
+            }
+            if (!tagBased.isEmpty()) {
+                log.warn("datapack.enabled=false but these enchantments need a pack item tag: "
+                        + String.join(", ", tagBased)
+                        + " — they will be registered with an empty item set.");
+            }
         }
 
         String lang = PackLanguage.resolve(settings.configuredLang(), shared, log);
@@ -78,7 +93,7 @@ final class EnchantmentRegistryBootstrap {
                 + lang + ", " + EnchantmentDefinition.all().size() + " entries).");
 
         context.getLifecycleManager().registerEventHandler(RegistryEvents.ENCHANTMENT.compose(),
-                event -> compose(event, russian, settings.disabledEnchantments(), log));
+                event -> compose(event, russian, settings, log));
     }
 
     /**
@@ -88,18 +103,18 @@ final class EnchantmentRegistryBootstrap {
      * down with it.
      */
     private static void compose(RegistryComposeEvent<Enchantment, EnchantmentRegistryEntry.Builder> event,
-                                boolean russian, java.util.Set<String> disabled, ComponentLogger log) {
+                                boolean russian, Settings settings, ComponentLogger log) {
         int registered = 0;
         List<String> skipped = new ArrayList<>();
 
         for (EnchantmentDefinition definition : EnchantmentDefinition.all()) {
-            if (disabled.contains(definition.id())) {
-                // Switched off individually (datapack.disabled_enchantments).
+            if (!settings.isEnabled(definition.id())) {
+                // Switched off individually (enchantments.<id>.enabled) or by the master.
                 skipped.add(definition.id());
                 continue;
             }
             try {
-                register(event, definition, russian);
+                register(event, definition, russian, settings);
                 registered++;
             } catch (Throwable t) {
                 log.error("Failed to register the 'ui:" + definition.id()
@@ -117,26 +132,26 @@ final class EnchantmentRegistryBootstrap {
     }
 
     private static void register(RegistryComposeEvent<Enchantment, EnchantmentRegistryEntry.Builder> event,
-                                 EnchantmentDefinition definition, boolean russian) {
+                                 EnchantmentDefinition definition, boolean russian, Settings settings) {
         RegistryKeySet<ItemType> items = definition.itemTag() != null
                 ? event.getOrCreateTag(definition.itemTag())
                 : RegistrySet.keySet(RegistryKey.ITEM, itemKeys(definition.items()));
 
         event.registry().register(EnchantmentKeys.create(Key.key("ui", definition.id())),
                 builder -> builder
-                        .description(Component.text(russian ? definition.nameRu() : definition.nameEn()))
+                        .description(Component.text(russian
+                                ? settings.nameRu(definition)
+                                : settings.nameEn(definition)))
                         .supportedItems(items)
                         .primaryItems(items)
-                        .weight(EnchantmentDefinition.WEIGHT)
-                        .maxLevel(definition.maxLevel())
+                        .weight(settings.weight())
+                        .maxLevel(settings.maxLevel(definition))
                         .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(
-                                EnchantmentDefinition.MIN_COST_BASE,
-                                EnchantmentDefinition.MIN_COST_PER_LEVEL))
+                                settings.minCostBase(), settings.minCostPerLevel()))
                         .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(
-                                EnchantmentDefinition.MAX_COST_BASE,
-                                EnchantmentDefinition.MAX_COST_PER_LEVEL))
-                        .anvilCost(definition.anvilCost())
-                        .activeSlots(definition.activeSlots()));
+                                settings.maxCostBase(), settings.maxCostPerLevel()))
+                        .anvilCost(settings.anvilCost(definition))
+                        .activeSlots(settings.activeSlots(definition)));
     }
 
     private static List<TypedKey<ItemType>> itemKeys(List<String> ids) {
@@ -146,45 +161,201 @@ final class EnchantmentRegistryBootstrap {
     }
 
     /**
-     * The subset of {@code UI-Datapack.toml} this class cares about. Read directly with
-     * toml4j because the bootstrap runs long before UI-Core (and its config layer) exists.
+     * The subset of {@code UI-Enchantments.toml} this class cares about, plus the legacy
+     * keys from {@code UI-Datapack.toml}. Read directly with toml4j because the
+     * bootstrap runs long before UI-Core (and its config layer) exists.
+     * <p>
+     * Legacy migration: {@code datapack.modules.enchantments: false} switches the master
+     * off, and {@code datapack.disabled_enchantments} switches single ids off — but only
+     * while the new file does not carry the corresponding key yet. Config repair adds the
+     * new keys on the first start, so the old values are honoured exactly once.
      */
-    private record Settings(boolean datapackEnabled, boolean enchantments, String configuredLang,
-                            java.util.Set<String> disabledEnchantments) {
+    private record Settings(boolean enabled, boolean packEnabled, String configuredLang,
+                            Map<String, Table> tables, Set<String> legacyDisabled, int weight,
+                            int minCostBase, int minCostPerLevel, int maxCostBase, int maxCostPerLevel) {
 
-        static Settings read(File configFile, ComponentLogger log) {
-            boolean datapackEnabled = true;
-            boolean enchantments = true;
+        /** One {@code [enchantments.<id>]} table; {@code null} fields mean "use the code default". */
+        private record Table(Boolean enabled, String nameEn, String nameRu, Integer maxLevel,
+                             Integer anvilCost, String activeSlots) {}
+
+        static Settings read(File shared, ComponentLogger log) {
+            File configFile = new File(new File(shared, "configs"), "UI-Enchantments.toml");
+            boolean enabled = true;
+            boolean packEnabled = true;
+            boolean masterConfigured = false;
             String configuredLang = "auto";
-            java.util.Set<String> disabledEnchantments = java.util.Set.of();
+            Map<String, Table> tables = new HashMap<>();
+            Set<String> legacyDisabled = new LinkedHashSet<>();
+            int weight = EnchantmentDefinition.WEIGHT;
+            int minCostBase = EnchantmentDefinition.MIN_COST_BASE;
+            int minCostPerLevel = EnchantmentDefinition.MIN_COST_PER_LEVEL;
+            int maxCostBase = EnchantmentDefinition.MAX_COST_BASE;
+            int maxCostPerLevel = EnchantmentDefinition.MAX_COST_PER_LEVEL;
 
             if (configFile.isFile()) {
                 try {
                     Toml toml = new Toml().read(configFile);
-                    datapackEnabled = !Boolean.FALSE.equals(
-                            toml.getBoolean(DatapackParts.MASTER_KEY, true));
-                    configuredLang = toml.getString(DatapackParts.LANG_KEY, "auto");
-                    Toml modules = toml.getTable(DatapackParts.CONFIG_ROOT);
-                    if (modules != null) {
-                        enchantments = !Boolean.FALSE.equals(modules.getBoolean("enchantments", true));
+                    Boolean master = toml.getBoolean("enchantments.enabled");
+                    if (master != null) {
+                        enabled = master;
+                        masterConfigured = true;
                     }
-                    List<String> disabled = toml.getList(DatapackParts.DISABLED_ENCHANTMENTS_KEY);
-                    if (disabled != null) {
-                        java.util.Set<String> ids = new java.util.LinkedHashSet<>();
-                        for (Object raw : disabled) {
-                            if (raw == null) continue;
-                            String id = raw.toString().trim().toLowerCase(java.util.Locale.ROOT);
-                            if (id.startsWith("ui:")) id = id.substring(3);
-                            if (!id.isEmpty()) ids.add(id);
+                    Toml defaults = toml.getTable("enchantments.defaults");
+                    if (defaults != null) {
+                        weight = intValue(defaults.toMap().get("weight"), weight);
+                        minCostBase = intValue(defaults.toMap().get("min_cost_base"), minCostBase);
+                        minCostPerLevel = intValue(defaults.toMap().get("min_cost_per_level"), minCostPerLevel);
+                        maxCostBase = intValue(defaults.toMap().get("max_cost_base"), maxCostBase);
+                        maxCostPerLevel = intValue(defaults.toMap().get("max_cost_per_level"), maxCostPerLevel);
+                    }
+                    Toml root = toml.getTable("enchantments");
+                    if (root != null) {
+                        for (Map.Entry<String, Object> entry : root.toMap().entrySet()) {
+                            if (!(entry.getValue() instanceof Map<?, ?> map)) continue;
+                            if ("defaults".equals(entry.getKey())) continue;
+                            String id = entry.getKey().toLowerCase(Locale.ROOT);
+                            tables.put(id, table(map, log, id));
+                            if (!isKnownId(id)) {
+                                log.warn("Unknown enchantment table [enchantments." + id
+                                        + "] — ignored. Known ids: " + String.join(", ", knownIds()) + ".");
+                            }
                         }
-                        disabledEnchantments = ids;
                     }
                 } catch (Exception e) {
                     log.warn("Could not read " + configFile + " (" + e.getMessage()
-                            + ") — registering every custom enchantment (defaults).");
+                            + ") — registering every custom enchantment with its defaults.");
                 }
             }
-            return new Settings(datapackEnabled, enchantments, configuredLang, disabledEnchantments);
+
+            File packFile = new File(new File(shared, "configs"), "UI-Datapack.toml");
+            if (packFile.isFile()) {
+                try {
+                    Toml pack = new Toml().read(packFile);
+                    configuredLang = pack.getString("datapack.lang", "auto");
+                    packEnabled = !Boolean.FALSE.equals(pack.getBoolean("datapack.enabled", true));
+                    if (!masterConfigured
+                            && Boolean.FALSE.equals(pack.getBoolean("datapack.modules.enchantments"))) {
+                        enabled = false;
+                        log.info("datapack.modules.enchantments=false (legacy key) — custom "
+                                + "enchantments are not registered. Move it to enchantments.enabled.");
+                    }
+                    List<String> legacy = pack.getList("datapack.disabled_enchantments");
+                    if (legacy != null) {
+                        for (Object raw : legacy) {
+                            if (raw == null) continue;
+                            String id = raw.toString().trim().toLowerCase(Locale.ROOT);
+                            if (id.startsWith("ui:")) id = id.substring(3);
+                            if (!id.isEmpty()) legacyDisabled.add(id);
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Could not read " + packFile + " (" + e.getMessage()
+                            + ") — legacy enchantment toggles are ignored.");
+                }
+            }
+
+            return new Settings(enabled, packEnabled, configuredLang, tables, legacyDisabled,
+                    weight, minCostBase, minCostPerLevel, maxCostBase, maxCostPerLevel);
         }
+
+        private static Table table(Map<?, ?> raw, ComponentLogger log, String id) {
+            String slots = stringValue(raw.get("active_slots"));
+            if (slots != null && EquipmentSlotGroup.getByName(slots.trim()) == null) {
+                log.warn("[enchantments." + id + "] unknown active_slots '" + slots
+                        + "' — using the built-in value.");
+                slots = null;
+            }
+            return new Table(
+                    booleanValue(raw.get("enabled")),
+                    stringValue(raw.get("name_en")),
+                    stringValue(raw.get("name_ru")),
+                    integerValue(raw.get("max_level")),
+                    integerValue(raw.get("anvil_cost")),
+                    slots);
+        }
+
+        private Table tableOf(EnchantmentDefinition definition) {
+            return tables.get(definition.id());
+        }
+
+        boolean isEnabled(String id) {
+            if (!enabled) return false;
+            Table table = tables.get(id);
+            if (table != null && table.enabled() != null) return table.enabled();
+            return !legacyDisabled.contains(id);
+        }
+
+        int maxLevel(EnchantmentDefinition definition) {
+            Table table = tableOf(definition);
+            return table != null && table.maxLevel() != null ? table.maxLevel() : definition.maxLevel();
+        }
+
+        int anvilCost(EnchantmentDefinition definition) {
+            Table table = tableOf(definition);
+            return table != null && table.anvilCost() != null ? table.anvilCost() : definition.anvilCost();
+        }
+
+        String nameEn(EnchantmentDefinition definition) {
+            Table table = tableOf(definition);
+            return table != null && table.nameEn() != null ? table.nameEn() : definition.nameEn();
+        }
+
+        String nameRu(EnchantmentDefinition definition) {
+            Table table = tableOf(definition);
+            return table != null && table.nameRu() != null ? table.nameRu() : definition.nameRu();
+        }
+
+        EquipmentSlotGroup activeSlots(EnchantmentDefinition definition) {
+            Table table = tableOf(definition);
+            if (table == null || table.activeSlots() == null) return definition.activeSlots();
+            EquipmentSlotGroup group = EquipmentSlotGroup.getByName(table.activeSlots().trim());
+            return group != null ? group : definition.activeSlots();
+        }
+    }
+
+    // =========================
+    // VALUE HELPERS
+    // =========================
+
+    private static List<String> knownIds() {
+        List<String> ids = new ArrayList<>();
+        for (EnchantmentDefinition definition : EnchantmentDefinition.all()) ids.add(definition.id());
+        return ids;
+    }
+
+    private static boolean isKnownId(String id) {
+        return knownIds().contains(id);
+    }
+
+    private static Integer integerValue(Object value) {
+        if (value instanceof Number number) return number.intValue();
+        if (value instanceof String string) {
+            try {
+                return (int) Double.parseDouble(string.trim());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private static int intValue(Object value, int fallback) {
+        Integer parsed = integerValue(value);
+        return parsed != null ? parsed : fallback;
+    }
+
+    private static String stringValue(Object value) {
+        if (!(value instanceof String string)) return null;
+        String trimmed = string.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static Boolean booleanValue(Object value) {
+        if (value instanceof Boolean bool) return bool;
+        if (value instanceof String string) {
+            if ("true".equalsIgnoreCase(string.trim())) return Boolean.TRUE;
+            if ("false".equalsIgnoreCase(string.trim())) return Boolean.FALSE;
+        }
+        return null;
     }
 }

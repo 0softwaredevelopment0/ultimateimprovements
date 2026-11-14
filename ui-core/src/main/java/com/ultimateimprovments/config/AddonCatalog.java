@@ -42,6 +42,11 @@ public final class AddonCatalog {
         route("UI-Anticheat", "anticheat");
         // ── UI-Datapack ──
         route("UI-Datapack", "datapack");
+        // ── UI-Enchantments ──
+        // The custom enchantments are registry entries (RegistryEvents.ENCHANTMENT),
+        // so they get their own file with a master switch, one toggle per
+        // enchantment and the values that used to be constants in the code.
+        route("UI-Enchantments", "enchantments");
         // ── UI-Advancements ──
         // Custom advancements have their own file: they are datapack content
         // (JSON, no registry API), but they are toggled individually and are
@@ -149,7 +154,8 @@ public final class AddonCatalog {
     public static List<String> catalog() {
         return List.of(
                 CORE,
-                "UI-Shared", "UI-MBS", "UI-Datapack", "UI-Advancements", "UI-Chat", "UI-Clans",
+                "UI-Shared", "UI-MBS", "UI-Datapack", "UI-Advancements", "UI-Enchantments",
+                "UI-Chat", "UI-Clans",
                 "UI-Combat", "UI-Punish", "UI-Essentials", "UI-Energy",
                 "UI-Anticheat", "UI-Enchant", "UI-Auth", "UI-Protection", "UI-Display", "UI-Admin", "UI-Player", "UI-Guard", "UI-World", "UI-Items", "UI-Other");
     }

@@ -1,0 +1,318 @@
+# UltimateImprovments — UI-Enchantments configuration.
+# The 18 custom enchantments (ui:*) registered through Paper's registry API
+# (RegistryEvents.ENCHANTMENT) by UI-Datapack's bootstrap phase.
+#
+# Because they are real registry entries, everything here is baked into the
+# registry once per server start: changing any value requires a restart. The
+# tooltip is sent by the server, not by a resource pack, so the display name is
+# server-wide and follows datapack.lang / messages.lang — pick name_ru or name_en
+# accordingly (both are stored, the active language is applied at registration).
+#
+# Per enchantment: "enabled" switches the registry entry AND the plugin module
+# implementing its effect. An existing item or book that carries a disabled
+# enchantment keeps the data but the effect stops working.
+#
+# Not configurable here: the items an enchantment can be applied to. Three of them
+# need tag unions (blunting, self_destruct, vulnerability) that the registry API
+# cannot express from a plain config string, so the sets stay in
+# EnchantmentDefinition (ui-datapack).
+
+# Master switch for every custom enchantment.
+# false = nothing is registered and no effect module is loaded.
+# Requires a restart.
+# Default: true
+[enchantments]
+enabled = true
+
+# Values shared by all custom enchantments.
+[enchantments.defaults]
+# Rarity weight used by the enchanting table (lower = more common).
+# Default: 1
+weight = 1
+# Enchanting-table cost curve: cost = base + per_level_above_first × (level - 1).
+# Default: 25
+min_cost_base = 25
+# Default: 25
+min_cost_per_level = 25
+# Default: 75
+max_cost_base = 75
+# Default: 50
+max_cost_per_level = 50
+
+# ── Charms ──────────────────────────────────────────────────────────────────
+
+# AoE — breaks the blocks around the mined one.
+[enchantments.aoe]
+# Default: true
+enabled = true
+# Default: "AoE"
+name_en = "AoE"
+# Default: "Область"
+name_ru = "Область"
+# Maximum level (10 = level I..X).
+# Default: 10
+max_level = 10
+# Anvil cost per level.
+# Default: 1
+anvil_cost = 1
+# Equipment slots that activate the effect: ANY, MAINHAND, OFFHAND, HAND, FEET,
+# LEGS, CHEST, HEAD, ARMOR, BODY, SADDLE.
+# Default: "MAINHAND"
+active_slots = "MAINHAND"
+
+# Attack AoE — hits every mob around the attacked one.
+[enchantments.attack_aoe]
+# Default: true
+enabled = true
+# Default: "Attack AoE"
+name_en = "Attack AoE"
+# Default: "Область атаки"
+name_ru = "Область атаки"
+# Default: 10
+max_level = 10
+# Default: 1
+anvil_cost = 1
+# Default: "MAINHAND"
+active_slots = "MAINHAND"
+
+# AutoSmelt — drops smelted results when mining.
+[enchantments.autosmelt]
+# Default: true
+enabled = true
+# Default: "AutoSmelt"
+name_en = "AutoSmelt"
+# Default: "Автоплавка"
+name_ru = "Автоплавка"
+# Default: 10
+max_level = 10
+# Default: 1
+anvil_cost = 1
+# Default: "MAINHAND"
+active_slots = "MAINHAND"
+
+# Container Stealing — takes items out of containers you break.
+[enchantments.container_stealing]
+# Default: true
+enabled = true
+# Default: "Container Stealing"
+name_en = "Container Stealing"
+# Default: "Кража контейнеров"
+name_ru = "Кража контейнеров"
+# Default: 10
+max_level = 10
+# Default: 1
+anvil_cost = 1
+# Default: "MAINHAND"
+active_slots = "MAINHAND"
+
+# Flight — lets a chestplate fly like an elytra.
+[enchantments.flight]
+# Default: true
+enabled = true
+# Default: "Flight"
+name_en = "Flight"
+# Default: "Полёт"
+name_ru = "Полёт"
+# Default: 1
+max_level = 1
+# Default: 1
+anvil_cost = 1
+# Default: "ARMOR"
+active_slots = "ARMOR"
+
+# Igniting — sets the attacker on fire.
+[enchantments.igniting]
+# Default: true
+enabled = true
+# Default: "Igniting"
+name_en = "Igniting"
+# Default: "Воспламенение"
+name_ru = "Воспламенение"
+# Default: 10
+max_level = 10
+# Default: 1
+anvil_cost = 1
+# Default: "ARMOR"
+active_slots = "ARMOR"
+
+# Item Stealing — steals the victim's held item with a fishing rod.
+[enchantments.item_stealing]
+# Default: true
+enabled = true
+# Default: "Item Stealing"
+name_en = "Item Stealing"
+# Default: "Кража предметов"
+name_ru = "Кража предметов"
+# Default: 10
+max_level = 10
+# Default: 1
+anvil_cost = 1
+# Default: "MAINHAND"
+active_slots = "MAINHAND"
+
+# Lava Walker — turns lava into solid ground under your feet.
+[enchantments.lava_walker]
+# Default: true
+enabled = true
+# Default: "Lava Walker"
+name_en = "Lava Walker"
+# Default: "Лавоход"
+name_ru = "Лавоход"
+# Default: 10
+max_level = 10
+# Default: 1
+anvil_cost = 1
+# Default: "ARMOR"
+active_slots = "ARMOR"
+
+# Levitation — lets a chestplate levitate.
+[enchantments.levitation]
+# Default: true
+enabled = true
+# Default: "Levitation"
+name_en = "Levitation"
+# Default: "Левитация"
+name_ru = "Левитация"
+# Default: 1
+max_level = 1
+# Default: 1
+anvil_cost = 1
+# Default: "ARMOR"
+active_slots = "ARMOR"
+
+# Magnet — pulls nearby drops to the player.
+[enchantments.magnet]
+# Default: true
+enabled = true
+# Default: "Magnet"
+name_en = "Magnet"
+# Default: "Притяжение"
+name_ru = "Притяжение"
+# Default: 10
+max_level = 10
+# Default: 1
+anvil_cost = 1
+# Default: "MAINHAND"
+active_slots = "MAINHAND"
+
+# Repairing — slowly repairs the item.
+[enchantments.repairing]
+# Default: true
+enabled = true
+# Default: "Repairing"
+name_en = "Repairing"
+# Default: "Самовосстановление"
+name_ru = "Самовосстановление"
+# Default: 10
+max_level = 10
+# Default: 1
+anvil_cost = 1
+# Default: "ANY"
+active_slots = "ANY"
+
+# TreeCapitator — fells the whole tree.
+[enchantments.treecapitator]
+# Default: true
+enabled = true
+# Default: "TreeCapitator"
+name_en = "TreeCapitator"
+# Default: "Лесоруб"
+name_ru = "Лесоруб"
+# Default: 1
+max_level = 1
+# Default: 1
+anvil_cost = 1
+# Default: "MAINHAND"
+active_slots = "MAINHAND"
+
+# VeinMiner — mines the whole vein.
+[enchantments.veinminer]
+# Default: true
+enabled = true
+# Default: "VeinMiner"
+name_en = "VeinMiner"
+# Default: "Рудокоп"
+name_ru = "Рудокоп"
+# Default: 1
+max_level = 1
+# Default: 1
+anvil_cost = 1
+# Default: "MAINHAND"
+active_slots = "MAINHAND"
+
+# ── Curses ──────────────────────────────────────────────────────────────────
+
+# Curse of Blunting — weakens the tool on use.
+[enchantments.blunting]
+# Default: true
+enabled = true
+# Default: "Curse of Blunting"
+name_en = "Curse of Blunting"
+# Default: "Проклятье затупленности"
+name_ru = "Проклятье затупленности"
+# Default: 10
+max_level = 10
+# Default: 8
+anvil_cost = 8
+# Default: "MAINHAND"
+active_slots = "MAINHAND"
+
+# Curse of Degradation — slowly breaks the item.
+[enchantments.degradation]
+# Default: true
+enabled = true
+# Default: "Curse of Degradation"
+name_en = "Curse of Degradation"
+# Default: "Проклятье деградации"
+name_ru = "Проклятье деградации"
+# Default: 10
+max_level = 10
+# Default: 8
+anvil_cost = 8
+# Default: "ANY"
+active_slots = "ANY"
+
+# Curse of Disappearance — makes the item vanish on death.
+[enchantments.disappearance]
+# Default: true
+enabled = true
+# Default: "Curse of Disappearance"
+name_en = "Curse of Disappearance"
+# Default: "Проклятье исчезновения"
+name_ru = "Проклятье исчезновения"
+# Default: 10
+max_level = 10
+# Default: 8
+anvil_cost = 8
+# Default: "ANY"
+active_slots = "ANY"
+
+# Curse of Self-Destruct — destroys the item and hurts the owner on death.
+[enchantments.self_destruct]
+# Default: true
+enabled = true
+# Default: "Curse of Self-Destruct"
+name_en = "Curse of Self-Destruct"
+# Default: "Проклятье самоуничтожения"
+name_ru = "Проклятье самоуничтожения"
+# Default: 1
+max_level = 1
+# Default: 8
+anvil_cost = 8
+# Default: "ANY"
+active_slots = "ANY"
+
+# Curse of Vulnerability — increases damage taken.
+[enchantments.vulnerability]
+# Default: true
+enabled = true
+# Default: "Curse of Vulnerability"
+name_en = "Curse of Vulnerability"
+# Default: "Проклятье уязвимости"
+name_ru = "Проклятье уязвимости"
+# Default: 10
+max_level = 10
+# Default: 8
+anvil_cost = 8
+# Default: "ANY"
+active_slots = "ANY"

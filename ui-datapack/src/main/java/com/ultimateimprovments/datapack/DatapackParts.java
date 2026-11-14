@@ -44,7 +44,6 @@ public final class DatapackParts {
     // PARTS
     // =========================
 
-    public static final String ENCHANTMENTS = "enchantments";
     public static final String CUSTOM_RECIPES = "custom_recipes";
     public static final String VANILLA_RECIPES = "vanilla_recipes";
     public static final String LOOT_TABLES = "loot_tables";
@@ -56,10 +55,13 @@ public final class DatapackParts {
     // Achievement JSON lives under ui/advancement/ but is NOT a datapack part: it is
     // toggled per achievement in config/UI-Advancements.toml (AdvancementFilter), so
     // the pack always copies that folder and the achievement filter decides what stays.
+    // The same goes for the enchantment item tags under ui/tags/item/ and the vanilla
+    // enchantment tags: the registry needs them whichever part is off, so they are
+    // always copied.
 
     /** Order used for logging and for the generated config template. */
     private static final List<String> ORDER = List.of(
-            ENCHANTMENTS, CUSTOM_RECIPES, VANILLA_RECIPES,
+            CUSTOM_RECIPES, VANILLA_RECIPES,
             LOOT_TABLES, STRUCTURES, WORLDGEN, DIMENSION_LIMITS, VANILLA_TAGS);
 
     /**
@@ -77,7 +79,6 @@ public final class DatapackParts {
 
     static {
         Map<String, List<String>> prefixes = new LinkedHashMap<>();
-        prefixes.put(ENCHANTMENTS, List.of("ui/tags/item/", "minecraft/tags/enchantment/"));
         prefixes.put(CUSTOM_RECIPES, List.of("ui/recipe/"));
         prefixes.put(VANILLA_RECIPES, List.of("minecraft/recipe/"));
         prefixes.put(LOOT_TABLES, List.of("minecraft/loot_table/"));

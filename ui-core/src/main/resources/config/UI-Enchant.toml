@@ -18,8 +18,9 @@ item_stealing_permission = "ui.enchant.itemstealing.steal"
 # Whether the permission above is required to steal (false = everyone with the enchant can steal).
 # Default: true
 item_stealing_require_permission = true
-# Default: ["aoe", "autosmelt", "veinminer", "treecapitator", "flight", "magnet", "igniting", "levitation", "self_destruct", "degradation", "attack_aoe", "item_stealing", "repairing", "container_stealing", "lava_walker"]
-custom_enchantments = ["aoe", "autosmelt", "veinminer", "treecapitator", "flight", "magnet", "igniting", "levitation", "self_destruct", "degradation", "attack_aoe", "item_stealing", "repairing", "container_stealing", "lava_walker"]
+# The custom enchantments themselves (switches, display names, max level, anvil
+# cost, active slots, weight/cost curve) live in configs/UI-Enchantments.toml.
+# This file only holds the addon's command/effect settings.
 
 # Meteor events: spawn chance, size, loot.
 

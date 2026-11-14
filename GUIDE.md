@@ -268,16 +268,25 @@ Crafter). Recipes come from the bundled datapack.
 
 The bundled **datapack** also modifies/overrides vanilla recipes (netherite,
 bookshelves, chainmail, heavy core, etc.) and adds all recipes under the `ui:`
-namespace. Custom **enchantments in the enchanting table come exclusively from
-the datapack** (no listeners involved).
+namespace. Custom enchantments do **not** come from the datapack: they are
+registry entries (see below).
 
 ---
 
 ## ✨ Custom Enchantments
 
-Custom enchantments are data-driven (datapack-registered under `ui:`), applied
-in the enchanting table (third slot) or via anvil / `/ui enchant give`. Most
-support levels **1–255**; a few have gameplay caps:
+Custom enchantments are **registry entries**: UI-Datapack registers them through
+Paper's `RegistryEvents.ENCHANTMENT` in its bootstrap phase (before any world
+loads), so no `data/ui/enchantment/*.json` is involved. Everything about them —
+master switch, a per-enchantment `enabled` flag, display names in both languages,
+max level, anvil cost, active equipment slots, and the shared weight /
+enchanting-table cost curve — lives in
+`plugins/UltimateImprovments/configs/UI-Enchantments.toml`. The registry is filled
+once per start, so changes need a restart. An item that already carries a disabled
+enchantment keeps the data but the effect stops working.
+
+They are applied in the enchanting table (third slot) or via anvil /
+`/ui enchant give`. Most support levels **1–255**; a few have gameplay caps:
 
 | Enchantment | Levels | Effect |
 |-------------|--------|--------|

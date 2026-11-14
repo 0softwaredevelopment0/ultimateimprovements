@@ -75,11 +75,9 @@ public final class EnchantSubcommand {
     }
 
     private static boolean isCustomEnchant(String name) {
-        List<String> customs = Main.getInstance().getConfig().getStringList("enchant.custom_enchantments");
-        for (String c : customs) {
-            if (c != null && c.equalsIgnoreCase(name)) return true;
-        }
-        return false;
+        // Every bundled custom enchantment, whether or not it is currently enabled:
+        // a disabled one still exists as data, so `/ui enchant take` must resolve it.
+        return com.ultimateimprovments.enchant.Enchantments.isKnown(name);
     }
 
     // =========================
@@ -183,14 +181,13 @@ public final class EnchantSubcommand {
     /**
      * All enchantment ids ({@code namespace:name}) for tab-complete.
      * <p>
-     * Built from THREE sources so nothing is ever missed:
+     * Built from TWO sources so nothing is ever missed:
      * <ol>
      *   <li>{@link Registry#ENCHANTMENT} — all vanilla enchantments plus anything
      *       registered through the registry API (full key, e.g. "minecraft:sharpness");</li>
-     *   <li>{@link #CUSTOM_UI_ENCHANTS} — the custom enchantments UI-Datapack registers
-     *       through {@code RegistryEvents} in its bootstrap phase;</li>
-     *   <li>{@code enchant.custom_enchantments} from the config (bare names
-     *       get the {@code ui:} prefix).</li>
+     *   <li>{@code Enchantments.IDS} — the custom enchantments UI-Datapack registers
+     *       through {@code RegistryEvents}; only the ones enabled in
+     *       {@code UI-Enchantments.toml} are offered.</li>
      * </ol>
      */
     private static List<String> allEnchantNames() {
@@ -202,35 +199,13 @@ public final class EnchantSubcommand {
         }
 
         // 2. Custom UI enchantments — registered by UI-Datapack through the registry API
-        for (String uiEnchant : CUSTOM_UI_ENCHANTS) {
-            names.add("ui:" + uiEnchant);
-        }
-
-        // 3. Config custom enchantments (bare names → ui: namespace)
-        List<String> customs = Main.getInstance().getConfig().getStringList("enchant.custom_enchantments");
-        for (String c : customs) {
-            if (c != null && !c.isEmpty()) {
-                String n = c.toLowerCase(java.util.Locale.ROOT);
-                names.add(n.indexOf(':') >= 0 ? n : "ui:" + n);
+        for (String uiEnchant : com.ultimateimprovments.enchant.Enchantments.IDS) {
+            if (com.ultimateimprovments.enchant.Enchantments.isEnabled(uiEnchant)) {
+                names.add("ui:" + uiEnchant);
             }
         }
         return new ArrayList<>(names);
     }
-
-    /**
-     * The custom enchantments UI-Datapack registers through
-     * {@code RegistryEvents.ENCHANTMENT.compose()} in its bootstrap phase.
-     * <p>
-     * They used to be {@code data/ui/enchantment/*.json} datapack files, which this class
-     * discovered by scanning the plugin JAR. They live in the enchantment registry now, but
-     * data-driven registries do not always surface their entries through iteration, so the
-     * ids are listed here as well to keep tab-complete complete. Mirrors
-     * {@code EnchantmentDefinition#all()} in UI-Datapack — keep the two in sync.
-     */
-    private static final List<String> CUSTOM_UI_ENCHANTS = List.of(
-            "aoe", "attack_aoe", "autosmelt", "blunting", "container_stealing", "degradation",
-            "disappearance", "flight", "igniting", "item_stealing", "lava_walker", "levitation",
-            "magnet", "repairing", "self_destruct", "treecapitator", "veinminer", "vulnerability");
 
     // =========================
     // SLOTS
