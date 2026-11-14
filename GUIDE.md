@@ -43,10 +43,19 @@ This is the complete guide: installation, every command, custom items, enchantme
 > The datapack lives in its own plugin part — **UI-Datapack**. It ships in two
 > language variants (`UI-Datapack-en` / `UI-Datapack-ru` — identical content,
 > translated names). Its settings (`datapack.enabled`, `datapack.lang`,
-> `datapack.modules.*`) are configured in
+> `datapack.position`, `datapack.modules.*`) are configured in
 > `plugins/UltimateImprovments/configs/UI-Datapack.toml`; `datapack.lang = "auto"`
-> follows `messages.lang`. Changing them requires a restart (pack discovery
-> happens at server startup).
+> follows `messages.lang`, and `datapack.position` (`top`/`bottom`, default `top`)
+> puts the pack above or below the world's own datapacks when files conflict.
+> Changing them requires a restart (pack discovery happens at server startup).
+>
+> Custom achievements have their **own** file —
+> `configs/UI-Advancements.toml`: a master switch (`advancements.enabled`), one
+> `enabled` flag per achievement and the tunables that used to be constants in the
+> code (damage threshold, challenge goals and time limits, RAM/freeze thresholds).
+> A disabled achievement is not extracted at all and its listener module is not
+> registered; children of a disabled node are re-attached to the nearest enabled
+> ancestor, so the tree never breaks. Restart-only, like the pack itself.
 
 > Multi-block structures (NBT templates, markers, lightning/magnet mechanics,
 > reactor/generator validation) live in **UI-MBS**. Energy-dependent structure
@@ -302,6 +311,15 @@ The plugin ships a **custom achievement tree** in the `ui:` namespace
 (installed via the datapack), with 5 branches all growing from one root
 (`ui:datapack/start` — "UltimateImprovments"). All custom achievements are
 granted through plugin code (progress is stored in vanilla advancement data).
+
+Every achievement can be switched off individually, and its tunables live in
+`plugins/UltimateImprovments/configs/UI-Advancements.toml`:
+`[advancements] enabled` is the master switch, `[advancements.<id>] enabled` the
+per-achievement one, and ids with a threshold carry extra keys —
+`kaboom.required_damage`, `woodcutter_at_full_throttle.goal`/`duration_seconds`,
+`let_me_teleport.goal`/`duration_seconds`, `out_of_memory.threshold_percent`,
+`server_not_responding.freeze_seconds`. Values below are the defaults; changes
+need a restart.
 
 ### Branch: Server
 ```

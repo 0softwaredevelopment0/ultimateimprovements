@@ -1,11 +1,10 @@
 package com.ultimateimprovments.mechanics.features.world;
 
+import com.ultimateimprovments.advancement.Advancements;
 import com.ultimateimprovments.core.Main;
 import com.ultimateimprovments.util.ConsoleLogger;
 import com.ultimateimprovments.util.MessageUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.advancement.Advancement;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,8 +16,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Timed advancement challenge: <b>Let me teleport!</b> — teleport with an
- * ender pearl 60 times within 1 minute to earn the
+ * ender pearl {@code goal} times within {@code duration_seconds} to earn the
  * {@code ui:datapack/let_me_teleport} achievement.
+ * <p>
+ * Both values come from {@code [advancements.let_me_teleport]} in
+ * {@code UI-Advancements.toml} and are captured when a challenge starts, so a
+ * config edit never changes a run that is already in progress.
  * <p>
  * Started via {@code /ui advancement start teleport}. Per-teleport work is a
  * single map increment; a cheap 1-second sweep only iterates players with an
@@ -27,14 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class EnderPearlChallenge implements Listener {
 
-    /** The datapack advancement key (parent: {@code ui:datapack/suicide}). */
-    private static final NamespacedKey ADVANCEMENT = new NamespacedKey("ui", "datapack/let_me_teleport");
-
-    /** Challenge duration: 1 minute in milliseconds. */
-    private static final long DURATION_MS = 60_000L;
-
-    /** Ender pearl teleports needed for the achievement. */
-    private static final int GOAL = 60;
+    /** Achievement id (without the {@code datapack/} folder). */
+    private static final String ACHIEVEMENT = "let_me_teleport";
 
     /** Active challenges: player UUID → state. */
     private static final Map<UUID, ChallengeState> ACTIVE = new ConcurrentHashMap<>();
@@ -43,6 +40,10 @@ public final class EnderPearlChallenge implements Listener {
 
     private static final class ChallengeState {
         final long startTime = System.currentTimeMillis();
+        final int goal = Math.max(1,
+                Advancements.getInt(ACHIEVEMENT, "goal", 60));
+        final long durationMs = Math.max(1,
+                Advancements.getInt(ACHIEVEMENT, "duration_seconds", 60)) * 1000L;
         int count = 0;
     }
 
@@ -59,10 +60,12 @@ public final class EnderPearlChallenge implements Listener {
             return;
         }
 
-        ACTIVE.put(uuid, new ChallengeState());
+        ChallengeState state = new ChallengeState();
+        ACTIVE.put(uuid, state);
         player.sendMessage(MessageUtil.parse(
                 "<gold>⏱ <white>Challenge <yellow>Let me teleport!</yellow> started!</white>\n"
-                + "<gray>Teleport <white>60</white> times with an ender pearl in <white>1 minute</white>."));
+                + "<gray>Teleport <white>" + state.goal + "</white> times with an ender pearl in <white>"
+                + ChallengeText.duration((int) (state.durationMs / 1000)) + "</white>."));
     }
 
     /** Cancels the player's active challenge, if any. Returns true if one was stopped. */
@@ -71,7 +74,8 @@ public final class EnderPearlChallenge implements Listener {
         TimedChallengeLock.release(player.getUniqueId());
         if (state == null) return false;
         player.sendMessage(MessageUtil.parse(
-                "<yellow>⏹ <white>The challenge has been canceled. Teleports: <yellow>" + state.count + "</yellow>/60.</white>"));
+                "<yellow>⏹ <white>The challenge has been canceled. Teleports: <yellow>" + state.count
+                + "</yellow>/" + state.goal + ".</white>"));
         return true;
     }
 
@@ -89,7 +93,7 @@ public final class EnderPearlChallenge implements Listener {
         if (state == null) return;
 
         state.count++;
-        if (state.count >= GOAL) {
+        if (state.count >= state.goal) {
             ACTIVE.remove(player.getUniqueId());
             TimedChallengeLock.release(player.getUniqueId());
             grant(player, state.count);
@@ -108,21 +112,21 @@ public final class EnderPearlChallenge implements Listener {
             Player player = Bukkit.getPlayer(entry.getKey());
             long elapsed = now - state.startTime;
 
-            if (elapsed >= DURATION_MS) {
+            if (elapsed >= state.durationMs) {
                 TimedChallengeLock.release(entry.getKey());
                 if (player != null) {
                     player.sendMessage(MessageUtil.parse(
                             "<red>❌ <white>Time's up! You teleported: <yellow>" + state.count
-                            + "</yellow>/60 times.</white>"));
+                            + "</yellow>/" + state.goal + " times.</white>"));
                 }
                 return true;
             }
 
             if (player != null) {
-                int percent = (int) (state.count * 100.0 / GOAL);
-                long leftSec = (DURATION_MS - elapsed) / 1000;
+                int percent = (int) (state.count * 100.0 / state.goal);
+                long leftSec = (state.durationMs - elapsed) / 1000;
                 player.sendActionBar(MessageUtil.parse(
-                        "<gold>🌀 <white>Teleports: <yellow>" + state.count + "</yellow>/60</white> "
+                        "<gold>🌀 <white>Teleports: <yellow>" + state.count + "</yellow>/" + state.goal + "</white> "
                         + "<gray>(" + percent + "%) · remaining " + leftSec + "s</gray>"));
             }
             return false;
@@ -135,14 +139,9 @@ public final class EnderPearlChallenge implements Listener {
 
     /** Awards the achievement and notifies the player. Idempotent. */
     private static void grant(Player player, int count) {
+        if (!Advancements.isEnabled(ACHIEVEMENT)) return;
         try {
-            Advancement adv = Bukkit.getAdvancement(ADVANCEMENT);
-            if (adv != null) {
-                var progress = player.getAdvancementProgress(adv);
-                if (!progress.isDone()) {
-                    progress.awardCriteria("1");
-                }
-            }
+            Advancements.grant(player, ACHIEVEMENT);
         } catch (Exception e) {
             ConsoleLogger.warn("[EnderPearlChallenge] Award error for " + player.getName() + ": " + e.getMessage());
         }

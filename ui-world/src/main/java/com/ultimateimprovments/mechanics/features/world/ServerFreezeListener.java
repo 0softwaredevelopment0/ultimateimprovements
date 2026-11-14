@@ -1,30 +1,30 @@
 package com.ultimateimprovments.mechanics.features.world;
 
+import com.ultimateimprovments.advancement.Advancements;
 import com.ultimateimprovments.core.Main;
 import com.ultimateimprovments.util.ConsoleLogger;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.advancement.Advancement;
 import org.bukkit.entity.Player;
 
 /**
  * The server has not responding! — grants the {@code ui:datapack/server_not_responding}
  * achievement to every online player when the server's main thread freezes
- * for at least 10 continuous seconds.
+ * for at least the configured time
+ * ({@code advancements.server_not_responding.freeze_seconds}, 10s by default).
  * <p>
  * A per-tick task records the actual wall-clock gap between consecutive
  * scheduled executions: while the main thread is frozen the task runs late,
- * so the gap is exactly the freeze duration. When a gap of {@code >= 10s}
+ * so the gap is exactly the freeze duration. When a gap of {@code >= freeze_seconds}
  * is detected (the server was unresponsive that whole time), all online
  * players are awarded (idempotently).
  */
 public final class ServerFreezeListener {
 
-    /** The datapack advancement key (parent: {@code ui:datapack/out_of_memory}). */
-    private static final NamespacedKey ADVANCEMENT = new NamespacedKey("ui", "datapack/server_not_responding");
+    /** Achievement id (without the {@code datapack/} folder). */
+    private static final String ACHIEVEMENT = "server_not_responding";
 
-    /** Required main-thread freeze duration in milliseconds (10 seconds). */
-    private static final long REQUIRED_FREEZE_MS = 10_000L;
+    /** Default required main-thread freeze, in seconds. */
+    private static final int DEFAULT_FREEZE_SECONDS = 10;
 
     private static long lastTickNanos = 0L;
 
@@ -34,13 +34,7 @@ public final class ServerFreezeListener {
     private static void grant(Player player) {
         if (player == null) return;
         try {
-            Advancement adv = Bukkit.getAdvancement(ADVANCEMENT);
-            if (adv == null) return; // datapack not loaded yet
-
-            var progress = player.getAdvancementProgress(adv);
-            if (!progress.isDone()) {
-                progress.awardCriteria("1");
-            }
+            Advancements.grant(player, ACHIEVEMENT);
         } catch (Exception e) {
             ConsoleLogger.warn("[ServerFreeze] Award error for " + player.getName() + ": " + e.getMessage());
         }
@@ -52,8 +46,10 @@ public final class ServerFreezeListener {
 
         if (lastTickNanos != 0L) {
             long gapMs = (now - lastTickNanos) / 1_000_000L;
+            int requiredSeconds = Advancements.getInt(ACHIEVEMENT, "freeze_seconds",
+                    DEFAULT_FREEZE_SECONDS);
 
-            if (gapMs >= REQUIRED_FREEZE_MS) {
+            if (gapMs >= requiredSeconds * 1000L) {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     grant(player);
                 }
@@ -68,6 +64,8 @@ public final class ServerFreezeListener {
      */
     public static void register(Main plugin) {
         Bukkit.getScheduler().runTaskTimer(plugin, ServerFreezeListener::tick, 1L, 1L);
-        ConsoleLogger.info("[ServerFreeze] Listener registered (main thread freeze ≥ 10s → The server has not responding!).");
+        int seconds = Advancements.getInt(ACHIEVEMENT, "freeze_seconds", DEFAULT_FREEZE_SECONDS);
+        ConsoleLogger.info("[ServerFreeze] Listener registered (main thread freeze ≥ "
+                + seconds + "s → The server has not responding!).");
     }
 }

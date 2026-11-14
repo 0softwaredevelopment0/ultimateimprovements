@@ -1,12 +1,11 @@
 package com.ultimateimprovments.mechanics.features.world;
 
+import com.ultimateimprovments.advancement.Advancements;
 import com.ultimateimprovments.core.Main;
 import com.ultimateimprovments.util.ConsoleLogger;
 import com.ultimateimprovments.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.advancement.Advancement;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,8 +17,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Timed advancement challenge: <b>The Woodcutter at Full Throttle</b> —
- * break 7,200 wood blocks (any log/stem) within 1 hour to earn the
- * {@code ui:datapack/woodcutter_at_full_throttle} achievement.
+ * break {@code goal} wood blocks (any log/stem) within {@code duration_seconds}
+ * to earn the {@code ui:datapack/woodcutter_at_full_throttle} achievement.
+ * <p>
+ * Both values come from {@code [advancements.woodcutter_at_full_throttle]} in
+ * {@code UI-Advancements.toml} and are captured when a challenge starts, so a
+ * config edit never changes a run that is already in progress.
  * <p>
  * Started via {@code /ui advancement start woodcutter}. The challenge is
  * timer-based so the server is not loaded constantly: per-break work is just
@@ -32,14 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class WoodcutterChallenge implements Listener {
 
-    /** The datapack advancement key (parent: {@code ui:datapack/start}). */
-    private static final NamespacedKey ADVANCEMENT = new NamespacedKey("ui", "datapack/woodcutter_at_full_throttle");
-
-    /** Challenge duration: 1 hour in milliseconds. */
-    private static final long DURATION_MS = 3_600_000L;
-
-    /** Wood blocks to break for the achievement. */
-    private static final int GOAL = 7_200;
+    /** Achievement id (without the {@code datapack/} folder). */
+    private static final String ACHIEVEMENT = "woodcutter_at_full_throttle";
 
     /** Active challenges: player UUID → state. One challenge per player at a time. */
     private static final Map<UUID, ChallengeState> ACTIVE = new ConcurrentHashMap<>();
@@ -48,6 +45,10 @@ public final class WoodcutterChallenge implements Listener {
 
     private static final class ChallengeState {
         final long startTime = System.currentTimeMillis();
+        final int goal = Math.max(1,
+                Advancements.getInt(ACHIEVEMENT, "goal", 7200));
+        final long durationMs = Math.max(1,
+                Advancements.getInt(ACHIEVEMENT, "duration_seconds", 3600)) * 1000L;
         int count = 0;
     }
 
@@ -69,10 +70,12 @@ public final class WoodcutterChallenge implements Listener {
             return;
         }
 
-        ACTIVE.put(uuid, new ChallengeState());
+        ChallengeState state = new ChallengeState();
+        ACTIVE.put(uuid, state);
         player.sendMessage(MessageUtil.parse(
                 "<gold>⏱ <white>Challenge <yellow>The Woodcutter at Full Throttle</yellow> started!</white>\n"
-                + "<gray>Сломай <white>7 200</white> wooden blocks in <white>1 hour</white>. "));
+                + "<gray>Break <white>" + ChallengeText.goal(state.goal) + "</white> wooden blocks in <white>"
+                + ChallengeText.duration((int) (state.durationMs / 1000)) + "</white>."));
     }
 
     /** Cancels the player's active challenge, if any. Returns true if one was stopped. */
@@ -81,7 +84,8 @@ public final class WoodcutterChallenge implements Listener {
         TimedChallengeLock.release(player.getUniqueId());
         if (state == null) return false;
         player.sendMessage(MessageUtil.parse(
-                "<yellow>⏹ <white>The challenge has been canceled. Broken: <yellow>" + state.count + "</yellow>/7200.</white>"));
+                "<yellow>⏹ <white>The challenge has been canceled. Broken: <yellow>" + state.count
+                + "</yellow>/" + state.goal + ".</white>"));
         return true;
     }
 
@@ -98,7 +102,7 @@ public final class WoodcutterChallenge implements Listener {
         if (state == null) return;
 
         state.count++;
-        if (state.count >= GOAL) {
+        if (state.count >= state.goal) {
             ACTIVE.remove(player.getUniqueId());
             TimedChallengeLock.release(player.getUniqueId());
             grant(player, state.count);
@@ -128,21 +132,21 @@ public final class WoodcutterChallenge implements Listener {
             Player player = Bukkit.getPlayer(entry.getKey());
             long elapsed = now - state.startTime;
 
-            if (elapsed >= DURATION_MS) {
+            if (elapsed >= state.durationMs) {
                 TimedChallengeLock.release(entry.getKey());
                 if (player != null) {
                     player.sendMessage(MessageUtil.parse(
                             "<red>❌ <white>Time's up! You broke: <yellow>" + state.count
-                            + "</yellow>/7200 wooden blocks.</white>"));
+                            + "</yellow>/" + state.goal + " wooden blocks.</white>"));
                 }
                 return true;
             }
 
             if (player != null) {
-                int percent = (int) (state.count * 100.0 / GOAL);
-                long leftSec = (DURATION_MS - elapsed) / 1000;
+                int percent = (int) (state.count * 100.0 / state.goal);
+                long leftSec = (state.durationMs - elapsed) / 1000;
                 player.sendActionBar(MessageUtil.parse(
-                        "<gold>🪓 <white>Wooden: <yellow>" + state.count + "</yellow>/7200</white> "
+                        "<gold>🪓 <white>Wooden: <yellow>" + state.count + "</yellow>/" + state.goal + "</white> "
                         + "<gray>(" + percent + "%) · remaining " + (leftSec / 60) + "м " + (leftSec % 60) + "с</gray>"));
             }
             return false;
@@ -155,14 +159,9 @@ public final class WoodcutterChallenge implements Listener {
 
     /** Awards the achievement and notifies the player. Idempotent. */
     private static void grant(Player player, int broken) {
+        if (!Advancements.isEnabled(ACHIEVEMENT)) return;
         try {
-            Advancement adv = Bukkit.getAdvancement(ADVANCEMENT);
-            if (adv != null) {
-                var progress = player.getAdvancementProgress(adv);
-                if (!progress.isDone()) {
-                    progress.awardCriteria("1");
-                }
-            }
+            Advancements.grant(player, ACHIEVEMENT);
         } catch (Exception e) {
             ConsoleLogger.warn("[WoodcutterChallenge] Award error for " + player.getName() + ": " + e.getMessage());
         }

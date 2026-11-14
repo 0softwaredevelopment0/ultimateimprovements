@@ -30,6 +30,14 @@ enabled = true
 # Default: "auto"
 lang = "auto"
 
+# Where the pack goes in the datapack stack, relative to the world's own packs
+# and other plugin-provided packs.
+#   "top"    — this pack wins every conflicting file (default)
+#   "bottom" — the world/datapack packs win conflicts instead
+# Requires a server restart.
+# Default: "top"
+position = "top"
+
 # Custom enchantments to leave out, by id: ["flight", "veinminer"].
 # An entry here removes BOTH the registry entry (it can no longer be obtained or
 # applied, and existing items lose the tooltip) and the plugin module implementing
@@ -46,16 +54,16 @@ disabled_enchantments = []
 # Datapack parts. Each part covers the listed files inside the pack; a disabled
 # part is not extracted from the JAR and its plugin code modules are not registered.
 # Files that belong to no part are always extracted.
+#
+# Custom advancements are NOT here: they are toggled one by one in
+# configs/UI-Advancements.toml (master switch + per-achievement settings).
+#
 # Requires a server restart.
 [datapack.modules]
 # Custom enchantment item tags (ui/tags/item/*, minecraft/tags/enchantment/*).
 # Turning this off also stops all custom enchantments from being registered.
 # Default: true
 enchantments = true
-# Custom advancements and their translations (ui/advancement/*).
-# Turning this off also skips the achievement listener modules.
-# Default: true
-advancements = true
 # Custom recipes that add new items (ui/recipe/*).
 # Default: true
 custom_recipes = true

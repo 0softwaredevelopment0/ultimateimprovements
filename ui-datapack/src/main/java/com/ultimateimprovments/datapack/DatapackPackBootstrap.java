@@ -1,8 +1,10 @@
 package com.ultimateimprovments.datapack;
 
 import com.moandjiezana.toml.Toml;
+import io.papermc.paper.datapack.Datapack;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -29,10 +31,14 @@ import java.util.zip.ZipFile;
  * {@code plugins/UltimateImprovments/configs/UI-Datapack.toml} ({"en"} or {"ru"};
  * {@code auto} follows {@code messages.lang} from {@code UI-Core.toml}).
  * <p>
- * It also reads {@code datapack.enabled} / {@code datapack.modules.*} from the same
- * TOML (via toml4j bundled in this addon), extracts the enabled subset of the selected
- * pack into {@code plugins/UltimateImprovments/datapack/UI-Datapack-<lang>}, and
- * returns that folder (or {@code null} when the master toggle is off).
+ * It also reads {@code datapack.enabled} / {@code datapack.position} /
+ * {@code datapack.modules.*} from the same TOML, extracts the enabled subset of the
+ * selected pack into {@code plugins/UltimateImprovments/datapack/UI-Datapack-<lang>},
+ * and returns that folder (or {@code null} when the master toggle is off).
+ * <p>
+ * Custom achievements are filtered per achievement by {@link AdvancementFilter}
+ * from {@code configs/UI-Advancements.toml}: they are datapack JSON, not a registry,
+ * so this extraction is the only place a single achievement can be switched off.
  */
 final class DatapackPackBootstrap {
 
@@ -50,12 +56,20 @@ final class DatapackPackBootstrap {
     /** Language used when nothing is configured and UI-Core has no preference yet. */
     private static final String DEFAULT_LANG = PackLanguage.DEFAULT_LANG;
 
-    static Path prepare(ComponentLogger log) throws Exception {
+    /**
+     * The prepared pack and where it goes in the datapack stack
+     * ({@code datapack.position}: "top" by default, "bottom" to let other packs win).
+     */
+    record Prepared(Path path, Datapack.Position position) {}
+
+    static Prepared prepare(ComponentLogger log) throws Exception {
         File shared = new File(new File("plugins"), "UltimateImprovments");
         File configFile = new File(new File(shared, "configs"), "UI-Datapack.toml");
 
         boolean enabled = true;
         String configuredLang = "auto";
+        String configuredPosition = "top";
+        boolean legacyAdvancementsOff = false;
         Map<String, Boolean> parts = new HashMap<>();
         for (String part : DatapackParts.all()) parts.put(part, true);
 
@@ -64,6 +78,11 @@ final class DatapackPackBootstrap {
                 Toml toml = new Toml().read(configFile);
                 enabled = !Boolean.FALSE.equals(toml.getBoolean(DatapackParts.MASTER_KEY, true));
                 configuredLang = toml.getString(DatapackParts.LANG_KEY, "auto");
+                configuredPosition = toml.getString(DatapackParts.POSITION_KEY, "top");
+                // Legacy (pre-UI-Advancements) switch, honoured when the new config
+                // has no explicit advancements.enabled yet.
+                legacyAdvancementsOff =
+                        Boolean.FALSE.equals(toml.getBoolean(DatapackParts.CONFIG_ROOT + ".advancements", true));
                 Toml modules = toml.getTable(DatapackParts.CONFIG_ROOT);
                 if (modules != null) {
                     for (String part : DatapackParts.all()) {
@@ -72,11 +91,11 @@ final class DatapackPackBootstrap {
                 }
             } catch (Exception e) {
                 log.warn("Could not read " + configFile + " (" + e.getMessage()
-                        + ") — using defaults (all parts enabled, language auto).");
+                        + ") — using defaults (all parts enabled, language auto, position top).");
             }
         } else {
             log.info("Config not found yet (" + configFile
-                    + ") — using defaults (all parts enabled, language auto).");
+                    + ") — using defaults (all parts enabled, language auto, position top).");
         }
 
         if (!enabled) {
@@ -84,6 +103,7 @@ final class DatapackPackBootstrap {
             return null;
         }
 
+        Datapack.Position position = parsePosition(configuredPosition, log);
         String lang = PackLanguage.resolve(configuredLang, shared, log);
 
         File source = locateSource(lang, log);
@@ -114,16 +134,32 @@ final class DatapackPackBootstrap {
         }
 
         String jarPrefix = JAR_PREFIX + lang + "/";
+        AdvancementFilter filter = AdvancementFilter.load(shared,
+                advancementReader(source, lang), log, legacyAdvancementsOff);
         int copied = source.isDirectory()
-                ? copyFromDirectory(source, target, parts, log, jarPrefix)
-                : copyFromJar(source, target, parts, jarPrefix);
+                ? copyFromDirectory(source, target, parts, filter, log, jarPrefix)
+                : copyFromJar(source, target, parts, filter, jarPrefix);
         if (copied == 0) {
             throw new IOException(packName + " extraction copied 0 files");
         }
 
         log.info("Extracted " + copied + " datapack file(s) from " + packName
-                + " to " + target.getAbsolutePath());
-        return target.toPath();
+                + " to " + target.getAbsolutePath() + " (position: "
+                + position.name().toLowerCase(java.util.Locale.ROOT) + ")");
+        return new Prepared(target.toPath(), position);
+    }
+
+    /** @return the configured stack position; unknown values fall back to TOP */
+    private static Datapack.Position parsePosition(String configured, ComponentLogger log) {
+        if (configured != null && "bottom".equalsIgnoreCase(configured.trim())) {
+            return Datapack.Position.BOTTOM;
+        }
+        if (configured != null && !configured.isBlank()
+                && !"top".equalsIgnoreCase(configured.trim())) {
+            log.warn("Unknown datapack.position '" + configured
+                    + "' (expected 'top' or 'bottom') — using 'top'.");
+        }
+        return Datapack.Position.TOP;
     }
 
     // =========================
@@ -186,12 +222,41 @@ final class DatapackPackBootstrap {
         return false;
     }
 
+    /**
+     * Reads one achievement JSON from the pack source so {@link AdvancementFilter}
+     * can follow the parent chain without a hand-kept copy of the tree.
+     */
+    private static java.util.function.Function<String, byte[]> advancementReader(
+            File source, String lang) {
+        String folder = JAR_PREFIX + lang + "/" + AdvancementFilter.PATH_PREFIX + "datapack/";
+        if (source.isDirectory()) {
+            return id -> {
+                try {
+                    return Files.readAllBytes(source.toPath().resolve(folder + id + ".json"));
+                } catch (Exception e) {
+                    return null;
+                }
+            };
+        }
+        return id -> {
+            try (ZipFile zip = new ZipFile(source)) {
+                ZipEntry entry = zip.getEntry(folder + id + ".json");
+                if (entry == null) return null;
+                try (InputStream in = zip.getInputStream(entry)) {
+                    return in.readAllBytes();
+                }
+            } catch (Exception e) {
+                return null;
+            }
+        };
+    }
+
     // =========================
     // EXTRACTION
     // =========================
 
     private static int copyFromJar(File jar, File target, Map<String, Boolean> parts,
-                                   String jarPrefix) throws Exception {
+                                   AdvancementFilter filter, String jarPrefix) throws Exception {
         int copied = 0;
         try (ZipFile zip = new ZipFile(jar)) {
             var entries = zip.entries();
@@ -205,14 +270,21 @@ final class DatapackPackBootstrap {
                     continue;
                 }
                 if (!isPathEnabled(parts, rel)) continue;
-                if (write(target, rel, zip.getInputStream(entry))) copied++;
+                if (!filter.allows(rel)) continue;
+                try (InputStream in = zip.getInputStream(entry)) {
+                    byte[] data = AdvancementFilter.isAdvancementPath(rel)
+                            ? filter.rewrite(rel, in.readAllBytes())
+                            : null;
+                    if (write(target, rel, data != null ? new ByteArrayInputStream(data) : in)) copied++;
+                }
             }
         }
         return copied;
     }
 
     private static int copyFromDirectory(File root, File target, Map<String, Boolean> parts,
-                                         ComponentLogger log, String jarPrefix) throws Exception {
+                                         AdvancementFilter filter, ComponentLogger log,
+                                         String jarPrefix) throws Exception {
         Path packRoot = root.toPath().resolve(jarPrefix);
         if (!Files.isDirectory(packRoot)) return 0;
         List<Path> files;
@@ -223,7 +295,10 @@ final class DatapackPackBootstrap {
         for (Path file : files) {
             String rel = packRoot.relativize(file).toString().replace('\\', '/');
             if (!isPathEnabled(parts, rel)) continue;
-            if (write(target, rel, Files.newInputStream(file))) copied++;
+            if (!filter.allows(rel)) continue;
+            byte[] data = Files.readAllBytes(file);
+            if (AdvancementFilter.isAdvancementPath(rel)) data = filter.rewrite(rel, data);
+            if (write(target, rel, new ByteArrayInputStream(data))) copied++;
         }
         return copied;
     }

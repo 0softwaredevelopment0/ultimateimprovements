@@ -3,6 +3,44 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-beta.46] - 2026-11-15
+
+### Added
+- **`configs/UI-Advancements.toml` — the achievement system gets its own config.**
+  43 custom achievements, each with its own `enabled` switch plus the tunables
+  that were compile-time constants: `kaboom.required_damage` (1000 HP),
+  `woodcutter_at_full_throttle.goal`/`duration_seconds` (7200 / 1 h),
+  `let_me_teleport.goal`/`duration_seconds` (60 / 1 min),
+  `out_of_memory.threshold_percent` (95), `server_not_responding.freeze_seconds`
+  (10). `advancements.enabled` is the master switch.
+- **`datapack.position`** — `top` (default) or `bottom`, i.e. whether the bundled
+  pack wins or loses conflicts against the world's own datapacks.
+
+### Changed
+- **Achievements are no longer a datapack part.** `datapack.modules.advancements`
+  is gone: the pack always copies `ui/advancement/` and the new per-achievement
+  filter decides what stays. The legacy key is still honoured as a fallback for
+  `advancements.enabled` so existing installs keep their intent.
+- **A disabled achievement disappears from the tree instead of leaving a hole.**
+  The extraction drops its JSON and re-attaches every descendant to the nearest
+  enabled ancestor by rewriting the `parent` field, so children never fail to
+  load. The module that implements a disabled achievement's trigger is not
+  registered either.
+- **Challenge messages show the configured numbers** instead of the hardcoded
+  `60` / `7200` / `1 minute` / `1 hour`.
+
+### Fixed
+- The achievement module list still named `BeyondSpace` and `ServerOverload`,
+  modules that no longer exist — they were silently dead entries.
+
+### Notes
+- Advancements are **not** a Minecraft registry: Paper exposes no
+  `RegistryEvents.ADVANCEMENT` (verified against `paper-api-26.3.build.249`), so
+  there is no runtime registration API to migrate to. They stay datapack JSON and
+  are filtered at bootstrap, which is why every achievement toggle needs a restart.
+- Config validation covers the whole new section (43 booleans plus the ranges of
+  every tunable), so a typo is reported at startup.
+
 ## [1.8.5-beta.45] - 2026-11-15
 
 ### Fixed

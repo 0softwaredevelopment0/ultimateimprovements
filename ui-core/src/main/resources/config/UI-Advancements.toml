@@ -1,0 +1,270 @@
+# UltimateImprovments — UI-Advancements configuration.
+# Custom achievements of the bundled datapack (ui:datapack/*).
+#
+# Advancements are data-driven in Minecraft: they are JSON files, not a registry,
+# so there is no Paper API to register them at runtime. UI-Datapack extracts the
+# enabled subset from the JAR before the worlds load (Paper DATAPACK_DISCOVERY),
+# which is why changing anything here requires a server restart.
+#
+# [advancements] holds the master switch; every achievement gets its own table
+# [advancements.<id>] with "enabled" plus its tunable values. A disabled
+# achievement is not extracted at all, its plugin module (if it has one) is not
+# registered, and any achievement that had it as a parent is re-attached to the
+# nearest enabled ancestor — the tree never breaks.
+#
+# The id is the datapack file name, so /advancement and the config match 1:1.
+
+# Global switch for every custom achievement.
+# false = no ui:datapack/* advancement is extracted or granted, none of the
+# achievement listener modules are registered.
+# Default: true
+[advancements]
+enabled = true
+
+# Root of the tree ("UltimateImprovments"). Disabling it makes every other
+# achievement a root tab of its own.
+[advancements.start]
+# Default: true
+enabled = true
+
+# ── Crafting chain ──────────────────────────────────────────────────────────
+
+# "Large capacities" — craft an ender chest.
+[advancements.craft_ender_chest]
+# Default: true
+enabled = true
+
+# "Unforeseen Consequences" — blow up an ender chest.
+[advancements.blowed_by_echest]
+# Default: true
+enabled = true
+
+# "Dosimetry Measurements" — craft a dosimeter.
+[advancements.craft_dosimeter]
+# Default: true
+enabled = true
+
+# "Through the Textures" — craft an ore/entity locator.
+[advancements.craft_locator]
+# Default: true
+enabled = true
+
+# "Doctor for Creatures" — craft a health meter.
+[advancements.craft_healthmeter]
+# Default: true
+enabled = true
+
+# "Victory Without a Fight" — craft a nether star.
+[advancements.craft_nether_star]
+# Default: true
+enabled = true
+
+# "Echoes in the Furnace" — craft an echo shard.
+[advancements.craft_echo_shard]
+# Default: true
+enabled = true
+
+# "Magical Substances" — craft antimatter.
+[advancements.craft_antimatter]
+# Default: true
+enabled = true
+
+# "The force of decay" — react with antimatter.
+[advancements.react_with_antimatter]
+# Default: true
+enabled = true
+
+# "Light Attack" — hit something weak with a shoker.
+[advancements.weaks_to_strongs]
+# Default: true
+enabled = true
+
+# "Discharge!" — fire the shoker.
+[advancements.craft_shoker]
+# Default: true
+enabled = true
+
+# "It looks pretty sturdy..." — craft reinforced deepslate.
+[advancements.craft_reinforced_deepslate]
+# Default: true
+enabled = true
+
+# ── World exploration ───────────────────────────────────────────────────────
+
+# "People of the Past" — find the end village structure.
+[advancements.end_village_find]
+# Default: true
+enabled = true
+
+# "High Temperatures" — reach the end village's hot spot.
+[advancements.high_temperatures]
+# Default: true
+enabled = true
+
+# "The space" — travel to the space dimension.
+[advancements.the_space]
+# Default: true
+enabled = true
+
+# "Ah, where the oxyden?" — die of oxygen loss in space.
+[advancements.ah_where_oxyden]
+# Default: true
+enabled = true
+
+# "Where is the Earth's core here?" — reach the bottom of the world.
+[advancements.earth_core]
+# Default: true
+enabled = true
+
+# "Hit, hit, to pieces!" — break bedrock.
+[advancements.hit_hit_to_pieces]
+# Default: true
+enabled = true
+
+# "We're landing!" — land back on a planet from space.
+[advancements.we_are_landing]
+# Default: true
+enabled = true
+
+# "Kaboom!" — kill a creature with a single mace hit.
+[advancements.kaboom]
+# Default: true
+enabled = true
+# Single-hit damage required, in HP (20 HP = 10 hearts). "1000 or more" counts.
+# Default: 1000.0
+required_damage = 1000.0
+
+# "The Woodcutter at Full Throttle" — timed challenge, started with
+# /ui advancement start woodcutter.
+[advancements.woodcutter_at_full_throttle]
+# Default: true
+enabled = true
+# Logs that must be chopped within the time limit.
+# Default: 7200
+goal = 7200
+# Time limit, seconds.
+# Default: 3600
+duration_seconds = 3600
+
+# "Unachievable Achievement" — the meme node of the tree. Never granted.
+[advancements.impossible]
+# Default: true
+enabled = true
+
+# "Suicide" — use /ui suicide.
+[advancements.suicide]
+# Default: true
+enabled = true
+
+# "Let me teleport!" — timed challenge, started with
+# /ui advancement start teleport.
+[advancements.let_me_teleport]
+# Default: true
+enabled = true
+# Ender-pearl teleports required within the time limit.
+# Default: 60
+goal = 60
+# Time limit, seconds.
+# Default: 60
+duration_seconds = 60
+
+# "A netherite king" — hold a netherite block.
+[advancements.a_netherite_king]
+# Default: true
+enabled = true
+
+# ── Server emergencies ──────────────────────────────────────────────────────
+
+# "Something's not right here..." — MSPT crosses the warning threshold
+# (server_overload_warning in UI-Guard.toml drives the alerts themselves).
+[advancements.server_overload]
+# Default: true
+enabled = true
+
+# "Halt the plugin" — the plugin is shut down.
+[advancements.halt_the_plugin]
+# Default: true
+enabled = true
+
+# "java.lang.OutOfMemoryError" — the JVM heap is nearly exhausted.
+[advancements.out_of_memory]
+# Default: true
+enabled = true
+# Heap usage, percent, that counts as exhausted (the JVM dies before a literal 100).
+# Default: 95.0
+threshold_percent = 95.0
+
+# "The server has not responding!" — the main thread froze for long enough.
+[advancements.server_not_responding]
+# Default: true
+enabled = true
+# Main-thread freeze required, seconds.
+# Default: 10
+freeze_seconds = 10
+
+# ── DFC reactor ─────────────────────────────────────────────────────────────
+
+# "Advanced Science" — start the DFC.
+[advancements.start_dfc]
+# Default: true
+enabled = true
+
+# "Self-destruct protocol" — start the DFC self-destruct.
+[advancements.dfc_self_destruct]
+# Default: true
+enabled = true
+
+# "Is it really that simple?" — survive a DFC meltdown nearby.
+[advancements.is_it_really_that_simple]
+# Default: true
+enabled = true
+
+# "Increasing instability..." — the DFC leaves its stable range.
+[advancements.dfc_unstable]
+# Default: true
+enabled = true
+
+# "Critical overload" — the DFC reaches the critical phase.
+[advancements.critical_overload]
+# Default: true
+enabled = true
+
+# "Destructive Consequences" — the DFC explodes.
+[advancements.explode_dfc]
+# Default: true
+enabled = true
+
+# "Senior ReactorOps" — ride out a dying shield.
+[advancements.senior_reactor_ops]
+# Default: true
+enabled = true
+
+# "In the Depths of Hell" — stand inside the running DFC.
+[advancements.inside_dfc]
+# Default: true
+enabled = true
+
+# "Large Microwave" — take lethal radiation inside the DFC.
+[advancements.burn_inside_dfc]
+# Default: true
+enabled = true
+
+# "Vaporised in the plasma" — die inside the DFC.
+[advancements.vaporised_in_plasma]
+# Default: true
+enabled = true
+
+# "Operator Incompetence" — the core fails under the operator.
+[advancements.operator_incompetence]
+# Default: true
+enabled = true
+
+# "Saved from extinction" — survive via the EMERGENCY shutdown.
+[advancements.saved_from_extinction]
+# Default: true
+enabled = true
+
+# "The power of fusion" — complete one fusion cycle.
+[advancements.power_of_fusion]
+# Default: true
+enabled = true

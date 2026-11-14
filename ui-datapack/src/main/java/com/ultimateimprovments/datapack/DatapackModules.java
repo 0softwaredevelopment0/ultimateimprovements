@@ -36,7 +36,6 @@ public final class DatapackModules {
     // =========================
 
     public static final String ENCHANTMENTS = DatapackParts.ENCHANTMENTS;
-    public static final String ADVANCEMENTS = DatapackParts.ADVANCEMENTS;
     public static final String CUSTOM_RECIPES = DatapackParts.CUSTOM_RECIPES;
     public static final String VANILLA_RECIPES = DatapackParts.VANILLA_RECIPES;
     public static final String LOOT_TABLES = DatapackParts.LOOT_TABLES;
@@ -48,8 +47,20 @@ public final class DatapackModules {
     /**
      * Plugin code modules (ModuleManager names) bound to a datapack part.
      * If the part is disabled, these modules are skipped at registration.
+     * <p>
+     * Achievements are deliberately absent: they are switched individually in
+     * {@code UI-Advancements.toml}, see {@link #ADVANCEMENT_MODULES}.
      */
     private static final Map<String, List<String>> CODE_MODULES;
+
+    /**
+     * Achievement code module -> achievement id ({@code ui:datapack/<id>}). Such a
+     * module implements the trigger of exactly one achievement, so disabling that
+     * achievement (or the whole {@code advancements} system) drops the module.
+     * The reactor/space/crafting achievements have no module of their own — their
+     * trigger lives inside a larger feature and only grants when the JSON exists.
+     */
+    private static final Map<String, String> ADVANCEMENT_MODULES;
 
     /**
      * Custom enchantment id ({@code ui:<id>}) -> the code module implementing it.
@@ -67,11 +78,18 @@ public final class DatapackModules {
                 "IgnitingEnchantment", "LevitationEnchantment", "SelfDestructEnchantment",
                 "DegradationEnchantment", "AttackAoeEnchantment", "ItemStealingEnchantment",
                 "RepairingEnchantment", "ContainerStealingEnchantment", "LavaWalkerEnchantment"));
-        modules.put(ADVANCEMENTS, List.of(
-                "BeyondSpace", "BedrockBreak", "Kaboom", "EarthCore", "ServerOverload",
-                "WoodcutterChallenge", "EnderPearlChallenge", "NetheriteKing",
-                "OutOfMemory", "ServerFreeze"));
         CODE_MODULES = java.util.Collections.unmodifiableMap(modules);
+
+        Map<String, String> advancementModules = new LinkedHashMap<>();
+        advancementModules.put("BedrockBreak", "hit_hit_to_pieces");
+        advancementModules.put("Kaboom", "kaboom");
+        advancementModules.put("EarthCore", "earth_core");
+        advancementModules.put("WoodcutterChallenge", "woodcutter_at_full_throttle");
+        advancementModules.put("EnderPearlChallenge", "let_me_teleport");
+        advancementModules.put("NetheriteKing", "a_netherite_king");
+        advancementModules.put("OutOfMemory", "out_of_memory");
+        advancementModules.put("ServerFreeze", "server_not_responding");
+        ADVANCEMENT_MODULES = java.util.Collections.unmodifiableMap(advancementModules);
 
         Map<String, String> enchantmentModules = new LinkedHashMap<>();
         enchantmentModules.put("aoe", "AOEEnchantment");
@@ -253,16 +271,22 @@ public final class DatapackModules {
 
     /**
      * Whether a module implements a custom enchantment the admin disabled via
-     * {@code datapack.disabled_enchantments}. Such a module must not register even
-     * when the {@code enchantments} part as a whole is on.
+     * {@code datapack.disabled_enchantments}, or the trigger of a disabled custom
+     * achievement ({@code UI-Advancements.toml}). Such a module must not register
+     * even when its part as a whole is on.
      */
     public static boolean isModuleDisabled(String moduleName) {
-        if (moduleName == null || DISABLED_ENCHANTMENTS.isEmpty()) return false;
-        for (Map.Entry<String, String> e : ENCHANTMENT_MODULES.entrySet()) {
-            if (!e.getValue().equals(moduleName)) continue;
-            return DISABLED_ENCHANTMENTS.contains(e.getKey());
+        if (moduleName == null) return false;
+        if (!DISABLED_ENCHANTMENTS.isEmpty()) {
+            for (Map.Entry<String, String> e : ENCHANTMENT_MODULES.entrySet()) {
+                if (e.getValue().equals(moduleName)) {
+                    return DISABLED_ENCHANTMENTS.contains(e.getKey());
+                }
+            }
         }
-        return false;
+        String achievement = ADVANCEMENT_MODULES.get(moduleName);
+        if (achievement == null) return false;
+        return !com.ultimateimprovments.advancement.Advancements.isEnabled(achievement);
     }
 
     /**

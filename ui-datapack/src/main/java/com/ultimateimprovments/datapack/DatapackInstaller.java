@@ -47,6 +47,9 @@ public class DatapackInstaller {
         ConsoleLogger.info("[Datapack] Bundled pack is provided by the bootstrapper "
                 + "(Paper DATAPACK_DISCOVERY, before worlds). Language: "
                 + DatapackModules.getLanguage() + ". Parts: " + DatapackModules.describe());
+        ConsoleLogger.info("[Datapack] Custom achievements: "
+                + (com.ultimateimprovments.advancement.Advancements.isMasterEnabled()
+                    ? "ON (configs/UI-Advancements.toml)" : "OFF (advancements.enabled: false)"));
 
         // Migration: old versions copied the pack into world/datapacks. Remove that
         // copy once the worlds are available, otherwise the same pack id would load twice.

@@ -42,6 +42,11 @@ public final class AddonCatalog {
         route("UI-Anticheat", "anticheat");
         // ── UI-Datapack ──
         route("UI-Datapack", "datapack");
+        // ── UI-Advancements ──
+        // Custom advancements have their own file: they are datapack content
+        // (JSON, no registry API), but they are toggled individually and are
+        // therefore configured separately from the pack itself.
+        route("UI-Advancements", "advancements");
         // ── UI-Shared ──
         route("UI-Shared", "space", "radiation", "hazmat");
         // ── UI-Enchant ──
@@ -144,7 +149,7 @@ public final class AddonCatalog {
     public static List<String> catalog() {
         return List.of(
                 CORE,
-                "UI-Shared", "UI-MBS", "UI-Datapack", "UI-Chat", "UI-Clans",
+                "UI-Shared", "UI-MBS", "UI-Datapack", "UI-Advancements", "UI-Chat", "UI-Clans",
                 "UI-Combat", "UI-Punish", "UI-Essentials", "UI-Energy",
                 "UI-Anticheat", "UI-Enchant", "UI-Auth", "UI-Protection", "UI-Display", "UI-Admin", "UI-Player", "UI-Guard", "UI-World", "UI-Items", "UI-Other");
     }

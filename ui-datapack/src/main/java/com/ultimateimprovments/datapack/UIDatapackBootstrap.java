@@ -1,11 +1,8 @@
 package com.ultimateimprovments.datapack;
 
-import io.papermc.paper.datapack.Datapack;
 import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
-
-import java.nio.file.Path;
 
 /**
  * UIDatapackBootstrap — registers the bundled UI-Datapack through the Paper
@@ -32,7 +29,7 @@ public class UIDatapackBootstrap implements PluginBootstrap {
      * datapacks). The pack is extracted exactly once and the same path is
      * re-registered afterwards, so in-use datapack files are never rewritten.
      */
-    private Path preparedPack;
+    private DatapackPackBootstrap.Prepared preparedPack;
 
     @Override
     public void bootstrap(BootstrapContext context) {
@@ -49,12 +46,13 @@ public class UIDatapackBootstrap implements PluginBootstrap {
                     return; // master toggle off — nothing to register
                 }
                 // The folder name carries the language (UI-Datapack-en / UI-Datapack-ru).
-                String packId = preparedPack.getFileName().toString();
-                event.registrar().discoverPack(preparedPack, packId, configurer -> configurer
+                String packId = preparedPack.path().getFileName().toString();
+                event.registrar().discoverPack(preparedPack.path(), packId, configurer -> configurer
                         .autoEnableOnServerStart(true)
-                        .position(true, Datapack.Position.TOP));
+                        .position(true, preparedPack.position()));
                 context.getLogger().info("Registered bundled datapack '" + packId
-                        + "' for discovery (auto-enabled on start).");
+                        + "' for discovery (auto-enabled on start, "
+                        + preparedPack.position().name().toLowerCase(java.util.Locale.ROOT) + ").");
             } catch (Throwable t) {
                 context.getLogger().error("Failed to register the bundled datapack: "
                         + t.getMessage(), t);

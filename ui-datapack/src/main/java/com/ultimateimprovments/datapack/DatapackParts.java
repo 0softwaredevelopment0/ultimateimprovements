@@ -31,6 +31,9 @@ public final class DatapackParts {
     /** Language of the bundled pack: {@code datapack.lang} ("en", "ru" or "auto"). */
     public static final String LANG_KEY = "datapack.lang";
 
+    /** Placement of the pack relative to other datapacks: {@code datapack.position}. */
+    public static final String POSITION_KEY = "datapack.position";
+
     /** Config root section: {@code datapack.modules}. */
     public static final String CONFIG_ROOT = "datapack.modules";
 
@@ -42,7 +45,6 @@ public final class DatapackParts {
     // =========================
 
     public static final String ENCHANTMENTS = "enchantments";
-    public static final String ADVANCEMENTS = "advancements";
     public static final String CUSTOM_RECIPES = "custom_recipes";
     public static final String VANILLA_RECIPES = "vanilla_recipes";
     public static final String LOOT_TABLES = "loot_tables";
@@ -51,9 +53,13 @@ public final class DatapackParts {
     public static final String DIMENSION_LIMITS = "dimension_limits";
     public static final String VANILLA_TAGS = "vanilla_tags";
 
+    // Achievement JSON lives under ui/advancement/ but is NOT a datapack part: it is
+    // toggled per achievement in config/UI-Advancements.toml (AdvancementFilter), so
+    // the pack always copies that folder and the achievement filter decides what stays.
+
     /** Order used for logging and for the generated config template. */
     private static final List<String> ORDER = List.of(
-            ENCHANTMENTS, ADVANCEMENTS, CUSTOM_RECIPES, VANILLA_RECIPES,
+            ENCHANTMENTS, CUSTOM_RECIPES, VANILLA_RECIPES,
             LOOT_TABLES, STRUCTURES, WORLDGEN, DIMENSION_LIMITS, VANILLA_TAGS);
 
     /**
@@ -72,7 +78,6 @@ public final class DatapackParts {
     static {
         Map<String, List<String>> prefixes = new LinkedHashMap<>();
         prefixes.put(ENCHANTMENTS, List.of("ui/tags/item/", "minecraft/tags/enchantment/"));
-        prefixes.put(ADVANCEMENTS, List.of("ui/advancement/"));
         prefixes.put(CUSTOM_RECIPES, List.of("ui/recipe/"));
         prefixes.put(VANILLA_RECIPES, List.of("minecraft/recipe/"));
         prefixes.put(LOOT_TABLES, List.of("minecraft/loot_table/"));
