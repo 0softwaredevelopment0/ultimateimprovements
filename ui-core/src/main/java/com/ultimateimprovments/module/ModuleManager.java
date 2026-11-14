@@ -31,6 +31,15 @@ public class ModuleManager {
 
         /** Whether the datapack part is enabled (master toggle included). */
         boolean isPartEnabled(String part);
+
+        /**
+         * Whether this single module is switched off by a finer-grained toggle
+         * than its part (e.g. {@code datapack.disabled_enchantments}). Defaults to
+         * {@code false} so a gate that only knows about parts stays valid.
+         */
+        default boolean isModuleDisabled(String moduleName) {
+            return false;
+        }
     }
 
     private DatapackGate datapackGate;
@@ -70,6 +79,11 @@ public class ModuleManager {
                 ConsoleLogger.info("[ModuleManager] Skipping module '" + module.getName()
                         + "' — datapack module '" + datapackPart
                         + "' is disabled (datapack.modules." + datapackPart + ": false).");
+                return;
+            }
+            if (datapackGate.isModuleDisabled(module.getName())) {
+                ConsoleLogger.info("[ModuleManager] Skipping module '" + module.getName()
+                        + "' — it is disabled individually (datapack.disabled_enchantments).");
                 return;
             }
         }

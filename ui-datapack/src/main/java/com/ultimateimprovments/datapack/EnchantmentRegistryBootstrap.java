@@ -43,11 +43,11 @@ import java.util.List;
  *       already carrying these enchantments keep working; no migration pass over
  *       inventories, ender chests or stored player data is needed.</li>
  * </ul>
- * Registration is skipped entirely when {@code datapack.modules.enchantments} is false,
- * mirroring the old behaviour where the module toggle kept the enchantment files out of
- * the extracted pack. The three entries that still reference a {@code ui:*} item tag are
- * skipped (with a warning) when {@code datapack.enabled} is false, because those tag
- * files live in the pack.
+ * Registration is skipped entirely when {@code datapack.modules.enchantments} is false or
+ * when the master toggle {@code datapack.enabled} is false (the old behaviour kept 12
+ * entries registered while their modules were gated off, i.e. obtainable but inert).
+ * A single entry can be left out with {@code datapack.disabled_enchantments = ["flight"]},
+ * which also skips the plugin module implementing it.
  */
 final class EnchantmentRegistryBootstrap {
 
@@ -59,6 +59,14 @@ final class EnchantmentRegistryBootstrap {
         File shared = new File(new File("plugins"), "UltimateImprovments");
         Settings settings = Settings.read(new File(new File(shared, "configs"), "UI-Datapack.toml"), log);
 
+        if (!settings.datapackEnabled()) {
+            // The master toggle means "no bundled datapack content at all". Registering
+            // the enchantments anyway used to leave 12 entries obtainable in the
+            // enchanting table with no code behind them (the gate disables their
+            // modules), i.e. inert enchantments.
+            log.info("datapack.enabled=false — custom enchantments are not registered.");
+            return;
+        }
         if (!settings.enchantments()) {
             log.info("datapack.modules.enchantments=false — custom enchantments are not registered.");
             return;
@@ -70,7 +78,7 @@ final class EnchantmentRegistryBootstrap {
                 + lang + ", " + EnchantmentDefinition.all().size() + " entries).");
 
         context.getLifecycleManager().registerEventHandler(RegistryEvents.ENCHANTMENT.compose(),
-                event -> compose(event, russian, settings.datapackEnabled(), log));
+                event -> compose(event, russian, settings.disabledEnchantments(), log));
     }
 
     /**
@@ -80,13 +88,13 @@ final class EnchantmentRegistryBootstrap {
      * down with it.
      */
     private static void compose(RegistryComposeEvent<Enchantment, EnchantmentRegistryEntry.Builder> event,
-                                boolean russian, boolean datapackEnabled, ComponentLogger log) {
+                                boolean russian, java.util.Set<String> disabled, ComponentLogger log) {
         int registered = 0;
         List<String> skipped = new ArrayList<>();
 
         for (EnchantmentDefinition definition : EnchantmentDefinition.all()) {
-            if (definition.itemTag() != null && !datapackEnabled) {
-                // Its item tag ships inside the bundled datapack, which is switched off.
+            if (disabled.contains(definition.id())) {
+                // Switched off individually (datapack.disabled_enchantments).
                 skipped.add(definition.id());
                 continue;
             }
@@ -141,28 +149,42 @@ final class EnchantmentRegistryBootstrap {
      * The subset of {@code UI-Datapack.toml} this class cares about. Read directly with
      * toml4j because the bootstrap runs long before UI-Core (and its config layer) exists.
      */
-    private record Settings(boolean datapackEnabled, boolean enchantments, String configuredLang) {
+    private record Settings(boolean datapackEnabled, boolean enchantments, String configuredLang,
+                            java.util.Set<String> disabledEnchantments) {
 
         static Settings read(File configFile, ComponentLogger log) {
             boolean datapackEnabled = true;
             boolean enchantments = true;
             String configuredLang = "auto";
+            java.util.Set<String> disabledEnchantments = java.util.Set.of();
 
             if (configFile.isFile()) {
                 try {
                     Toml toml = new Toml().read(configFile);
-                    datapackEnabled = !Boolean.FALSE.equals(toml.getBoolean("datapack.enabled", true));
-                    configuredLang = toml.getString("datapack.lang", "auto");
-                    Toml modules = toml.getTable("datapack.modules");
+                    datapackEnabled = !Boolean.FALSE.equals(
+                            toml.getBoolean(DatapackParts.MASTER_KEY, true));
+                    configuredLang = toml.getString(DatapackParts.LANG_KEY, "auto");
+                    Toml modules = toml.getTable(DatapackParts.CONFIG_ROOT);
                     if (modules != null) {
                         enchantments = !Boolean.FALSE.equals(modules.getBoolean("enchantments", true));
+                    }
+                    List<String> disabled = toml.getList(DatapackParts.DISABLED_ENCHANTMENTS_KEY);
+                    if (disabled != null) {
+                        java.util.Set<String> ids = new java.util.LinkedHashSet<>();
+                        for (Object raw : disabled) {
+                            if (raw == null) continue;
+                            String id = raw.toString().trim().toLowerCase(java.util.Locale.ROOT);
+                            if (id.startsWith("ui:")) id = id.substring(3);
+                            if (!id.isEmpty()) ids.add(id);
+                        }
+                        disabledEnchantments = ids;
                     }
                 } catch (Exception e) {
                     log.warn("Could not read " + configFile + " (" + e.getMessage()
                             + ") — registering every custom enchantment (defaults).");
                 }
             }
-            return new Settings(datapackEnabled, enchantments, configuredLang);
+            return new Settings(datapackEnabled, enchantments, configuredLang, disabledEnchantments);
         }
     }
 }

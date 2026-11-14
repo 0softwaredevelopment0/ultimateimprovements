@@ -17,32 +17,70 @@
 # requires a server restart (discovery happens at startup only).
 [datapack]
 # Master switch (true = feature on).
+# false = the pack is not registered at all AND the custom enchantments are not
+# registered through the registry (nothing of the bundled content exists).
 # Default: true
 enabled = true
 
 # Datapack language: "en" or "ru".
-# Both variants carry identical content (enchantments, advancements, recipes,
-# structures, worldgen); only the display names/descriptions are translated.
+# Both variants carry identical content (advancements, recipes, structures,
+# worldgen); only the display names/descriptions are translated.
 # "auto" follows messages.lang from UI-Core.toml.
 # Requires a server restart (the pack is registered once, at startup).
 # Default: "auto"
 lang = "auto"
 
-# modules section.
+# Custom enchantments to leave out, by id: ["flight", "veinminer"].
+# An entry here removes BOTH the registry entry (it can no longer be obtained or
+# applied, and existing items lose the tooltip) and the plugin module implementing
+# its effect. The "enchantments" part below stays on; this is the per-enchantment
+# switch on top of it. A "ui:" prefix is accepted and ignored.
+# Known ids: aoe, attack_aoe, autosmelt, blunting, container_stealing, degradation,
+# disappearance, flight, igniting, item_stealing, lava_walker, levitation, magnet,
+# repairing, self_destruct, treecapitator, veinminer, vulnerability.
+# Unknown ids are reported in the console and skipped.
+# Requires a server restart (the registry is filled once, at bootstrap).
+# Default: []
+disabled_enchantments = []
+
+# Datapack parts. Each part covers the listed files inside the pack; a disabled
+# part is not extracted from the JAR and its plugin code modules are not registered.
+# Files that belong to no part are always extracted.
+# Requires a server restart.
 [datapack.modules]
+# Custom enchantment item tags (ui/tags/item/*, minecraft/tags/enchantment/*).
+# Turning this off also stops all custom enchantments from being registered.
 # Default: true
 enchantments = true
+# Custom advancements and their translations (ui/advancement/*).
+# Turning this off also skips the achievement listener modules.
 # Default: true
 advancements = true
+# Custom recipes that add new items (ui/recipe/*).
 # Default: true
 custom_recipes = true
+# Overrides of vanilla recipes (minecraft/recipe/*): chains, trident, netherite,
+# uncrafting recipes, etc.
 # Default: true
 vanilla_recipes = true
+# Overrides of vanilla loot tables (minecraft/loot_table/*).
 # Default: true
 loot_tables = true
-# World name.
+# Custom structures AND the loot table that belongs to them
+# (ui/structure/*, ui/loot_table/*, minecraft/structure/*), e.g. the airdrop chest,
+# the enchanted room and the end village. Independent from "worldgen".
+# Default: true
+structures = true
+# World generation: biomes, dimensions, noise settings, placed/configured features,
+# structure sets and templates (minecraft/worldgen/*).
+# Only affects NEWLY generated chunks; existing terrain is unchanged.
 # Default: true
 worldgen = true
-# Limit.
+# Dimension height/build-limit overrides (minecraft/dimension_type/*).
+# Applies to every world using that dimension type, including existing ones.
 # Default: true
 dimension_limits = true
+# Overrides of vanilla item tags (minecraft/tags/item/*, minecraft/tags/mineable/*),
+# e.g. which blocks the vanilla tools can mine.
+# Default: true
+vanilla_tags = true

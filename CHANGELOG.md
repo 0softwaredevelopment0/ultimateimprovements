@@ -3,6 +3,46 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-beta.45] - 2026-11-15
+
+### Fixed
+- **Structures and the airdrop loot table ignored the datapack toggles.**
+  `ui/structure/*` and `ui/loot_table/*` matched no part prefix, and files that
+  match no prefix are always extracted — so `worldgen: false` and
+  `loot_tables: false` still shipped the airdrop chest, the enchanted room, the
+  end village and their loot. They now belong to the new `structures` part.
+- **Vanilla tag overrides were ungated too.** `minecraft/tags/item/*` and
+  `minecraft/tags/mineable/*` had the same hole and now have the `vanilla_tags`
+  part.
+- **`datapack.enabled: false` still registered 12 custom enchantments.** Their
+  modules were gated off, so the enchanting table handed out entries with no
+  effect behind them. The registry is now skipped entirely when the master
+  toggle is off.
+- **The pack was looked up by substring.** `DatapackInstaller` accepted any pack
+  whose name contained `UI-Datapack`; it now matches the registered id first and
+  keeps the substring search only as a fallback.
+
+### Added
+- **`datapack.disabled_enchantments`** — a list of custom enchantment ids to
+  leave out (`["flight", "veinminer"]`). An entry removes both the registry
+  entry and the plugin module implementing it, so an unwanted charm costs
+  nothing at runtime. Unknown ids are reported with the list of valid ones.
+- **`datapack.modules.structures` and `datapack.modules.vanilla_tags`** — the
+  two parts above can now be switched independently of `worldgen`,
+  `loot_tables` and `enchantments`.
+- **Config validation for `datapack.*`** — booleans, the `lang` enum
+  (`en`/`ru`/`auto`) and the disabled-enchantment list are checked at startup
+  instead of a typo silently falling back to the default.
+
+### Changed
+- **One part registry instead of three copies.** `DatapackParts` is now the
+  single table of parts and path prefixes, shared by the bootstrapper (copies
+  the subset out of the JAR) and `DatapackModules` (gates the code modules).
+  A new part is a one-line change and the two sides cannot drift apart.
+- **Readable comments in `UI-Datapack.toml`.** `worldgen` was documented as
+  "World name." and `dimension_limits` as "Limit."; every part now says what it
+  covers and whether a restart is needed.
+
 ## [1.8.5-beta.44] - 2026-11-14
 
 ### Fixed

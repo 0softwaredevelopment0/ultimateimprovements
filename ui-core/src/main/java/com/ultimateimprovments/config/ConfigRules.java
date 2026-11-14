@@ -78,6 +78,13 @@ final class ConfigRules {
         return new Rule(key, ValueType.INT_LIST, 0, 0, false, false, null, 0, "");
     }
 
+    /** A string that must be one of {@code values} (case-sensitive, as documented). */
+    static Rule stringEnum(String key, String... values) {
+        String regex = "^(?:" + String.join("|", values) + ")$";
+        return new Rule(key, ValueType.STRING, 0, 0, false, false, regex,
+                values.length == 0 ? 0 : 64, "");
+    }
+
     // =========================
     // VALIDATION RULES
     // =========================
@@ -656,6 +663,22 @@ final class ConfigRules {
             integer("enchant.max_level", 1, 1_000_000),
             string("enchant.permission", false, 128),
             stringList("enchant.custom_enchantments"),
+
+            // ── UI-Datapack · bundled pack ──
+            // Types are checked here; unknown enchantment ids in the list are
+            // reported by DatapackModules at load (it knows the valid ids).
+            bool("datapack.enabled"),
+            stringEnum("datapack.lang", "en", "ru", "auto"),
+            stringList("datapack.disabled_enchantments"),
+            bool("datapack.modules.enchantments"),
+            bool("datapack.modules.advancements"),
+            bool("datapack.modules.custom_recipes"),
+            bool("datapack.modules.vanilla_recipes"),
+            bool("datapack.modules.loot_tables"),
+            bool("datapack.modules.structures"),
+            bool("datapack.modules.worldgen"),
+            bool("datapack.modules.dimension_limits"),
+            bool("datapack.modules.vanilla_tags"),
 
             bool("ojm.enabled"),
             string("ojm.join", false, 512),

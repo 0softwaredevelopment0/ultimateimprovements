@@ -53,8 +53,8 @@ public class DatapackInstaller {
         plugin.getServer().getScheduler().runTaskLater(plugin, this::removeLegacyWorldCopy, 40L);
 
         try {
-            Datapack pack = findPack();
             String packName = "UI-Datapack-" + DatapackModules.getLanguage();
+            Datapack pack = findPack(packName);
             if (pack == null) {
                 ConsoleLogger.warn("[Datapack] " + packName + " was not discovered at startup. "
                         + "Check that 'bootstrapper' is set in paper-plugin.yml and datapack.enabled: true; "
@@ -110,14 +110,20 @@ public class DatapackInstaller {
         }
     }
 
-    /** Finds the discovered UI-Datapack by name (Paper combines the id with the plugin). */
-    private static Datapack findPack() {
+    /**
+     * Finds the discovered UI-Datapack by name. Paper registers the pack under the id
+     * the bootstrapper passed (the extracted folder name), so an exact match is
+     * preferred; the {@code contains} pass stays as a fallback for older versions that
+     * prefixed the id with the plugin name.
+     */
+    private static Datapack findPack(String expectedName) {
+        Datapack fallback = null;
         for (Datapack p : Bukkit.getDatapackManager().getPacks()) {
             String name = p.getName();
-            if (name != null && name.contains("UI-Datapack")) {
-                return p;
-            }
+            if (name == null) continue;
+            if (name.equals(expectedName)) return p;
+            if (fallback == null && name.contains("UI-Datapack")) fallback = p;
         }
-        return null;
+        return fallback;
     }
 }

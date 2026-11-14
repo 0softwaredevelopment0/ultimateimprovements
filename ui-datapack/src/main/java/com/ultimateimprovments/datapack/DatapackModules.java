@@ -6,80 +6,94 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * DatapackModules — modular loading of the bundled UI-Datapack.
  * <p>
  * The datapack is a SINGLE pack, but its parts can be enabled/disabled via
  * {@code datapack.modules.*} in config.yml (all parts are enabled by default).
- * Disabled parts are NOT copied into the world when the datapack is installed,
- * and the plugin code modules bound to those parts are not registered either.
+ * The part list and the file paths behind it live in {@link DatapackParts}, so
+ * this class and the bootstrapper can never disagree about what a part covers.
+ * <p>
+ * Disabled parts are NOT extracted into the pack folder, and the plugin code
+ * modules bound to those parts are not registered either. Individual custom
+ * enchantments can additionally be switched off with
+ * {@code datapack.disabled_enchantments = ["flight", ...]}, which skips both the
+ * registry entry and the code module behind it.
  */
 public final class DatapackModules {
 
     private DatapackModules() {}
 
-    /** Master toggle: {@code datapack.enabled}. */
-    public static final String MASTER_KEY = "datapack.enabled";
-
-    /**
-     * Language of the bundled pack: {@code datapack.lang} ("en", "ru" or "auto").
-     * {@code auto} follows the global {@code messages.lang}.
-     */
-    public static final String LANG_KEY = "datapack.lang";
-
-    /** Config root section: {@code datapack.modules}. */
-    public static final String CONFIG_ROOT = "datapack.modules";
-
     // =========================
-    // PARTS
+    // PARTS (re-exported for callers)
     // =========================
 
-    public static final String ENCHANTMENTS = "enchantments";
-    public static final String ADVANCEMENTS = "advancements";
-    public static final String CUSTOM_RECIPES = "custom_recipes";
-    public static final String VANILLA_RECIPES = "vanilla_recipes";
-    public static final String LOOT_TABLES = "loot_tables";
-    public static final String WORLDGEN = "worldgen";
-    public static final String DIMENSION_LIMITS = "dimension_limits";
-
-    /** Order used for logging. */
-    private static final List<String> ORDER = List.of(
-            ENCHANTMENTS, ADVANCEMENTS, CUSTOM_RECIPES, VANILLA_RECIPES,
-            LOOT_TABLES, WORLDGEN, DIMENSION_LIMITS);
-
-    /**
-     * Datapack path prefixes per part (relative to the pack's {@code data/} folder).
-     * Everything under a prefix belongs to that part.
-     */
-    private static final Map<String, List<String>> PATH_PREFIXES = Map.of(
-            ENCHANTMENTS, List.of("ui/tags/item/", "minecraft/tags/enchantment/"),
-            ADVANCEMENTS, List.of("ui/advancement/"),
-            CUSTOM_RECIPES, List.of("ui/recipe/"),
-            VANILLA_RECIPES, List.of("minecraft/recipe/"),
-            LOOT_TABLES, List.of("minecraft/loot_table/"),
-            WORLDGEN, List.of("minecraft/worldgen/", "minecraft/structure/"),
-            DIMENSION_LIMITS, List.of("minecraft/dimension_type/"));
+    public static final String ENCHANTMENTS = DatapackParts.ENCHANTMENTS;
+    public static final String ADVANCEMENTS = DatapackParts.ADVANCEMENTS;
+    public static final String CUSTOM_RECIPES = DatapackParts.CUSTOM_RECIPES;
+    public static final String VANILLA_RECIPES = DatapackParts.VANILLA_RECIPES;
+    public static final String LOOT_TABLES = DatapackParts.LOOT_TABLES;
+    public static final String STRUCTURES = DatapackParts.STRUCTURES;
+    public static final String WORLDGEN = DatapackParts.WORLDGEN;
+    public static final String DIMENSION_LIMITS = DatapackParts.DIMENSION_LIMITS;
+    public static final String VANILLA_TAGS = DatapackParts.VANILLA_TAGS;
 
     /**
      * Plugin code modules (ModuleManager names) bound to a datapack part.
      * If the part is disabled, these modules are skipped at registration.
      */
-    private static final Map<String, List<String>> CODE_MODULES = Map.of(
-            ENCHANTMENTS, List.of(
-                    "AOEEnchantment", "AutoSmeltEnchantment", "VeinMinerEnchantment",
-                    "TreeCapitatorEnchantment", "FlightEnchantment", "MagnetEnchantment",
-                    "IgnitingEnchantment", "LevitationEnchantment", "SelfDestructEnchantment",
-                    "DegradationEnchantment", "AttackAoeEnchantment", "ItemStealingEnchantment",
-                    "RepairingEnchantment", "ContainerStealingEnchantment", "LavaWalkerEnchantment"),
-            ADVANCEMENTS, List.of(
-                    "BeyondSpace", "BedrockBreak", "Kaboom", "EarthCore", "ServerOverload",
-                    "WoodcutterChallenge", "EnderPearlChallenge", "NetheriteKing",
-                    "OutOfMemory", "ServerFreeze"));
+    private static final Map<String, List<String>> CODE_MODULES;
+
+    /**
+     * Custom enchantment id ({@code ui:<id>}) -> the code module implementing it.
+     * Used by {@code datapack.disabled_enchantments} to drop the effect engine
+     * together with the registry entry; an id with no module here (the curses
+     * {@code blunting}, {@code disappearance}, {@code vulnerability}) is pure data.
+     */
+    private static final Map<String, String> ENCHANTMENT_MODULES;
+
+    static {
+        Map<String, List<String>> modules = new LinkedHashMap<>();
+        modules.put(ENCHANTMENTS, List.of(
+                "AOEEnchantment", "AutoSmeltEnchantment", "VeinMinerEnchantment",
+                "TreeCapitatorEnchantment", "FlightEnchantment", "MagnetEnchantment",
+                "IgnitingEnchantment", "LevitationEnchantment", "SelfDestructEnchantment",
+                "DegradationEnchantment", "AttackAoeEnchantment", "ItemStealingEnchantment",
+                "RepairingEnchantment", "ContainerStealingEnchantment", "LavaWalkerEnchantment"));
+        modules.put(ADVANCEMENTS, List.of(
+                "BeyondSpace", "BedrockBreak", "Kaboom", "EarthCore", "ServerOverload",
+                "WoodcutterChallenge", "EnderPearlChallenge", "NetheriteKing",
+                "OutOfMemory", "ServerFreeze"));
+        CODE_MODULES = java.util.Collections.unmodifiableMap(modules);
+
+        Map<String, String> enchantmentModules = new LinkedHashMap<>();
+        enchantmentModules.put("aoe", "AOEEnchantment");
+        enchantmentModules.put("attack_aoe", "AttackAoeEnchantment");
+        enchantmentModules.put("autosmelt", "AutoSmeltEnchantment");
+        enchantmentModules.put("container_stealing", "ContainerStealingEnchantment");
+        enchantmentModules.put("degradation", "DegradationEnchantment");
+        enchantmentModules.put("flight", "FlightEnchantment");
+        enchantmentModules.put("igniting", "IgnitingEnchantment");
+        enchantmentModules.put("item_stealing", "ItemStealingEnchantment");
+        enchantmentModules.put("lava_walker", "LavaWalkerEnchantment");
+        enchantmentModules.put("levitation", "LevitationEnchantment");
+        enchantmentModules.put("magnet", "MagnetEnchantment");
+        enchantmentModules.put("repairing", "RepairingEnchantment");
+        enchantmentModules.put("self_destruct", "SelfDestructEnchantment");
+        enchantmentModules.put("treecapitator", "TreeCapitatorEnchantment");
+        enchantmentModules.put("veinminer", "VeinMinerEnchantment");
+        ENCHANTMENT_MODULES = java.util.Collections.unmodifiableMap(enchantmentModules);
+    }
 
     private static final Map<String, Boolean> CACHE = new HashMap<>();
+    private static final Set<String> DISABLED_ENCHANTMENTS = new LinkedHashSet<>();
     private static boolean masterEnabled = true;
     private static String language = "en";
 
@@ -94,16 +108,54 @@ public final class DatapackModules {
     public static void init(JavaPlugin plugin) {
         // Single config lives in UI-Core (Main.getInstance().getConfig()).
         FileConfiguration cfg = com.ultimateimprovments.core.Main.getInstance().getConfig();
-        masterEnabled = cfg.getBoolean(MASTER_KEY, true);
-        language = resolveLanguage(cfg.getString(LANG_KEY, "auto"),
+        masterEnabled = cfg.getBoolean(DatapackParts.MASTER_KEY, true);
+        language = resolveLanguage(cfg.getString(DatapackParts.LANG_KEY, "auto"),
                 cfg.getString("messages.lang", "en"));
-        for (String part : ORDER) {
-            boolean enabled = cfg.getBoolean(CONFIG_ROOT + "." + part, true);
-            CACHE.put(part, enabled);
+
+        CACHE.clear();
+        for (String part : DatapackParts.all()) {
+            CACHE.put(part, cfg.getBoolean(DatapackParts.CONFIG_ROOT + "." + part, true));
         }
+
+        DISABLED_ENCHANTMENTS.clear();
+        List<String> disabled = cfg.getStringList(DatapackParts.DISABLED_ENCHANTMENTS_KEY);
+        for (String id : disabled) {
+            String normalized = normalizeEnchantmentId(id);
+            if (normalized == null) continue;
+            if (!ENCHANTMENT_MODULES.containsKey(normalized) && !isDataOnlyCurse(normalized)) {
+                ConsoleLogger.warn("[Datapack] datapack.disabled_enchantments: unknown enchantment '"
+                        + id + "' — ignored. Known ids: " + String.join(", ", knownEnchantmentIds()) + ".");
+                continue;
+            }
+            DISABLED_ENCHANTMENTS.add(normalized);
+        }
+
         ConsoleLogger.info("[Datapack] " + (isMasterEnabled()
                 ? "Master: ON | Language: " + language + " | Modules: " + describe()
+                  + (DISABLED_ENCHANTMENTS.isEmpty() ? ""
+                     : " | Disabled enchantments: " + String.join(", ", DISABLED_ENCHANTMENTS))
                 : "Master: OFF (datapack.enabled: false) — datapack disabled entirely."));
+    }
+
+    /** @return the id without a {@code ui:} prefix, lower-cased, or null for blank input */
+    private static String normalizeEnchantmentId(String id) {
+        if (id == null) return null;
+        String value = id.trim().toLowerCase(Locale.ROOT);
+        if (value.startsWith("ui:")) value = value.substring(3);
+        return value.isEmpty() ? null : value;
+    }
+
+    /** The three curses that are pure datapack data and have no code module. */
+    private static boolean isDataOnlyCurse(String id) {
+        return "blunting".equals(id) || "disappearance".equals(id) || "vulnerability".equals(id);
+    }
+
+    private static Set<String> knownEnchantmentIds() {
+        Set<String> ids = new LinkedHashSet<>(ENCHANTMENT_MODULES.keySet());
+        ids.add("blunting");
+        ids.add("disappearance");
+        ids.add("vulnerability");
+        return ids;
     }
 
     /**
@@ -121,7 +173,7 @@ public final class DatapackModules {
     /** @return "en"/"ru" for a valid language value, otherwise {@code null} */
     private static String normalizeLang(String lang) {
         if (lang == null) return null;
-        String value = lang.trim().toLowerCase(java.util.Locale.ROOT);
+        String value = lang.trim().toLowerCase(Locale.ROOT);
         return "en".equals(value) || "ru".equals(value) ? value : null;
     }
 
@@ -141,10 +193,23 @@ public final class DatapackModules {
         return masterEnabled;
     }
 
+    /** Custom enchantments the admin switched off ({@code datapack.disabled_enchantments}). */
+    public static Set<String> getDisabledEnchantments() {
+        return java.util.Collections.unmodifiableSet(DISABLED_ENCHANTMENTS);
+    }
+
+    /** Whether one custom enchantment ({@code ui:<id>}) may be registered and implemented. */
+    public static boolean isEnchantmentEnabled(String id) {
+        String normalized = normalizeEnchantmentId(id);
+        if (normalized == null) return true;
+        if (!masterEnabled) return false;
+        return !DISABLED_ENCHANTMENTS.contains(normalized);
+    }
+
     /** Human-readable state, e.g. "enchantments ✔, advancements ✘, ...". */
     public static String describe() {
         StringBuilder sb = new StringBuilder();
-        for (String part : ORDER) {
+        for (String part : DatapackParts.all()) {
             if (sb.length() > 0) sb.append(", ");
             sb.append(part).append(isEnabled(part) ? " ✔" : " ✘");
         }
@@ -172,14 +237,7 @@ public final class DatapackModules {
     public static boolean isPathEnabled(String relPath) {
         if (relPath == null || !relPath.startsWith("data/")) return true;
         if (!masterEnabled) return false;
-        for (Map.Entry<String, List<String>> e : PATH_PREFIXES.entrySet()) {
-            for (String prefix : e.getValue()) {
-                if (relPath.startsWith("data/" + prefix)) {
-                    return isEnabled(e.getKey());
-                }
-            }
-        }
-        return true; // unknown paths are always copied
+        return DatapackParts.isPathEnabled(CACHE, relPath);
     }
 
     /**
@@ -191,6 +249,20 @@ public final class DatapackModules {
             if (e.getValue().contains(moduleName)) return e.getKey();
         }
         return null;
+    }
+
+    /**
+     * Whether a module implements a custom enchantment the admin disabled via
+     * {@code datapack.disabled_enchantments}. Such a module must not register even
+     * when the {@code enchantments} part as a whole is on.
+     */
+    public static boolean isModuleDisabled(String moduleName) {
+        if (moduleName == null || DISABLED_ENCHANTMENTS.isEmpty()) return false;
+        for (Map.Entry<String, String> e : ENCHANTMENT_MODULES.entrySet()) {
+            if (!e.getValue().equals(moduleName)) continue;
+            return DISABLED_ENCHANTMENTS.contains(e.getKey());
+        }
+        return false;
     }
 
     /**
@@ -209,6 +281,11 @@ public final class DatapackModules {
             @Override
             public boolean isPartEnabled(String part) {
                 return isEnabled(part);
+            }
+
+            @Override
+            public boolean isModuleDisabled(String moduleName) {
+                return DatapackModules.isModuleDisabled(moduleName);
             }
         };
     }

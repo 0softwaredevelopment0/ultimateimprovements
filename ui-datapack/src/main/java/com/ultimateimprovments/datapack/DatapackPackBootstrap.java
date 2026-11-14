@@ -50,22 +50,6 @@ final class DatapackPackBootstrap {
     /** Language used when nothing is configured and UI-Core has no preference yet. */
     private static final String DEFAULT_LANG = PackLanguage.DEFAULT_LANG;
 
-    private static final String[] PARTS = {
-            "enchantments", "advancements", "custom_recipes", "vanilla_recipes",
-            "loot_tables", "worldgen", "dimension_limits"
-    };
-
-    /** Datapack path prefixes per part (relative to the pack's {@code data/} folder). */
-    private static final Map<String, List<String>> PREFIXES = Map.ofEntries(
-            Map.entry("enchantments", List.of("ui/tags/item/", "minecraft/tags/enchantment/")),
-            Map.entry("advancements", List.of("ui/advancement/")),
-            Map.entry("custom_recipes", List.of("ui/recipe/")),
-            Map.entry("vanilla_recipes", List.of("minecraft/recipe/")),
-            Map.entry("loot_tables", List.of("minecraft/loot_table/")),
-            Map.entry("worldgen", List.of("minecraft/worldgen/", "minecraft/structure/")),
-            Map.entry("dimension_limits", List.of("minecraft/dimension_type/"))
-    );
-
     static Path prepare(ComponentLogger log) throws Exception {
         File shared = new File(new File("plugins"), "UltimateImprovments");
         File configFile = new File(new File(shared, "configs"), "UI-Datapack.toml");
@@ -73,16 +57,16 @@ final class DatapackPackBootstrap {
         boolean enabled = true;
         String configuredLang = "auto";
         Map<String, Boolean> parts = new HashMap<>();
-        for (String part : PARTS) parts.put(part, true);
+        for (String part : DatapackParts.all()) parts.put(part, true);
 
         if (configFile.isFile()) {
             try {
                 Toml toml = new Toml().read(configFile);
-                enabled = !Boolean.FALSE.equals(toml.getBoolean("datapack.enabled", true));
-                configuredLang = toml.getString("datapack.lang", "auto");
-                Toml modules = toml.getTable("datapack.modules");
+                enabled = !Boolean.FALSE.equals(toml.getBoolean(DatapackParts.MASTER_KEY, true));
+                configuredLang = toml.getString(DatapackParts.LANG_KEY, "auto");
+                Toml modules = toml.getTable(DatapackParts.CONFIG_ROOT);
                 if (modules != null) {
-                    for (String part : PARTS) {
+                    for (String part : DatapackParts.all()) {
                         parts.put(part, !Boolean.FALSE.equals(modules.getBoolean(part, true)));
                     }
                 }
@@ -256,17 +240,9 @@ final class DatapackPackBootstrap {
         }
     }
 
-    /** Mirrors {@code DatapackModules.isPathEnabled} without the plugin config dependency. */
+    /** Delegates to the shared part registry so the copy step and the gate agree. */
     private static boolean isPathEnabled(Map<String, Boolean> parts, String relPath) {
-        if (relPath == null || !relPath.startsWith("data/")) return true;
-        for (Map.Entry<String, List<String>> e : PREFIXES.entrySet()) {
-            for (String prefix : e.getValue()) {
-                if (relPath.startsWith("data/" + prefix)) {
-                    return parts.getOrDefault(e.getKey(), Boolean.TRUE);
-                }
-            }
-        }
-        return true;
+        return DatapackParts.isPathEnabled(parts, relPath);
     }
 
     /**
