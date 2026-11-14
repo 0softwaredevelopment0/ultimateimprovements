@@ -753,6 +753,108 @@ invalid_time = ["<red>❌ Неверный формат времени!</red>", 
 temp_requires_time = ["<red>❌ Этой команде требуется флаг времени </red><white>-t</white><red>!</red>", "<gray>Укажите длительность: </gray><white>5m</white><gray>, </gray><white>2h</white><gray>, </gray><white>1d</gray>"]
 
 # ==================================================================
+# Console texts of the startup config validation (ConfigValidator).
+# Placeholders: %key%, %message%, %type%, %value%, %min%, %max%, %description%,
+# %length%, %regex%, %index%, %chars%, %error%, %errors%, %warnings%, %dir%
+[messages.config_validation]
+# Value is not a boolean.
+# Default: Ожидался boolean (true/false), получен %type%: %value%
+expected_boolean = "Ожидался boolean (true/false), получен %type%: %value%"
+# Value is not an integer.
+# Default: Ожидалось целое число, получен %type%: %value%
+expected_int = "Ожидалось целое число, получен %type%: %value%"
+# Value is not a decimal number.
+# Default: Ожидалось число с плавающей точкой, получен %type%: %value%
+expected_double = "Ожидалось число с плавающей точкой, получен %type%: %value%"
+# Value is not a string.
+# Default: Ожидалась строка, получен %type%: %value%
+expected_string = "Ожидалась строка, получен %type%: %value%"
+# Float given for an integer key — it will be rounded.
+# Default: Значение с плавающей точкой, будет округлено до %value%
+float_rounded = "Значение с плавающей точкой, будет округлено до %value%"
+# Value does not fit into a 32-bit integer.
+# Default: Значение вне диапазона int: %value%
+int_out_of_range = "Значение вне диапазона int: %value%"
+# Value equals infinity.
+# Default: Значение равно бесконечности (Infinity)
+infinite_value = "Значение равно бесконечности (Infinity)"
+# Value is NaN.
+# Default: Значение не является числом (NaN)
+nan_value = "Значение не является числом (NaN)"
+# Value outside the allowed range.
+# Default: Значение %value% вне диапазона [%min%..%max%]%description%
+out_of_range = "Значение %value% вне диапазона [%min%..%max%]%description%"
+# Optional rule description appended by out_of_range.
+# Default:  (%description%)
+range_description = " (%description%)"
+# Empty string where a value is required.
+# Default: Строка пуста
+empty_string = "Строка пуста"
+# Whitespace-only string where a value is required.
+# Default: Строка состоит только из пробелов
+blank_string = "Строка состоит только из пробелов"
+# String contains control characters.
+# Default: Строка содержит управляющие символы: %chars%
+control_chars = "Строка содержит управляющие символы: %chars%"
+# String is longer than the allowed maximum.
+# Default: Длина (%length%) превышает максимум (%max%)
+string_too_long = "Длина (%length%) превышает максимум (%max%)"
+# String does not match the required pattern.
+# Default: Строка не соответствует формату: %regex%
+regex_mismatch = "Строка не соответствует формату: %regex%"
+# Value is not a list of strings.
+# Default: Ожидался список строк, получен %type%
+expected_string_list = "Ожидался список строк, получен %type%"
+# A list item is not a string.
+# Default: Элемент #%index% — ожидалась строка, получен %type%
+list_item_not_string = "Элемент #%index% — ожидалась строка, получен %type%"
+# A string list item contains control characters.
+# Default: Элемент #%index% содержит управляющие символы: %chars%
+list_item_control_chars = "Элемент #%index% содержит управляющие символы: %chars%"
+# A regex list item does not compile.
+# Default: Элемент #%index% — невалидный regex: %error%
+invalid_regex = "Элемент #%index% — невалидный regex: %error%"
+# Value is not a list of integers.
+# Default: Ожидался список целых чисел, получен %type%
+expected_int_list = "Ожидался список целых чисел, получен %type%"
+# A list item is not an integer.
+# Default: Элемент — ожидалось целое число, получен %type%
+list_item_not_int = "Элемент — ожидалось целое число, получен %type%"
+# Value is not a list of numbers.
+# Default: Ожидался список чисел, получен %type%
+expected_double_list = "Ожидался список чисел, получен %type%"
+# A list item is not a number.
+# Default: Элемент — ожидалось число, получен %type%
+list_item_not_number = "Элемент — ожидалось число, получен %type%"
+# One validation error line.
+# Default: [ConfigValidator] ⚠ [ERROR] %key%: %message%
+error_line = "[ConfigValidator] ⚠ [ERROR] %key%: %message%"
+# One validation warning line.
+# Default: [ConfigValidator] ⚠ [WARN] %key%: %message%
+warn_line = "[ConfigValidator] ⚠ [WARN] %key%: %message%"
+# Summary banner border line.
+# Default: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+summary_border = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+# Summary banner title line.
+# Default: !  ПРОВЕРКА ЗНАЧЕНИЙ КОНФИГА ЗАВЕРШЕНА                  !
+summary_title = "!  ПРОВЕРКА ЗНАЧЕНИЙ КОНФИГА ЗАВЕРШЕНА                  !"
+# Summary banner error count line (shown only when errors > 0).
+# Default: !  Найдено ошибок: %errors% — исправьте эти значения!   !
+summary_errors = "!  Найдено ошибок: %errors% — исправьте эти значения!   !"
+# Summary banner warning count line (shown only when warnings > 0).
+# Default: !  Найдено предупреждений: %warnings% — проверьте их.   !
+summary_warnings = "!  Найдено предупреждений: %warnings% — проверьте их.   !"
+# Summary banner note line.
+# Default: !  Для некорректных значений будут использованы умолчания. !
+summary_note = "!  Для некорректных значений будут использованы умолчания. !"
+# Shown when every value passed validation.
+# Default: [ConfigValidator] ✓ Все значения конфига прошли проверку.
+all_passed = "[ConfigValidator] ✓ Все значения конфига прошли проверку."
+# Legacy monolithic config.toml found in the data folder.
+# Default: [Config] Найден устаревший монолитный config.toml в %dir% — настройки теперь хранятся в configs/UI-<Addon>.toml
+legacy_monolithic = "[Config] Найден устаревший монолитный config.toml в %dir% — настройки теперь хранятся в configs/UI-<Addon>.toml"
+
+# ==================================================================
 # MESSAGES — ENGLISH (active when lang = "en")
 # ==================================================================
 
@@ -1400,3 +1502,104 @@ invalid_time = ["<red>❌ Invalid time format!</red>", "<gray>Use: </gray><white
 # *-temp command called without the required -t flag.
 # Default: ["<red>❌ This command requires the time flag </red><white>-t</white><red>!</red>", "<gray>Specify a duration: </gray><white>5m</white><gray>, </gray><white>2h</white><gray>, </gray><white>1d</gray>"]
 temp_requires_time = ["<red>❌ This command requires the time flag </red><white>-t</white><red>!</red>", "<gray>Specify a duration: </gray><white>5m</white><gray>, </gray><white>2h</white><gray>, </gray><white>1d</gray>"]
+
+# Console texts of the startup config validation (ConfigValidator).
+# Placeholders: %key%, %message%, %type%, %value%, %min%, %max%, %description%,
+# %length%, %regex%, %index%, %chars%, %error%, %errors%, %warnings%, %dir%
+[messages_en.config_validation]
+# Value is not a boolean.
+# Default: Expected boolean (true/false), got %type%: %value%
+expected_boolean = "Expected boolean (true/false), got %type%: %value%"
+# Value is not an integer.
+# Default: Expected an integer, got %type%: %value%
+expected_int = "Expected an integer, got %type%: %value%"
+# Value is not a decimal number.
+# Default: Expected a decimal number, got %type%: %value%
+expected_double = "Expected a decimal number, got %type%: %value%"
+# Value is not a string.
+# Default: Expected a string, got %type%: %value%
+expected_string = "Expected a string, got %type%: %value%"
+# Float given for an integer key — it will be rounded.
+# Default: Floating-point value, it will be rounded to %value%
+float_rounded = "Floating-point value, it will be rounded to %value%"
+# Value does not fit into a 32-bit integer.
+# Default: Value is outside the int range: %value%
+int_out_of_range = "Value is outside the int range: %value%"
+# Value equals infinity.
+# Default: The value is infinite (Infinity)
+infinite_value = "The value is infinite (Infinity)"
+# Value is NaN.
+# Default: The value is not a number (NaN)
+nan_value = "The value is not a number (NaN)"
+# Value outside the allowed range.
+# Default: Value %value% is outside the range [%min%..%max%]%description%
+out_of_range = "Value %value% is outside the range [%min%..%max%]%description%"
+# Optional rule description appended by out_of_range.
+# Default:  (%description%)
+range_description = " (%description%)"
+# Empty string where a value is required.
+# Default: The string is empty
+empty_string = "The string is empty"
+# Whitespace-only string where a value is required.
+# Default: The string consists of whitespace only
+blank_string = "The string consists of whitespace only"
+# String contains control characters.
+# Default: The string contains control characters: %chars%
+control_chars = "The string contains control characters: %chars%"
+# String is longer than the allowed maximum.
+# Default: Length (%length%) exceeds the maximum (%max%)
+string_too_long = "Length (%length%) exceeds the maximum (%max%)"
+# String does not match the required pattern.
+# Default: The string does not match the pattern: %regex%
+regex_mismatch = "The string does not match the pattern: %regex%"
+# Value is not a list of strings.
+# Default: Expected a string list, got %type%
+expected_string_list = "Expected a string list, got %type%"
+# A list item is not a string.
+# Default: Item #%index% — expected a string, got %type%
+list_item_not_string = "Item #%index% — expected a string, got %type%"
+# A string list item contains control characters.
+# Default: Item #%index% contains control characters: %chars%
+list_item_control_chars = "Item #%index% contains control characters: %chars%"
+# A regex list item does not compile.
+# Default: Item #%index% — invalid regex: %error%
+invalid_regex = "Item #%index% — invalid regex: %error%"
+# Value is not a list of integers.
+# Default: Expected an integer list, got %type%
+expected_int_list = "Expected an integer list, got %type%"
+# A list item is not an integer.
+# Default: Item — expected an integer, got %type%
+list_item_not_int = "Item — expected an integer, got %type%"
+# Value is not a list of numbers.
+# Default: Expected a number list, got %type%
+expected_double_list = "Expected a number list, got %type%"
+# A list item is not a number.
+# Default: Item — expected a number, got %type%
+list_item_not_number = "Item — expected a number, got %type%"
+# One validation error line.
+# Default: [ConfigValidator] ⚠ [ERROR] %key%: %message%
+error_line = "[ConfigValidator] ⚠ [ERROR] %key%: %message%"
+# One validation warning line.
+# Default: [ConfigValidator] ⚠ [WARN] %key%: %message%
+warn_line = "[ConfigValidator] ⚠ [WARN] %key%: %message%"
+# Summary banner border line.
+# Default: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+summary_border = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+# Summary banner title line.
+# Default: !  CONFIG VALUE VALIDATION COMPLETE                     !
+summary_title = "!  CONFIG VALUE VALIDATION COMPLETE                     !"
+# Summary banner error count line (shown only when errors > 0).
+# Default: !  %errors% error(s) found - fix these values!          !
+summary_errors = "!  %errors% error(s) found - fix these values!          !"
+# Summary banner warning count line (shown only when warnings > 0).
+# Default: !  %warnings% warning(s) found - review recommended.    !
+summary_warnings = "!  %warnings% warning(s) found - review recommended.    !"
+# Summary banner note line.
+# Default: !  Plugin will use defaults for invalid values.         !
+summary_note = "!  Plugin will use defaults for invalid values.         !"
+# Shown when every value passed validation.
+# Default: [ConfigValidator] ✓ All config values passed validation.
+all_passed = "[ConfigValidator] ✓ All config values passed validation."
+# Legacy monolithic config.toml found in the data folder.
+# Default: [Config] Legacy monolithic config.toml found in %dir% — settings now live in configs/UI-<Addon>.toml
+legacy_monolithic = "[Config] Legacy monolithic config.toml found in %dir% — settings now live in configs/UI-<Addon>.toml"

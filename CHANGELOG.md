@@ -3,6 +3,21 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-beta.48] - 2026-11-15
+
+### Changed
+- **Config validation console texts are configurable in both languages.**
+  Every message emitted by `ConfigValidator` — the per-rule
+  `[ConfigValidator] ⚠ [ERROR]/[WARN]` lines, the type/range/regex/list
+  diagnostics, the summary banner and the "all values passed" line — moved out
+  of the code into `[messages.config_validation]` (RU) and
+  `[messages_en.config_validation]` (EN) in `UI-Core.toml`. The active section
+  follows `messages.lang`, with a fallback to the other language. The legacy
+  monolithic-config notice uses the same mechanism.
+  Placeholders: `%key%`, `%message%`, `%type%`, `%value%`, `%min%`, `%max%`,
+  `%description%`, `%length%`, `%regex%`, `%index%`, `%chars%`, `%error%`,
+  `%errors%`, `%warnings%`, `%dir%`.
+
 ## [1.8.5-beta.47] - 2026-11-15
 
 ### Added

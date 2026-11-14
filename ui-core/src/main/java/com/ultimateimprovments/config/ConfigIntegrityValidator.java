@@ -24,13 +24,13 @@ public class ConfigIntegrityValidator {
     public static void validate(Main plugin) {
         // ── Per-addon TOML backend: duplicates are impossible, missing keys are
         // filled by AddonConfigManager.loadAddonToml(). Only value validation runs.
+        ConfigValidationMessages messages = new ConfigValidationMessages(plugin.getConfig());
         File legacyToml = new File(com.ultimateimprovments.core.UltimateDirs.base(), "config.toml");
         if (legacyToml.exists()) {
             // A stray legacy monolithic config.toml from the pre-split layout —
             // keep the file (user data), it is simply no longer read.
-            ConsoleLogger.info("[Config] Legacy monolithic config.toml found in "
-                    + com.ultimateimprovments.core.UltimateDirs.DIR_NAME
-                    + " — settings now live in configs/UI-<Addon>.toml");
+            ConsoleLogger.info(messages.get(ConfigValidationMessages.Text.LEGACY_MONOLITHIC,
+                    "dir", com.ultimateimprovments.core.UltimateDirs.DIR_NAME));
         }
         ConfigValueValidator.validateValues(plugin, plugin.getConfig());
     }
