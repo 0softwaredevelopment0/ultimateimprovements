@@ -74,6 +74,14 @@ public class AuthAuthenticator {
 
         UUID uuid = player.getUniqueId();
 
+        // Always require a real client address, even when IP-bound sessions are
+        // disabled. Never substitute the backend socket/proxy address.
+        String currentIp = getPlayerIp(player);
+        if (currentIp == null) {
+            kickInvalidClientIp(player);
+            return;
+        }
+
         if (playerState.isAuthenticated(uuid)) return;
 
         // Fail closed: with no auth table an account can neither be read nor
@@ -102,24 +110,30 @@ public class AuthAuthenticator {
                     kickStorageUnavailable(player);
                     return;
                 }
-                String currentIp = getPlayerIp(player);
 
-                if (!lastIp.isEmpty() && !lastIp.equals(currentIp)) {
+                if (lastIp.isBlank()) {
+                    // A session without a previously stored client IP is not bound
+                    // to this connection. Require the password instead of restoring it.
+                    ConsoleLogger.warn("[Auth] Stored client IP missing for " + player.getName()
+                            + " — refusing session restoration.");
+                    AuthDatabase.resetAuth(uuid);
+                } else if (!lastIp.equals(currentIp)) {
                     ConsoleLogger.info(
-                            "[Auth] Player " + player.getName() + " IP changed: " + lastIp + " → " + currentIp + " — session reset.");
+                            "[Auth] Player " + player.getName() + " client IP changed: " + lastIp
+                                    + " → " + currentIp + " — session reset.");
                     String ipMsg = AuthConfig.getMessage("ip_changed",
                             "<yellow>✦</yellow> <gray>Your IP address has changed. Please log in again.</gray>");
                     player.sendMessage(MessageUtil.parse(ipMsg));
                     AuthDatabase.resetAuth(uuid);
                 } else if (AuthDatabase.hasValidSession(uuid, AuthConfig.getSessionDurationMs())) {
-                    savePlayerIp(player);
+                    if (!storeClientIp(player, currentIp)) return;
                     playerState.setAuthenticated(uuid);
                     ConsoleLogger.info(
-                            "[Auth] Player " + player.getName() + " auto-authenticated (session + IP match).");
+                            "[Auth] Player " + player.getName() + " auto-authenticated (session + client IP match).");
                     return;
                 }
             } else if (AuthDatabase.hasValidSession(uuid, AuthConfig.getSessionDurationMs())) {
-                savePlayerIp(player);
+                if (!storeClientIp(player, currentIp)) return;
                 playerState.setAuthenticated(uuid);
                 ConsoleLogger.info(
                         "[Auth] Player " + player.getName() + " auto-authenticated (session, IP check disabled).");
@@ -167,6 +181,15 @@ public class AuthAuthenticator {
                     "<gold>✦</gold> <white>You are already logged in!</white>")));
             return;
         }
+
+        // A missing/invalid forwarded client address must never reach password,
+        // registration, or rate-limit handling.
+        String playerIp = getPlayerIp(player);
+        if (playerIp == null) {
+            kickInvalidClientIp(player);
+            return;
+        }
+
         if (!rateLimiter.checkCooldown(player)) {
             // The client already closed the dialog on submit, and the attempt was
             // rejected — nothing would ever re-open the screen, leaving the player
@@ -180,8 +203,6 @@ public class AuthAuthenticator {
         // Duplicates are dropped silently: the first check is already in flight and
         // re-opening here would spawn one screen per extra packet.
         if (!rateLimiter.tryBeginAttempt(player)) return;
-
-        String playerIp = getPlayerIp(player);
 
         // Argon2id on an async thread — prevents server freezes
         Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
@@ -317,12 +338,23 @@ public class AuthAuthenticator {
     // LOGIN SUCCESS (called from the main thread after the async password check)
     // =========================
     private void handleLoginSuccess(Player player, UUID uuid, String playerIp) {
+        if (playerIp == null || playerIp.isBlank()) {
+            kickInvalidClientIp(player);
+            return;
+        }
         if (AuthConfig.isIpCheckEnabled()) {
-            String storedIp = AuthDatabase.getLastIp(uuid);
-            if (!storedIp.isEmpty() && !storedIp.equals(playerIp)) {
+            String storedIp = AuthDatabase.getLastIpOrNull(uuid);
+            if (storedIp == null) {
+                ConsoleLogger.warn("[Auth] IP read failed after password verification for " + player.getName());
+                kickStorageUnavailable(player);
+                return;
+            }
+            if (!storedIp.isBlank() && !storedIp.equals(playerIp)) {
+                // Do not update the stored IP until the full login flow (including
+                // GitHub 2FA, if enabled) has completed.
                 ConsoleLogger.info(
-                        "[Auth] Player " + player.getName() + " login IP changed: " + storedIp + " → " + playerIp + " — updating IP.");
-                AuthDatabase.updateLastIp(uuid, playerIp);
+                        "[Auth] Player " + player.getName() + " client IP changed: " + storedIp + " → "
+                                + playerIp + " — password verified; binding after full authentication.");
             }
         }
 
@@ -527,8 +559,9 @@ public class AuthAuthenticator {
     private void authenticatePlayer(Player player, String message) {
         UUID uuid = player.getUniqueId();
 
+        // Persist a validated client address before granting authenticated state.
+        if (!ensureClientIpStored(player)) return;
         playerState.setAuthenticated(uuid);
-        savePlayerIp(player);
 
         timeoutManager.cancelLoginTimeout(uuid);
         // Full authentication reached (password + 2FA when enabled): only now may
@@ -585,8 +618,8 @@ public class AuthAuthenticator {
                         return;
                     }
 
+                    if (!ensureClientIpStored(player)) return;
                     playerState.setAuthenticated(uuid);
-                    savePlayerIp(player);
                     AuthDatabase.resetFailedAttempts(uuid);
 
                     unfreezePlayer(player);
@@ -839,23 +872,58 @@ public class AuthAuthenticator {
     // GET PLAYER IP
     // =========================
     private String getPlayerIp(Player player) {
-        try {
-            if (player.getAddress() != null && player.getAddress().getAddress() != null) {
-                return player.getAddress().getAddress().getHostAddress();
-            }
-        } catch (Exception e) {
-            ConsoleLogger.warn("[Auth] Failed to get player IP: " + e.getMessage());
+        String ip = AuthClientAddress.getClientIp(player);
+        if (ip == null) {
+            ConsoleLogger.warn("[Auth] Could not resolve a valid client IP for "
+                    + (player == null ? "<null>" : player.getName())
+                    + " — refusing authorization.");
         }
-        return "";
+        return ip;
     }
 
-    // =========================
-    // SAVE PLAYER IP TO DB
-    // =========================
-    private void savePlayerIp(Player player) {
-        String ip = getPlayerIp(player);
-        if (!ip.isEmpty()) {
-            AuthDatabase.updateLastIp(player.getUniqueId(), ip);
+    /**
+     * Ensures the proxy-aware client IP exists and is stored before a session is
+     * granted. Public for the explicitly privileged force-login path in AuthManager.
+     */
+    public boolean ensureClientIpStored(Player player) {
+        return storeClientIp(player, getPlayerIp(player));
+    }
+
+    private boolean storeClientIp(Player player, String ip) {
+        if (ip == null || ip.isBlank()) {
+            kickInvalidClientIp(player);
+            return false;
         }
+        if (!AuthDatabase.updateLastIp(player.getUniqueId(), ip)) {
+            ConsoleLogger.warn("[Auth] Could not persist client IP for " + player.getName()
+                    + " — refusing authorization.");
+            kickStorageUnavailable(player);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Refuses authentication when Paper cannot provide a usable client IP.
+     * This includes unresolved, wildcard, multicast and loopback addresses; the
+     * loopback guard catches proxy/Unix-socket setups that failed to forward the
+     * real client address.
+     */
+    private void kickInvalidClientIp(Player player) {
+        UUID uuid = player.getUniqueId();
+        timeoutManager.cancelLoginTimeout(uuid);
+        playerState.removePlayer(uuid);
+        AuthPrompt.removePlayer(uuid);
+        Auth2FA twofa = Auth2FA.getInstance();
+        if (twofa != null) twofa.clearPending(uuid);
+        AuthDialogScreen.close(player);
+
+        ConsoleLogger.warn("[Auth] Kicking " + player.getName()
+                + ": no valid proxy-aware client IP was received.");
+        player.kick(MessageUtil.parse(MessagesManager.getString(
+                "auth.admin.kick_invalid_client_ip",
+                "<yellow>✦</yellow> UltimateImprovements\n\n"
+                        + "<red>❌ Authentication is unavailable: the server could not determine your client IP address.</red>\n"
+                        + "<gray>The connection did not provide a valid client address. Check proxy forwarding configuration and try again.</gray>")));
     }
 }
