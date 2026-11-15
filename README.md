@@ -14,13 +14,9 @@
 
 > **Commit authorship note:** older commits authored as `minecraft337 <minecraft337@users.noreply.github.com>` were made by the same person as [rizer001](https://github.com/rizer001) (`dan.al.zhu@gmail.com`) — the Git identity in the local config was misconfigured for a long time. Those commits carry no signature simply because they predate commit signing, so GitHub shows them as unverified. The history was intentionally not rewritten.
 
----
-
 ### Organization Docs
 
 [![Full Guide](https://img.shields.io/badge/GUIDE-GUIDE.md-blueviolet)](GUIDE.md)
-
----
 
 > **Ultimate Improvments** is a big collection of everything a server needs: authentication, an energy network, a fusion reactor, radiation, custom items and enchantments, an achievement tree, turrets, protection systems — and 80+ toggleable modules on top. The collection ships as a **family of 21 plugins** (UI-Core + 20 addons) that work as one system, built on the modern Paper plugin loader.
 
