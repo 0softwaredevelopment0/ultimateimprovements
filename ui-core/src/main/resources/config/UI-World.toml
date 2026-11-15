@@ -337,24 +337,37 @@ icon = true
 # ---- MESSAGES ----
 
 [messages.meteor]
-# Default: <red>❌ Usage: </red><white>/ui meteor spawn [count]</white>
-usage = "<red>❌ Usage: </red><white>/ui meteor spawn [count]</white>"
-# Default: <red>❌ Unknown meteor subcommand: </red><white>%sub%</white>
-unknown_sub = "<red>❌ Unknown meteor subcommand: </red><white>%sub%</white>"
+# Default: <red>❌ Использование: </red><white>/ui meteor spawn [количество]</white>
+usage = "<red>❌ Использование: </red><white>/ui meteor spawn [количество]</white>"
+# Default: <red>❌ Неизвестная подкоманда meteor: </red><white>%sub%</white>
+unknown_sub = "<red>❌ Неизвестная подкоманда meteor: </red><white>%sub%</white>"
 # Permission node.
-# Default: <red>❌ You don't have permission to spawn meteors!</red>
-no_permission = "<red>❌ You don't have permission to spawn meteors!</red>"
-# Default: <red>❌ Invalid count!</red>
-invalid_count = "<red>❌ Invalid count!</red>"
-# Default: <red>❌ Meteor module is disabled in configs/UI-World.toml!</red>
-module_disabled = "<red>❌ Meteor module is disabled in configs/UI-World.toml!</red>"
-# Default: <red>❌ Meteor module is not initialized!</red>
-module_not_init = "<red>❌ Meteor module is not initialized!</red>"
-# Default: <green>✔</green> <white>Spawned </white><yellow>%count%</yellow><white> meteor(s)!</white>
-spawned = "<green>✔</green> <white>Spawned </white><yellow>%count%</yellow><white> meteor(s)!</white>"
+# Default: <red>❌ У вас нет прав для вызова метеоров!</red>
+no_permission = "<red>❌ У вас нет прав для вызова метеоров!</red>"
+# Default: <red>❌ Неверное количество!</red>
+invalid_count = "<red>❌ Неверное количество!</red>"
+# Default: <red>❌ Модуль метеоров отключён в configs/UI-World.toml!</red>
+module_disabled = "<red>❌ Модуль метеоров отключён в configs/UI-World.toml!</red>"
+# Default: <red>❌ Модуль метеоров не инициализирован!</red>
+module_not_init = "<red>❌ Модуль метеоров не инициализирован!</red>"
+# Default: <green>✔</green> <white>Вызвано </white><yellow>%count%</yellow><white> метеор(ов)!</white>
+spawned = "<green>✔</green> <white>Вызвано </white><yellow>%count%</yellow><white> метеор(ов)!</white>"
 # No meteor could be created at all (see the server console).
-# Default: <red>❌ Could not spawn a meteor — see the server console for the reason.</red>
-spawn_failed = "<red>❌ Could not spawn a meteor — see the server console for the reason.</red>"
+# Default: <red>❌ Не удалось вызвать метеор — причина в консоли сервера.</red>
+spawn_failed = "<red>❌ Не удалось вызвать метеор — причина в консоли сервера.</red>"
 # Only part of the requested meteors were created (active meteor cap).
-# Default: <yellow>⚠ Spawned </yellow><white>%spawned%</white><yellow> of </yellow><white>%count%</white><yellow> meteor(s) — active limit reached.</yellow>
+# Default: <yellow>⚠ Вызвано </yellow><white>%spawned%</white><yellow> из </yellow><white>%count%</white><yellow> метеоров — достигнут лимит активных.</yellow>
+spawn_partial = "<yellow>⚠ Вызвано </yellow><white>%spawned%</white><yellow> из </yellow><white>%count%</white><yellow> метеоров — достигнут лимит активных.</yellow>"
+
+# ---- MESSAGES (ENGLISH) ----
+
+[messages_en.meteor]
+usage = "<red>❌ Usage: </red><white>/ui meteor spawn [count]</white>"
+unknown_sub = "<red>❌ Unknown meteor subcommand: </red><white>%sub%</white>"
+no_permission = "<red>❌ You don't have permission to spawn meteors!</red>"
+invalid_count = "<red>❌ Invalid count!</red>"
+module_disabled = "<red>❌ Meteor module is disabled in configs/UI-World.toml!</red>"
+module_not_init = "<red>❌ Meteor module is not initialized!</red>"
+spawned = "<green>✔</green> <white>Spawned </white><yellow>%count%</yellow><white> meteor(s)!</white>"
+spawn_failed = "<red>❌ Could not spawn a meteor — see the server console for the reason.</red>"
 spawn_partial = "<yellow>⚠ Spawned </yellow><white>%spawned%</white><yellow> of </yellow><white>%count%</white><yellow> meteor(s) — active limit reached.</yellow>"

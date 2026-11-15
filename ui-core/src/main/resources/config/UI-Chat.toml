@@ -323,19 +323,19 @@ leave = "<white>[<red>-<white>] <player> <red>left the game"
 # chat ping section.
 # Placeholders: %sender%
 [messages.chat_ping]
-# Default: <gray>🔔 You were pinged by</gray> <white>%sender%</white>
-notification = "<gray>🔔 You were pinged by</gray> <white>%sender%</white>"
+# Default: <gray>🔔 Вас пинганул</gray> <white>%sender%</white>
+notification = "<gray>🔔 Вас пинганул</gray> <white>%sender%</white>"
 
 # chat filter section.
 # Placeholders: %message%, %source%
 [messages.chat_filter]
 # Message text (MiniMessage).
-# Default: <dark_red>❌</dark_red> <red>Your message was flagged for prohibited content!</red>
-message = "<dark_red>❌</dark_red> <red>Your message was flagged for prohibited content!</red>"
+# Default: <dark_red>❌</dark_red> <red>Ваше сообщение заблокировано за запрещённый контент!</red>
+message = "<dark_red>❌</dark_red> <red>Ваше сообщение заблокировано за запрещённый контент!</red>"
 # Default: <gray>→ </gray><white>%message%</white>
 violation_highlight = "<gray>→ </gray><white>%message%</white>"
-# Default: <gray>└</gray> <white>Match:</white> %source%
-violation_match = "<gray>└</gray> <white>Match:</white> %source%"
+# Default: <gray>└</gray> <white>Совпадение:</white> %source%
+violation_match = "<gray>└</gray> <white>Совпадение:</white> %source%"
 
 # chat limits section.
 # Placeholders: %caps%, %limit%

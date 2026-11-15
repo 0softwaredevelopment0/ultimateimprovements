@@ -172,9 +172,9 @@ lore_line_3 = "<gray>RMB с топливом — получить очки.</gra
 lore_line_4 = "<dark_gray>Крафт: только в крафтере (см. меню крафта)</dark_gray>"
 
 [messages.protection.command]
-usage = "<red>❌ Usage: </red><white>/ui protection <give|list|info|delete|reload> [args]</white>"
+usage = "<red>❌ Использование: </red><white>/ui protection <give|list|info|delete|reload> [аргументы]</white>"
 unknown = "<red>❌ Неизвестная подкоманда: </red><white>%subcommand%</white>"
-give_usage = "<red>❌ Usage: </red><white>/ui protection give <player> [amount]</white>"
+give_usage = "<red>❌ Использование: </red><white>/ui protection give <игрок> [количество]</white>"
 player_not_found = "<red>❌ Игрок </red><yellow>%player%</yellow><red> не в сети.</red>"
 invalid_amount = "<red>❌ Неверное количество: </red><white>%amount%</white>"
 give_success = "<green>✔</green> <white>Выдано <gold>%amount%</gold>× Блок защиты игроку <yellow>%player%</yellow>.</white>"

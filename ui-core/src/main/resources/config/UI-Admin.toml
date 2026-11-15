@@ -25,45 +25,6 @@ enabled = false
 
 [economy.income.mobs]
 
-# Custom enchantments: global parameters.
-
-[messages.economy]
-# Message text (MiniMessage).
-# Default: <gray>Player </gray><white>%sender%</white><gray> is force-suiciding you.</gray>
-forced_message_body = "<gray>Player </gray><white>%sender%</white><gray> is force-suiciding you.</gray>"
-# Message text (MiniMessage).
-# Default: <red>Cannot be cancelled!</red>
-forced_message_nocancel = "<red>Cannot be cancelled!</red>"
-
-# messages section.
-# Placeholders: %amount%, %player%, %currency%, %balance%
-
-[messages.economy.messages]
-# Default: <green>+</green> <yellow>%amount%</yellow> <white>received!</white>
-received = "<green>+</green> <yellow>%amount%</yellow> <white>received!</white>"
-# Default: <green>✔</green> <white>Gave </white><yellow>%amount%</yellow> <white>to </white><yellow>%player%</yellow>
-gave = "<green>✔</green> <white>Gave </white><yellow>%amount%</yellow> <white>to </white><yellow>%player%</yellow>"
-# Default: <green>✔</green> <white>Removed </white><yellow>%amount%</yellow> <white>from </white><yellow>%player%</yello…
-removed = "<green>✔</green> <white>Removed </white><yellow>%amount%</yellow> <white>from </white><yellow>%player%</yellow>"
-# Default: <green>✔</green> <white>Set </white><yellow>%player%</yellow><white>'s </white><gold>%currency%</gold> <white…
-set = "<green>✔</green> <white>Set </white><yellow>%player%</yellow><white>'s </white><gold>%currency%</gold> <white>balance to </white><yellow>%amount%</yellow>"
-# Default: <red>❌ </red><yellow>%player%</yellow> <red>only has </red><gold>%balance%</gold>
-insufficient_funds = "<red>❌ </red><yellow>%player%</yellow> <red>only has </red><gold>%balance%</gold>"
-# Default: <gray>No balances found.</gray>
-no_balances = "<gray>No balances found.</gray>"
-# Default: <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
-balance_header = "<dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"
-# Title text (MiniMessage).
-# Default:   <gold>💰</gold> <yellow>%player%</yellow> <gray>— Balances</gray>
-balance_title = "  <gold>💰</gold> <yellow>%player%</yellow> <gray>— Balances</gray>"
-# Default:   <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
-balance_separator = "  <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"
-# Default:   <gray>•</gray> <white>%currency%</white><gray>: </gray><gold>%amount%</gold>
-balance_entry = "  <gray>•</gray> <white>%currency%</white><gray>: </gray><gold>%amount%</gold>"
-
-# suicide section.
-# Placeholders: %sender%, %target%
-
 # ─────────────────────────────────────────────────────────────────
 # OP SELF — /ui opself: a player requests operator status for
 # themselves. The request must be confirmed from the console
@@ -82,6 +43,60 @@ ttl_seconds = 60
 # Bypass permission: ui.command.opself.bypasscooldown (default: nobody).
 # Default: 60
 request_cooldown_seconds = 60
+
+# ── ECONOMY messages (Russian) ──
+
+[messages.economy]
+# Message text (MiniMessage).
+# Default: <gray>Игрок </gray><white>%sender%</white><gray> принудительно отправляет вас в суицид.</gray>
+forced_message_body = "<gray>Игрок </gray><white>%sender%</white><gray> принудительно отправляет вас в суицид.</gray>"
+# Message text (MiniMessage).
+# Default: <red>Отменить нельзя!</red>
+forced_message_nocancel = "<red>Отменить нельзя!</red>"
+
+# messages section.
+# Placeholders: %amount%, %player%, %currency%, %balance%
+
+[messages.economy.messages]
+# Default: <green>+</green> <yellow>%amount%</yellow> <white>получено!</white>
+received = "<green>+</green> <yellow>%amount%</yellow> <white>получено!</white>"
+# Default: <green>✔</green> <white>Выдано </white><yellow>%amount%</yellow> <white>игроку </white><yellow>%player%</yellow>
+gave = "<green>✔</green> <white>Выдано </white><yellow>%amount%</yellow> <white>игроку </white><yellow>%player%</yellow>"
+# Default: <green>✔</green> <white>Снято </white><yellow>%amount%</yellow> <white>с игрока </white><yellow>%player%</yellow>
+removed = "<green>✔</green> <white>Снято </white><yellow>%amount%</yellow> <white>с игрока </white><yellow>%player%</yellow>"
+# Default: <green>✔</green> <white>Баланс </white><yellow>%player%</yellow><white> в </white><gold>%currency%</gold> <white>установлен на </white><yellow>%amount%</yellow>
+set = "<green>✔</green> <white>Баланс </white><yellow>%player%</yellow><white> в </white><gold>%currency%</gold> <white>установлен на </white><yellow>%amount%</yellow>"
+# Default: <red>❌ </red><yellow>%player%</yellow> <red>имеет только </red><gold>%balance%</gold>
+insufficient_funds = "<red>❌ </red><yellow>%player%</yellow> <red>имеет только </red><gold>%balance%</gold>"
+# Default: <gray>Балансы не найдены.</gray>
+no_balances = "<gray>Балансы не найдены.</gray>"
+# Default: <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+balance_header = "<dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"
+# Title text (MiniMessage).
+# Default:   <gold>💰</gold> <yellow>%player%</yellow> <gray>— Балансы</gray>
+balance_title = "  <gold>💰</gold> <yellow>%player%</yellow> <gray>— Балансы</gray>"
+# Default:   <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+balance_separator = "  <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"
+# Default:   <gray>•</gray> <white>%currency%</white><gray>: </gray><gold>%amount%</gold>
+balance_entry = "  <gray>•</gray> <white>%currency%</white><gray>: </gray><gold>%amount%</gold>"
+
+# ── ECONOMY messages (English) ──
+
+[messages_en.economy]
+forced_message_body = "<gray>Player </gray><white>%sender%</white><gray> is force-suiciding you.</gray>"
+forced_message_nocancel = "<red>Cannot be cancelled!</red>"
+
+[messages_en.economy.messages]
+received = "<green>+</green> <yellow>%amount%</yellow> <white>received!</white>"
+gave = "<green>✔</green> <white>Gave </white><yellow>%amount%</yellow> <white>to </white><yellow>%player%</yellow>"
+removed = "<green>✔</green> <white>Removed </white><yellow>%amount%</yellow> <white>from </white><yellow>%player%</yellow>"
+set = "<green>✔</green> <white>Set </white><yellow>%player%</yellow><white>'s </white><gold>%currency%</gold> <white>balance to </white><yellow>%amount%</yellow>"
+insufficient_funds = "<red>❌ </red><yellow>%player%</yellow> <red>only has </red><gold>%balance%</gold>"
+no_balances = "<gray>No balances found.</gray>"
+balance_header = "<dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"
+balance_title = "  <gold>💰</gold> <yellow>%player%</yellow> <gray>— Balances</gray>"
+balance_separator = "  <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"
+balance_entry = "  <gray>•</gray> <white>%currency%</white><gray>: </gray><gold>%amount%</gold>"
 
 # ── OP SELF messages (Russian) ──
 

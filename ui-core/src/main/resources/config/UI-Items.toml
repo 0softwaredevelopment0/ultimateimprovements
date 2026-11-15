@@ -178,7 +178,7 @@ crafter_only = "<gold>✧</gold> <gray>This item can only be crafted in a</gray>
 
 # ── Remote Detonator (Russian) ──
 [messages.remote_detonator]
-name = "<white>Remote Detonator *</white>"
+name = "<white>Дистанционный детонатор *</white>"
 lore = ["<gray>ПКМ по воздуху — подорвать привязанный ТНТ</gray>", "<gray>Shift + ПКМ по ТНТ — привязать</gray>", "<gray>Shift + ПКМ по воздуху — сбросить привязку</gray>"]
 bound = "<green>✔</green> <white>Привязано к ТНТ:</white> <gold>%world% %x% %y% %z%</gold>"
 rebound = "<green>✔</green> <white>Привязка переопределена:</white> <gold>%world% %x% %y% %z%</gold>"
@@ -196,7 +196,7 @@ shift_air_only = "<red>Сбросить привязку можно только
 
 # ── Portable Workbench (Russian) ──
 [messages.portable_workbench]
-name = "<white>Portable Workbench *</white>"
+name = "<white>Портативный верстак *</white>"
 lore = ["<gray>Открывает верстак в любом месте.</gray>", "<gray>Заряды: <green>%charges%</green><gray>/%max%</gray> <dark_gray>(%percent%%%)</dark_gray>", "<gray>Ломается после последнего заряда.</gray>"]
 opened = "<gray>Верстак открыт. Заряды:</gray> <green>%charges%</green><gray>/%max%</gray> <dark_gray>(%percent%%%)</dark_gray>"
 low = "<yellow>⚠</yellow> <gray>Зарядов осталось:</gray> <yellow>%charges%</yellow><gray>/%max%</gray> <dark_gray>(%percent%%%)</dark_gray>"

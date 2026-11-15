@@ -117,13 +117,13 @@ no_permission = "<red>❌ У вас нет прав на переключени�
 # Placeholders: %count%, %seconds%
 
 [messages.bot_protection]
-# Default: <red>❌ Server overloaded! You are in queue: position
-queue_full = "<red>❌ Server overloaded! You are in queue: position"
-# Default: <yellow>⚠</yellow> <red>Bot protection:</red> <yellow>%count%</yellow> <red>player(s) tried to connect in</re…
-queue_notify_op = "<yellow>⚠</yellow> <red>Bot protection:</red> <yellow>%count%</yellow> <red>player(s) tried to connect in</red> <yellow>%seconds%s</yellow><red>. Queue enabled.</red>"
+# Default: <red>❌ Сервер перегружен! Вы в очереди: позиция
+queue_full = "<red>❌ Сервер перегружен! Вы в очереди: позиция"
+# Default: <yellow>⚠</yellow> <red>Защита от ботов:</red> <yellow>%count%</yellow> <red>игроков пытались зайти за</red> <yellow>%seconds%s</yellow><red>. Включена очередь.</red>
+queue_notify_op = "<yellow>⚠</yellow> <red>Защита от ботов:</red> <yellow>%count%</yellow> <red>игроков пытались зайти за</red> <yellow>%seconds%s</yellow><red>. Включена очередь.</red>"
 # Cooldown.
-# Default: <red>❌ You left too recently! Wait</red> <yellow>%seconds%</yellow> <red>sec before reconnecting.</red>
-rejoin_cooldown = "<red>❌ You left too recently! Wait</red> <yellow>%seconds%</yellow> <red>sec before reconnecting.</red>"
+# Default: <red>❌ Вы вышли слишком недавно! Подождите</red> <yellow>%seconds%</yellow> <red>сек перед повторным входом.</red>
+rejoin_cooldown = "<red>❌ Вы вышли слишком недавно! Подождите</red> <yellow>%seconds%</yellow> <red>сек перед повторным входом.</red>"
 
 # meteor section.
 # Placeholders: %sub%, %count%
@@ -304,101 +304,101 @@ players_only = "<dark_red>❌</dark_red> <red>Только игрок может
 # messages section.
 # Placeholders: %seconds%
 [messages.codepanel.messages]
-# Default: <dark_green>✔</dark_green> <green>Success:</green> <gray>Correct code!</gray>
-success = "<dark_green>✔</dark_green> <green>Success:</green> <gray>Correct code!</gray>"
-# Default: <dark_red>❌</dark_red> <red>Error:</red> <gray>Incorrect code!</gray>
-error = "<dark_red>❌</dark_red> <red>Error:</red> <gray>Incorrect code!</gray>"
-# Default: <dark_red>❌</dark_red> <red>Error:</red> <gray>No keys found in the database!</gray>
-no_config = "<dark_red>❌</dark_red> <red>Error:</red> <gray>No keys found in the database!</gray>"
-# Default: <red>Code panel is reloading, try again later...</red>
-reloading = "<red>Code panel is reloading, try again later...</red>"
+# Default: <dark_green>✔</dark_green> <green>Успех:</green> <gray>Верный код!</gray>
+success = "<dark_green>✔</dark_green> <green>Успех:</green> <gray>Верный код!</gray>"
+# Default: <dark_red>❌</dark_red> <red>Ошибка:</red> <gray>Неверный код!</gray>
+error = "<dark_red>❌</dark_red> <red>Ошибка:</red> <gray>Неверный код!</gray>"
+# Default: <dark_red>❌</dark_red> <red>Ошибка:</red> <gray>В базе данных нет ключей!</gray>
+no_config = "<dark_red>❌</dark_red> <red>Ошибка:</red> <gray>В базе данных нет ключей!</gray>"
+# Default: <red>Панель кода перезагружается, попробуйте позже...</red>
+reloading = "<red>Панель кода перезагружается, попробуйте позже...</red>"
 # Cooldown.
-# Default: <red>Please wait</red> <yellow>%seconds%</yellow> <red>seconds before entering again!</red>
-cooldown = "<red>Please wait</red> <yellow>%seconds%</yellow> <red>seconds before entering again!</red>"
-# Default: <red>❌ You don't have access to this code!</red>
-no_access = "<red>❌ You don't have access to this code!</red>"
-# Default: <red>❌ Incorrect code!</red>
-wrong_code = "<red>❌ Incorrect code!</red>"
-# Default: <gray>❌ Code entry cancelled.</gray>
-cancelled = "<gray>❌ Code entry cancelled.</gray>"
+# Default: <red>Подождите</red> <yellow>%seconds%</yellow> <red>секунд перед следующим вводом!</red>
+cooldown = "<red>Подождите</red> <yellow>%seconds%</yellow> <red>секунд перед следующим вводом!</red>"
+# Default: <red>❌ У вас нет доступа к этому коду!</red>
+no_access = "<red>❌ У вас нет доступа к этому коду!</red>"
+# Default: <red>❌ Неверный код!</red>
+wrong_code = "<red>❌ Неверный код!</red>"
+# Default: <gray>❌ Ввод кода отменён.</gray>
+cancelled = "<gray>❌ Ввод кода отменён.</gray>"
 
 # key section.
 # Placeholders: %subcommand%, %flag%, %value%, %name%, %code%, %commands%, %players%, %color%, %remaining%, %max%, %duration%, %date%
 [messages.codepanel.key]
 # Permission node.
-# Default: <red>❌ You don't have permission to manage code panel keys!</red>
-no_permission = "<red>❌ You don't have permission to manage code panel keys!</red>"
+# Default: <red>❌ У вас нет прав для управления ключами панели!</red>
+no_permission = "<red>❌ У вас нет прав для управления ключами панели!</red>"
 # Command.
-# Default: <red>❌ Unknown subcommand: </red><white>%subcommand%</white>
-unknown_subcommand = "<red>❌ Unknown subcommand: </red><white>%subcommand%</white>"
+# Default: <red>❌ Неизвестная подкоманда: </red><white>%subcommand%</white>
+unknown_subcommand = "<red>❌ Неизвестная подкоманда: </red><white>%subcommand%</white>"
 # Permission node.
-# Default: <red>❌ You don't have permission to add keys!</red>
-no_permission_add = "<red>❌ You don't have permission to add keys!</red>"
+# Default: <red>❌ У вас нет прав для добавления ключей!</red>
+no_permission_add = "<red>❌ У вас нет прав для добавления ключей!</red>"
 # Permission node.
-# Default: <red>❌ You don't have permission to list keys!</red>
-no_permission_list = "<red>❌ You don't have permission to list keys!</red>"
+# Default: <red>❌ У вас нет прав для просмотра ключей!</red>
+no_permission_list = "<red>❌ У вас нет прав для просмотра ключей!</red>"
 # Permission node.
-# Default: <red>❌ You don't have permission to remove keys!</red>
-no_permission_remove = "<red>❌ You don't have permission to remove keys!</red>"
+# Default: <red>❌ У вас нет прав для удаления ключей!</red>
+no_permission_remove = "<red>❌ У вас нет прав для удаления ключей!</red>"
 # Permission node.
-# Default: <red>❌ You don't have permission to modify keys!</red>
-no_permission_modify = "<red>❌ You don't have permission to modify keys!</red>"
-# Default: <red>❌ Usage: </red><white>/ui codepane key add <name> <code> [flags]</white>
-usage_add = "<red>❌ Usage: </red><white>/ui codepane key add <name> <code> [flags]</white>"
-# Default: <red>❌ Usage: </red><white>/ui codepane key remove <name></white>
-usage_remove = "<red>❌ Usage: </red><white>/ui codepane key remove <name></white>"
-# Default: <red>❌ Usage: </red><white>/ui codepane key modify <name> <new_code> [flags]</white>
-usage_modify = "<red>❌ Usage: </red><white>/ui codepane key modify <name> <new_code> [flags]</white>"
-# Default: <red>❌ Duplicate flag: %flag%! Use each flag only once.</red>
-duplicate_flag = "<red>❌ Duplicate flag: %flag%! Use each flag only once.</red>"
-# Default: <red>❌ attempts must be >= 1</red>
-invalid_attempts = "<red>❌ attempts must be >= 1</red>"
+# Default: <red>❌ У вас нет прав для изменения ключей!</red>
+no_permission_modify = "<red>❌ У вас нет прав для изменения ключей!</red>"
+# Default: <red>❌ Использование: </red><white>/ui codepane key add <название> <код> [флаги]</white>
+usage_add = "<red>❌ Использование: </red><white>/ui codepane key add <название> <код> [флаги]</white>"
+# Default: <red>❌ Использование: </red><white>/ui codepane key remove <название></white>
+usage_remove = "<red>❌ Использование: </red><white>/ui codepane key remove <название></white>"
+# Default: <red>❌ Использование: </red><white>/ui codepane key modify <название> <новый_код> [флаги]</white>
+usage_modify = "<red>❌ Использование: </red><white>/ui codepane key modify <название> <новый_код> [флаги]</white>"
+# Default: <red>❌ Флаг %flag% уже указан! Используйте каждый флаг один раз.</red>
+duplicate_flag = "<red>❌ Флаг %flag% уже указан! Используйте каждый флаг один раз.</red>"
+# Default: <red>❌ Значение attempts должно быть >= 1</red>
+invalid_attempts = "<red>❌ Значение attempts должно быть >= 1</red>"
 # Format string (MiniMessage).
-# Default: <red>❌ Invalid attempts format: %value%</red>
-invalid_attempts_format = "<red>❌ Invalid attempts format: %value%</red>"
+# Default: <red>❌ Неверный формат attempts: %value%</red>
+invalid_attempts_format = "<red>❌ Неверный формат attempts: %value%</red>"
 # Format string (MiniMessage).
-# Default: <red>❌ Invalid time format: </red><gray>%value%</gray><red> (use Ns, Nm, Nh, Nd)</red>
-invalid_time_format = "<red>❌ Invalid time format: </red><gray>%value%</gray><red> (use Ns, Nm, Nh, Nd)</red>"
-# Default: <yellow>⚠</yellow> <gray>Unknown flag: </gray><white>%flag%</white>
-unknown_flag = "<yellow>⚠</yellow> <gray>Unknown flag: </gray><white>%flag%</white>"
-# Default: <red>❌ Key</red> <yellow>%name%</yellow> <red>already exists!</red>
-already_exists = "<red>❌ Key</red> <yellow>%name%</yellow> <red>already exists!</red>"
-# Default: <red>❌ Error adding key to database!</red>
-db_add_error = "<red>❌ Error adding key to database!</red>"
-# Default: <green>✔</green> <white>Key</white> <yellow>%name%</yellow> <white>added to database!</white>
-add_success = "<green>✔</green> <white>Key</white> <yellow>%name%</yellow> <white>added to database!</white>"
-# Default: <red>❌ Key</red> <yellow>%name%</yellow> <red>not found!</red>
-key_not_found = "<red>❌ Key</red> <yellow>%name%</yellow> <red>not found!</red>"
-# Default: <red>❌ Key</red> <yellow>%name%</yellow> <red>not found in database!</red>
-db_not_found = "<red>❌ Key</red> <yellow>%name%</yellow> <red>not found in database!</red>"
-# Default: <green>✔</green> <white>Key</white> <yellow>%name%</yellow> <white>removed from database.</white>
-remove_success = "<green>✔</green> <white>Key</white> <yellow>%name%</yellow> <white>removed from database.</white>"
-# Default: <green>✔</green> <white>Key</white> <yellow>%name%</yellow> <white>modified in database.</white>
-modify_success = "<green>✔</green> <white>Key</white> <yellow>%name%</yellow> <white>modified in database.</white>"
-# Default: <yellow>ℹ</yellow> <white>No keys in the database.</white>
-no_keys = "<yellow>ℹ</yellow> <white>No keys in the database.</white>"
-# Default: <gray>Code:</gray> <white>%code%</white>
-info_code = "<gray>Code:</gray> <white>%code%</white>"
+# Default: <red>❌ Неверный формат времени: </red><gray>%value%</gray><red> (используйте Ns, Nm, Nh, Nd)</red>
+invalid_time_format = "<red>❌ Неверный формат времени: </red><gray>%value%</gray><red> (используйте Ns, Nm, Nh, Nd)</red>"
+# Default: <yellow>⚠</yellow> <gray>Неизвестный флаг: </gray><white>%flag%</white>
+unknown_flag = "<yellow>⚠</yellow> <gray>Неизвестный флаг: </gray><white>%flag%</white>"
+# Default: <red>❌ Ключ</red> <yellow>%name%</yellow> <red>уже существует!</red>
+already_exists = "<red>❌ Ключ</red> <yellow>%name%</yellow> <red>уже существует!</red>"
+# Default: <red>❌ Ошибка добавления ключа в базу данных!</red>
+db_add_error = "<red>❌ Ошибка добавления ключа в базу данных!</red>"
+# Default: <green>✔</green> <white>Ключ</white> <yellow>%name%</yellow> <white>добавлен в базу данных!</white>
+add_success = "<green>✔</green> <white>Ключ</white> <yellow>%name%</yellow> <white>добавлен в базу данных!</white>"
+# Default: <red>❌ Ключ</red> <yellow>%name%</yellow> <red>не найден!</red>
+key_not_found = "<red>❌ Ключ</red> <yellow>%name%</yellow> <red>не найден!</red>"
+# Default: <red>❌ Ключ</red> <yellow>%name%</yellow> <red>не найден в базе данных!</red>
+db_not_found = "<red>❌ Ключ</red> <yellow>%name%</yellow> <red>не найден в базе данных!</red>"
+# Default: <green>✔</green> <white>Ключ</white> <yellow>%name%</yellow> <white>удалён из базы данных.</white>
+remove_success = "<green>✔</green> <white>Ключ</white> <yellow>%name%</yellow> <white>удалён из базы данных.</white>"
+# Default: <green>✔</green> <white>Ключ</white> <yellow>%name%</yellow> <white>изменён в базе данных.</white>
+modify_success = "<green>✔</green> <white>Ключ</white> <yellow>%name%</yellow> <white>изменён в базе данных.</white>"
+# Default: <yellow>ℹ</yellow> <white>В базе данных нет ключей.</white>
+no_keys = "<yellow>ℹ</yellow> <white>В базе данных нет ключей.</white>"
+# Default: <gray>Код:</gray> <white>%code%</white>
+info_code = "<gray>Код:</gray> <white>%code%</white>"
 # Command.
-# Default: <gray>Commands:</gray> <white>%commands%</white>
-info_commands = "<gray>Commands:</gray> <white>%commands%</white>"
+# Default: <gray>Команды:</gray> <white>%commands%</white>
+info_commands = "<gray>Команды:</gray> <white>%commands%</white>"
 # Whitelist.
-# Default: <gray>Whitelist:</gray> <green>%players%</green>
-info_whitelist = "<gray>Whitelist:</gray> <green>%players%</green>"
+# Default: <gray>Белый список:</gray> <green>%players%</green>
+info_whitelist = "<gray>Белый список:</gray> <green>%players%</green>"
 # Blacklist.
-# Default: <gray>Blacklist:</gray> <red>%players%</red>
-info_blacklist = "<gray>Blacklist:</gray> <red>%players%</red>"
-# Default: <gray>Attempts:</gray> %color%%remaining%<gray>/%max%</gray>
-info_attempts = "<gray>Attempts:</gray> %color%%remaining%<gray>/%max%</gray>"
-# Default: <gray>Expires:</gray> <red>expired</red>
-info_expired = "<gray>Expires:</gray> <red>expired</red>"
-# Default: <gray>Expires:</gray> <white>%duration%</white>
-info_expires_in = "<gray>Expires:</gray> <white>%duration%</white>"
+# Default: <gray>Чёрный список:</gray> <red>%players%</red>
+info_blacklist = "<gray>Чёрный список:</gray> <red>%players%</red>"
+# Default: <gray>Попытки:</gray> %color%%remaining%<gray>/%max%</gray>
+info_attempts = "<gray>Попытки:</gray> %color%%remaining%<gray>/%max%</gray>"
+# Default: <gray>Истекает:</gray> <red>истёк</red>
+info_expired = "<gray>Истекает:</gray> <red>истёк</red>"
+# Default: <gray>Истекает:</gray> <white>%duration%</white>
+info_expires_in = "<gray>Истекает:</gray> <white>%duration%</white>"
 # Maximum value.
-# Default: <gray>Max attempts:</gray> <white>%max%</white>
-info_max_attempts = "<gray>Max attempts:</gray> <white>%max%</white>"
-# Default: <gray>Expires at:</gray> <white>%date%</white>
-info_expires_at = "<gray>Expires at:</gray> <white>%date%</white>"
+# Default: <gray>Макс. попыток:</gray> <white>%max%</white>
+info_max_attempts = "<gray>Макс. попыток:</gray> <white>%max%</white>"
+# Default: <gray>Истекает:</gray> <white>%date%</white>
+info_expires_at = "<gray>Истекает:</gray> <white>%date%</white>"
 # Header of /ui codepane key list. Placeholder: %count%.
 list_title = "<gold>  ✦ </gold><white>Ключи кодовой панели </white><gray>(%count%)</gray>"
 # One entry line of /ui codepane key list. Placeholder: %name%.
@@ -415,63 +415,63 @@ seconds = "%seconds%с"
 # help section.
 # Placeholders: %entity%
 [messages.codepanel.help]
-# Default: <gold>=== <white>Code Panel Key Management</white> ===
-header = "<gold>=== <white>Code Panel Key Management</white> ==="
-# Default: <yellow>/ui codepane key add <gray><name> <code> [flags]</gray></yellow>
-add = "<yellow>/ui codepane key add <gray><name> <code> [flags]</gray></yellow>"
-# Default: <gray> Add a new key</gray>
-add_desc = "<gray> Add a new key</gray>"
+# Default: <gold>=== <white>Управление ключами панели</white> ===</gold>
+header = "<gold>=== <white>Управление ключами панели</white> ===</gold>"
+# Default: <yellow>/ui codepane key add <gray><название> <код> [флаги]</gray></yellow>
+add = "<yellow>/ui codepane key add <gray><название> <код> [флаги]</gray></yellow>"
+# Default: <gray> Добавить новый ключ</gray>
+add_desc = "<gray> Добавить новый ключ</gray>"
 # Default: <yellow>/ui codepane key list</yellow>
 list = "<yellow>/ui codepane key list</yellow>"
-# Default: <gray> List all keys</gray>
-list_desc = "<gray> List all keys</gray>"
-# Default: <yellow>/ui codepane key remove <gray><name></gray></yellow>
-remove = "<yellow>/ui codepane key remove <gray><name></gray></yellow>"
-# Default: <gray> Remove a key</gray>
-remove_desc = "<gray> Remove a key</gray>"
-# Default: <yellow>/ui codepane key modify <gray><name> <new_code> [flags]</gray></yellow>
-modify = "<yellow>/ui codepane key modify <gray><name> <new_code> [flags]</gray></yellow>"
-# Default: <gray> Modify a key</gray>
-modify_desc = "<gray> Modify a key</gray>"
+# Default: <gray> Список всех ключей</gray>
+list_desc = "<gray> Список всех ключей</gray>"
+# Default: <yellow>/ui codepane key remove <gray><название></gray></yellow>
+remove = "<yellow>/ui codepane key remove <gray><название></gray></yellow>"
+# Default: <gray> Удалить ключ</gray>
+remove_desc = "<gray> Удалить ключ</gray>"
+# Default: <yellow>/ui codepane key modify <gray><название> <новый_код> [флаги]</gray></yellow>
+modify = "<yellow>/ui codepane key modify <gray><название> <новый_код> [флаги]</gray></yellow>"
+# Default: <gray> Изменить ключ</gray>
+modify_desc = "<gray> Изменить ключ</gray>"
 # Permission node.
-# Default: <gray>Required permissions:</gray>
-permissions_header = "<gray>Required permissions:</gray>"
-# Default: <gray>ui.command.codepane.key — base</gray>
-perm_base = "<gray>ui.command.codepane.key — base</gray>"
-# Default: <gray> ui.command.codepane.key.add — add</gray>
-perm_add = "<gray> ui.command.codepane.key.add — add</gray>"
-# Default: <gray> ui.command.codepane.key.list — list</gray>
-perm_list = "<gray> ui.command.codepane.key.list — list</gray>"
-# Default: <gray> ui.command.codepane.key.remove — remove</gray>
-perm_remove = "<gray> ui.command.codepane.key.remove — remove</gray>"
-# Default: <gray> ui.command.codepane.key.modify — modify</gray>
-perm_modify = "<gray> ui.command.codepane.key.modify — modify</gray>"
-# Default: <gray>Flags:</gray>
-flags_header = "<gray>Flags:</gray>"
-# Default: <gray> attempts:<N>     — delete key after N successful uses</gray>
-flag_attempts = "<gray> attempts:<N>     — delete key after N successful uses</gray>"
-# Default: <gray> time:<N>s|m|h|d  — delete key after N seconds/minutes/hours/days</gray>
-flag_time = "<gray> time:<N>s|m|h|d  — delete key after N seconds/minutes/hours/days</gray>"
+# Default: <gray>Необходимые права:</gray>
+permissions_header = "<gray>Необходимые права:</gray>"
+# Default: <gray>ui.command.codepane.key — базовое</gray>
+perm_base = "<gray>ui.command.codepane.key — базовое</gray>"
+# Default: <gray> ui.command.codepane.key.add — добавление</gray>
+perm_add = "<gray> ui.command.codepane.key.add — добавление</gray>"
+# Default: <gray> ui.command.codepane.key.list — список</gray>
+perm_list = "<gray> ui.command.codepane.key.list — список</gray>"
+# Default: <gray> ui.command.codepane.key.remove — удаление</gray>
+perm_remove = "<gray> ui.command.codepane.key.remove — удаление</gray>"
+# Default: <gray> ui.command.codepane.key.modify — изменение</gray>
+perm_modify = "<gray> ui.command.codepane.key.modify — изменение</gray>"
+# Default: <gray>Флаги:</gray>
+flags_header = "<gray>Флаги:</gray>"
+# Default: <gray> attempts:<N>     — удалить ключ после N успешных вводов</gray>
+flag_attempts = "<gray> attempts:<N>     — удалить ключ после N успешных вводов</gray>"
+# Default: <gray> time:<N>s|m|h|d  — удалить ключ через N сек/мин/ч/дней</gray>
+flag_time = "<gray> time:<N>s|m|h|d  — удалить ключ через N сек/мин/ч/дней</gray>"
 # Whitelist.
-# Default: <gray>whitelist:<name1,name2...>  — allow only these players</gray>
-flag_whitelist = "<gray>whitelist:<name1,name2...>  — allow only these players</gray>"
+# Default: <gray>whitelist:<имя1,имя2...>  — разрешить только этим игрокам</gray>
+flag_whitelist = "<gray>whitelist:<имя1,имя2...>  — разрешить только этим игрокам</gray>"
 # Whitelist.
-# Default: <gray>whitelist:(<name1,name2...>)  — same, but in parentheses</gray>
-flag_whitelist_parens = "<gray>whitelist:(<name1,name2...>)  — same, but in parentheses</gray>"
+# Default: <gray>whitelist:(<имя1,имя2...>)  — то же, но в скобках</gray>
+flag_whitelist_parens = "<gray>whitelist:(<имя1,имя2...>)  — то же, но в скобках</gray>"
 # Blacklist.
-# Default: <gray>blacklist:<name1,name2...>  — block these players</gray>
-flag_blacklist = "<gray>blacklist:<name1,name2...>  — block these players</gray>"
+# Default: <gray>blacklist:<имя1,имя2...>  — заблокировать этих игроков</gray>
+flag_blacklist = "<gray>blacklist:<имя1,имя2...>  — заблокировать этих игроков</gray>"
 # Blacklist.
-# Default: <gray>blacklist:(<name1,name2...>)  — same, but in parentheses</gray>
-flag_blacklist_parens = "<gray>blacklist:(<name1,name2...>)  — same, but in parentheses</gray>"
+# Default: <gray>blacklist:(<имя1,имя2...>)  — то же, но в скобках</gray>
+flag_blacklist_parens = "<gray>blacklist:(<имя1,имя2...>)  — то же, но в скобках</gray>"
 # Command.
-# Default: <gray>command:(<cmd with spaces>),(<cmd 2>)  — commands separated by commas</gray>
-flag_command = "<gray>command:(<cmd with spaces>),(<cmd 2>)  — commands separated by commas</gray>"
+# Default: <gray>command:(<команда с пробелами>),(<команда 2>)  — команды через запятую</gray>
+flag_command = "<gray>command:(<команда с пробелами>),(<команда 2>)  — команды через запятую</gray>"
 # Command.
-# Default: <gray>  %entity% — replaced with player's nickname</gray>
-flag_command_entity = "<gray>  %entity% — replaced with player's nickname</gray>"
-# Default: <gray>Examples:</gray>
-examples_header = "<gray>Examples:</gray>"
+# Default: <gray>  %entity% — заменяется на ник игрока</gray>
+flag_command_entity = "<gray>  %entity% — заменяется на ник игрока</gray>"
+# Default: <gray>Примеры:</gray>
+examples_header = "<gray>Примеры:</gray>"
 # Default: <gray> /ui codepane key add mydoor 1234 attempts:3 time:1h</gray>
 example1 = "<gray> /ui codepane key add mydoor 1234 attempts:3 time:1h</gray>"
 # Default: <gray> /ui codepane key add admin 7777 whitelist:Steve,Alex</gray>
@@ -483,83 +483,83 @@ example4 = "<gray> /ui codepane key add warp 4321 command:(say %entity%),(mvwarp
 
 # check section.
 # Placeholders: %inspector%, %suspect%
-[messages_en.check]
+[messages.check]
 # Command.
-# Default: <red>❌ <white>You are under check! Commands are disabled.</white>
-commands_blocked = "<red>❌ <white>You are under check! Commands are disabled.</white>"
+# Default: <red>❌ <white>Вы проходите проверку! Команды отключены.</white>
+commands_blocked = "<red>❌ <white>Вы проходите проверку! Команды отключены.</white>"
 
 # start section.
-[messages_en.check.start]
-# Default: <red>❌ You cannot check yourself!</red>
-cannot_check_self = "<red>❌ You cannot check yourself!</red>"
-# Default: <red>❌ You already have an active check!</red>
-already_checking = "<red>❌ You already have an active check!</red>"
-# Default: <red>❌ This player is already being checked!</red>
-already_checked = "<red>❌ This player is already being checked!</red>"
+[messages.check.start]
+# Default: <red>❌ Вы не можете проверить самого себя!</red>
+cannot_check_self = "<red>❌ Вы не можете проверить самого себя!</red>"
+# Default: <red>❌ У вас уже есть активная проверка!</red>
+already_checking = "<red>❌ У вас уже есть активная проверка!</red>"
+# Default: <red>❌ Этот игрок уже проверяется!</red>
+already_checked = "<red>❌ Этот игрок уже проверяется!</red>"
 
 # end section.
-[messages_en.check.end]
-# Default: <red>❌ You are not checking this player!</red>
-not_checking = "<red>❌ You are not checking this player!</red>"
-# Default: <red>❌ You don't have an active check!</red>
-no_active = "<red>❌ You don't have an active check!</red>"
+[messages.check.end]
+# Default: <red>❌ Вы не проверяете этого игрока!</red>
+not_checking = "<red>❌ Вы не проверяете этого игрока!</red>"
+# Default: <red>❌ У вас нет активной проверки!</red>
+no_active = "<red>❌ У вас нет активной проверки!</red>"
 
 # title section.
-[messages_en.check.title]
+[messages.check.title]
 # Title text (MiniMessage).
-# Default: <red>Verification
-title = "<red>Verification"
+# Default: <red>Проверка
+title = "<red>Проверка"
 # Title text (MiniMessage).
-# Default: <white>All instructions are in the chat
-subtitle = "<white>All instructions are in the chat"
+# Default: <white>Все инструкции в чате
+subtitle = "<white>Все инструкции в чате"
 
 # suspect section.
 # Placeholders: %inspector%
-[messages_en.check.suspect]
+[messages.check.suspect]
 # Default: <gray>━━━━━━━━━━━━━━━━━━━━━
 separator = "<gray>━━━━━━━━━━━━━━━━━━━━━"
-# Default: <white>Inspector: <yellow>%inspector%
-inspector = "<white>Inspector: <yellow>%inspector%"
-# Default: Unknown
-unknown_inspector = "Unknown"
-# Default: <gray>You cannot move or interact with anything
-no_move = "<gray>You cannot move or interact with anything"
-# Default: <gray>until the check is complete.
-until_done = "<gray>until the check is complete."
-# Default: <gray>If you have any prohibited modifications —
-mod_info = "<gray>If you have any prohibited modifications —"
-# Default: <gray>disable them now. It is in your best interest.
-disable_now = "<gray>disable them now. It is in your best interest."
-# Default: <green>✔ <white><bold>CHECK COMPLETE!
-completed = "<green>✔ <white><bold>CHECK COMPLETE!"
-# Default: <yellow>⚠ <white><bold>CHECK INTERRUPTED!
-interrupted = "<yellow>⚠ <white><bold>CHECK INTERRUPTED!"
-# Default: <white>Inspector disconnected.
-inspector_left = "<white>Inspector disconnected."
-# Default: <dark_red>❌ <red><bold>VERIFICATION RESUMED
-resumed = "<dark_red>❌ <red><bold>VERIFICATION RESUMED"
-# Default: <gray>Your check was paused while you were offline.
-paused_note = "<gray>Your check was paused while you were offline."
-# Default: <gray>It has now resumed. You are still frozen.
-frozen_note = "<gray>It has now resumed. You are still frozen."
+# Default: <white>Проверяющий: <yellow>%inspector%
+inspector = "<white>Проверяющий: <yellow>%inspector%"
+# Default: Неизвестно
+unknown_inspector = "Неизвестно"
+# Default: <gray>Вы не можете двигаться или взаимодействовать
+no_move = "<gray>Вы не можете двигаться или взаимодействовать"
+# Default: <gray>до завершения проверки.
+until_done = "<gray>до завершения проверки."
+# Default: <gray>Если у вас есть запрещённые модификации —
+mod_info = "<gray>Если у вас есть запрещённые модификации —"
+# Default: <gray>отключите их сейчас. Это в ваших интересах.
+disable_now = "<gray>отключите их сейчас. Это в ваших интересах."
+# Default: <green>✔ <white><bold>ПРОВЕРКА ЗАВЕРШЕНА!
+completed = "<green>✔ <white><bold>ПРОВЕРКА ЗАВЕРШЕНА!"
+# Default: <yellow>⚠ <white><bold>ПРОВЕРКА ПРЕРВАНА!
+interrupted = "<yellow>⚠ <white><bold>ПРОВЕРКА ПРЕРВАНА!"
+# Default: <white>Проверяющий отключился.
+inspector_left = "<white>Проверяющий отключился."
+# Default: <dark_red>❌ <red><bold>ПРОВЕРКА ПРОДОЛЖЕНА
+resumed = "<dark_red>❌ <red><bold>ПРОВЕРКА ПРОДОЛЖЕНА"
+# Default: <gray>Ваша проверка была приостановлена, пока вы были офлайн.
+paused_note = "<gray>Ваша проверка была приостановлена, пока вы были офлайн."
+# Default: <gray>Теперь она продолжена. Вы всё ещё заморожены.
+frozen_note = "<gray>Теперь она продолжена. Вы всё ещё заморожены."
 
 # inspector section.
 # Placeholders: %suspect%
-[messages_en.check.inspector]
-# Default: <green>✔</green> <white>Check started for</white> <yellow>%suspect%</yellow><white>.</white>
-started = "<green>✔</green> <white>Check started for</white> <yellow>%suspect%</yellow><white>.</white>"
-# Default: <gray>Use </gray><white>/ui uncheck %suspect%</white><gray> when finished.</gray>
-howto = "<gray>Use </gray><white>/ui uncheck %suspect%</white><gray> when finished.</gray>"
-# Default: <green>✔</green> <white>Check ended for</white> <yellow>%suspect%</yellow><white>.</white>
-ended = "<green>✔</green> <white>Check ended for</white> <yellow>%suspect%</yellow><white>.</white>"
-# Default: <gray>You have been teleported back to your original location.</gray>
-returned = "<gray>You have been teleported back to your original location.</gray>"
-# Default: <yellow>⚠</yellow> <white>Checked player</white> <yellow>%suspect%</yellow> <white>disconnected. Check will r…
-suspect_left = "<yellow>⚠</yellow> <white>Checked player</white> <yellow>%suspect%</yellow> <white>disconnected. Check will resume on rejoin.</white>"
-# Default: <green>✔</green> <white>Player</white> <yellow>%suspect%</yellow> <white>rejoined — check resumed automatical…
-rejoined = "<green>✔</green> <white>Player</white> <yellow>%suspect%</yellow> <white>rejoined — check resumed automatically.</white>"
-# Default: <gray>Teleported to suspect's new location.</gray>
-teleported = "<gray>Teleported to suspect's new location.</gray>"
+[messages.check.inspector]
+# Default: <green>✔</green> <white>Проверка начата для</white> <yellow>%suspect%</yellow><white>.</white>
+started = "<green>✔</green> <white>Проверка начата для</white> <yellow>%suspect%</yellow><white>.</white>"
+# Default: <gray>Используйте </gray><white>/ui uncheck %suspect%</white><gray> по завершении.</gray>
+howto = "<gray>Используйте </gray><white>/ui uncheck %suspect%</white><gray> по завершении.</gray>"
+# Default: <green>✔</green> <white>Проверка завершена для</white> <yellow>%suspect%</yellow><white>.</white>
+ended = "<green>✔</green> <white>Проверка завершена для</white> <yellow>%suspect%</yellow><white>.</white>"
+# Default: <gray>Вы телепортированы обратно на исходное место.</gray>
+returned = "<gray>Вы телепортированы обратно на исходное место.</gray>"
+# Default: <yellow>⚠</yellow> <white>Проверяемый игрок</white> <yellow>%suspect%</yellow> <white>отключился. Проверка продолжится при повторном входе.</white>
+suspect_left = "<yellow>⚠</yellow> <white>Проверяемый игрок</white> <yellow>%suspect%</yellow> <white>отключился. Проверка продолжится при повторном входе.</white>"
+# Default: <green>✔</green> <white>Игрок</white> <yellow>%suspect%</yellow> <white>переподключился — проверка продолжена автоматически.</white>
+rejoined = "<green>✔</green> <white>Игрок</white> <yellow>%suspect%</yellow> <white>переподключился — проверка продолжена автоматически.</white>"
+# Default: <gray>Телепортировано к новому местоположению подозреваемого.</gray>
+teleported = "<gray>Телепортировано к новому местоположению подозреваемого.</gray>"
 
 # codepanel section.
 [messages_en.codepanel]
@@ -748,25 +748,105 @@ example4 = "<gray> /ui codepane key add warp 4321 command:(say %entity%),(mvwarp
 
 [messages.maintenance]
 # Message text (MiniMessage).
-# Default: <red>⛏ Server is currently under maintenance!</red>\n<gray>Please come back later.</gray>
-kick_message = "<red>⛏ Server is currently under maintenance!</red>\n<gray>Please come back later.</gray>"
+# Default: <red>⛏ Сервер находится на обслуживании!</red>\n<gray>Пожалуйста, зайдите позже.</gray>
+kick_message = "<red>⛏ Сервер находится на обслуживании!</red>\n<gray>Пожалуйста, зайдите позже.</gray>"
 
 # messages section.
 # Placeholders: %time%
 [messages.maintenance.messages]
 # Master switch (true = feature on).
-# Default: <red>⛏</red> <white>Maintenance mode </white><green>ENABLED</green>
-enabled = "<red>⛏</red> <white>Maintenance mode </white><green>ENABLED</green>"
-# Default: <green>✔</green> <white>Maintenance mode </white><red>DISABLED</red>
-disabled = "<green>✔</green> <white>Maintenance mode </white><red>DISABLED</red>"
-# Default: <yellow>⏰</yellow> <white>Maintenance will be enabled in </white><yellow>%time%</yellow>
-scheduled_enable = "<yellow>⏰</yellow> <white>Maintenance will be enabled in </white><yellow>%time%</yellow>"
-# Default: <yellow>⏰</yellow> <white>Maintenance will be disabled in </white><yellow>%time%</yellow>
-scheduled_disable = "<yellow>⏰</yellow> <white>Maintenance will be disabled in </white><yellow>%time%</yellow>"
+# Default: <red>⛏</red> <white>Режим обслуживания </white><green>ВКЛЮЧЁН</green>
+enabled = "<red>⛏</red> <white>Режим обслуживания </white><green>ВКЛЮЧЁН</green>"
+# Default: <green>✔</green> <white>Режим обслуживания </white><red>ВЫКЛЮЧЕН</red>
+disabled = "<green>✔</green> <white>Режим обслуживания </white><red>ВЫКЛЮЧЕН</red>"
+# Default: <yellow>⏰</yellow> <white>Обслуживание будет включено через </white><yellow>%time%</yellow>
+scheduled_enable = "<yellow>⏰</yellow> <white>Обслуживание будет включено через </white><yellow>%time%</yellow>"
+# Default: <yellow>⏰</yellow> <white>Обслуживание будет выключено через </white><yellow>%time%</yellow>
+scheduled_disable = "<yellow>⏰</yellow> <white>Обслуживание будет выключено через </white><yellow>%time%</yellow>"
+
+# check section.
+# Placeholders: %inspector%, %suspect%
+[messages_en.check]
+# Command.
+# Default: <red>❌ <white>You are under check! Commands are disabled.</white>
+commands_blocked = "<red>❌ <white>You are under check! Commands are disabled.</white>"
+
+# start section.
+[messages_en.check.start]
+# Default: <red>❌ You cannot check yourself!</red>
+cannot_check_self = "<red>❌ You cannot check yourself!</red>"
+# Default: <red>❌ You already have an active check!</red>
+already_checking = "<red>❌ You already have an active check!</red>"
+# Default: <red>❌ This player is already being checked!</red>
+already_checked = "<red>❌ This player is already being checked!</red>"
+
+# end section.
+[messages_en.check.end]
+# Default: <red>❌ You are not checking this player!</red>
+not_checking = "<red>❌ You are not checking this player!</red>"
+# Default: <red>❌ You don't have an active check!</red>
+no_active = "<red>❌ You don't have an active check!</red>"
+
+# title section.
+[messages_en.check.title]
+# Title text (MiniMessage).
+# Default: <red>Verification
+title = "<red>Verification"
+# Title text (MiniMessage).
+# Default: <white>All instructions are in the chat
+subtitle = "<white>All instructions are in the chat"
+
+# suspect section.
+# Placeholders: %inspector%
+[messages_en.check.suspect]
+# Default: <gray>━━━━━━━━━━━━━━━━━━━━━
+separator = "<gray>━━━━━━━━━━━━━━━━━━━━━"
+# Default: <white>Inspector: <yellow>%inspector%
+inspector = "<white>Inspector: <yellow>%inspector%"
+# Default: Unknown
+unknown_inspector = "Unknown"
+# Default: <gray>You cannot move or interact with anything
+no_move = "<gray>You cannot move or interact with anything"
+# Default: <gray>until the check is complete.
+until_done = "<gray>until the check is complete."
+# Default: <gray>If you have any prohibited modifications —
+mod_info = "<gray>If you have any prohibited modifications —"
+# Default: <gray>disable them now. It is in your best interest.
+disable_now = "<gray>disable them now. It is in your best interest."
+# Default: <green>✔ <white><bold>CHECK COMPLETE!
+completed = "<green>✔ <white><bold>CHECK COMPLETE!"
+# Default: <yellow>⚠ <white><bold>CHECK INTERRUPTED!
+interrupted = "<yellow>⚠ <white><bold>CHECK INTERRUPTED!"
+# Default: <white>Inspector disconnected.
+inspector_left = "<white>Inspector disconnected."
+# Default: <dark_red>❌ <red><bold>VERIFICATION RESUMED
+resumed = "<dark_red>❌ <red><bold>VERIFICATION RESUMED"
+# Default: <gray>Your check was paused while you were offline.
+paused_note = "<gray>Your check was paused while you were offline."
+# Default: <gray>It has now resumed. You are still frozen.
+frozen_note = "<gray>It has now resumed. You are still frozen."
+
+# inspector section.
+# Placeholders: %suspect%
+[messages_en.check.inspector]
+# Default: <green>✔</green> <white>Check started for</white> <yellow>%suspect%</yellow><white>.</white>
+started = "<green>✔</green> <white>Check started for</white> <yellow>%suspect%</yellow><white>.</white>"
+# Default: <gray>Use </gray><white>/ui uncheck %suspect%</white><gray> when finished.</gray>
+howto = "<gray>Use </gray><white>/ui uncheck %suspect%</white><gray> when finished.</gray>"
+# Default: <green>✔</green> <white>Check ended for</white> <yellow>%suspect%</yellow><white>.</white>
+ended = "<green>✔</green> <white>Check ended for</white> <yellow>%suspect%</yellow><white>.</white>"
+# Default: <gray>You have been teleported back to your original location.</gray>
+returned = "<gray>You have been teleported back to your original location.</gray>"
+# Default: <yellow>⚠</yellow> <white>Checked player</white> <yellow>%suspect%</yellow> <white>disconnected. Check will r…
+suspect_left = "<yellow>⚠</yellow> <white>Checked player</white> <yellow>%suspect%</yellow> <white>disconnected. Check will resume on rejoin.</white>"
+# Default: <green>✔</green> <white>Player</white> <yellow>%suspect%</yellow> <white>rejoined — check resumed automatical…
+rejoined = "<green>✔</green> <white>Player</white> <yellow>%suspect%</yellow> <white>rejoined — check resumed automatically.</white>"
+# Default: <gray>Teleported to suspect's new location.</gray>
+teleported = "<gray>Teleported to suspect's new location.</gray>"
 
 [messages_en.maintenance]
 # Message text (MiniMessage).
-# Default: <red>⛏ Server is currently under maintenance!</red>\n<gray>Please come back later.</gray>
+# Default: <red>⛏ Server is currently under maintenance!</red>\\n<gray>Please come back later.</gray>
 kick_message = "<red>⛏ Server is currently under maintenance!</red>\\n<gray>Please come back later.</gray>"
 
 # messages section.
@@ -785,14 +865,14 @@ scheduled_disable = "<yellow>⏰</yellow> <white>Maintenance will be disabled in
 # console lockdown section.
 
 [messages.console_lockdown]
-# Default: <red>🔒</red> <white>Console lockdown </white><green>ENABLED</green><gray> — all console commands are cancelled.</gray>
-enabled = "<red>🔒</red> <white>Console lockdown </white><green>ENABLED</green><gray> — all console commands are cancelled.</gray>"
-# Default: <green>✔</green> <white>Console lockdown </white><red>DISABLED</red><gray> — console commands work again.</gray>
-disabled = "<green>✔</green> <white>Console lockdown </white><red>DISABLED</red><gray> — console commands work again.</gray>"
-# Default: <yellow>⏰</yellow> <white>Console lockdown will be enabled in </white><yellow>%time%</yellow>
-scheduled_on = "<yellow>⏰</yellow> <white>Console lockdown will be enabled in </white><yellow>%time%</yellow>"
-# Default: <yellow>⏰</yellow> <white>Console lockdown will be disabled in </white><yellow>%time%</yellow>
-scheduled_off = "<yellow>⏰</yellow> <white>Console lockdown will be disabled in </white><yellow>%time%</yellow>"
+# Default: <red>🔒</red> <white>Блокировка консоли </white><green>ВКЛЮЧЕНА</green><gray> — все команды консоли отменяются.</gray>
+enabled = "<red>🔒</red> <white>Блокировка консоли </white><green>ВКЛЮЧЕНА</green><gray> — все команды консоли отменяются.</gray>"
+# Default: <green>✔</green> <white>Блокировка консоли </white><red>ВЫКЛЮЧЕНА</red><gray> — команды консоли снова работают.</gray>
+disabled = "<green>✔</green> <white>Блокировка консоли </white><red>ВЫКЛЮЧЕНА</red><gray> — команды консоли снова работают.</gray>"
+# Default: <yellow>⏰</yellow> <white>Блокировка консоли включится через </white><yellow>%time%</yellow>
+scheduled_on = "<yellow>⏰</yellow> <white>Блокировка консоли включится через </white><yellow>%time%</yellow>"
+# Default: <yellow>⏰</yellow> <white>Блокировка консоли выключится через </white><yellow>%time%</yellow>
+scheduled_off = "<yellow>⏰</yellow> <white>Блокировка консоли выключится через </white><yellow>%time%</yellow>"
 
 [messages_en.console_lockdown]
 # Default: <red>🔒</red> <white>Console lockdown </white><green>ENABLED</green><gray> — all console commands are cancelled.</gray>
@@ -811,19 +891,19 @@ scheduled_off = "<yellow>⏰</yellow> <white>Console lockdown will be disabled i
 # Multi-line list (punish-style): each line = one row of the kick screen,
 # lines are joined with newlines. MiniMessage, placeholder: %player%.
 kick_message = [
-    "<red>🔒 Server is under lockdown — new connections are temporarily disabled.</red>",
+    "<red>🔒 Сервер на блокировке — новые подключения временно отключены.</red>",
     "",
-    "<gray>Hello </gray><white>%player%</white><gray>! The server is currently closed for new joins</gray>",
-    "<gray>(anti-bot-attack protection). Please try again later.</gray>",
+    "<gray>Привет, </gray><white>%player%</white><gray>! Сервер сейчас закрыт для новых подключений</gray>",
+    "<gray>(защита от бот-атак). Пожалуйста, попробуйте позже.</gray>",
 ]
-# Default: <red>🔒</red> <white>Server lockdown </white><green>ENABLED</green><gray> — new connections are blocked.</gray>
-enabled = "<red>🔒</red> <white>Server lockdown </white><green>ENABLED</green><gray> — new connections are blocked.</gray>"
-# Default: <green>✔</green> <white>Server lockdown </white><red>DISABLED</red><gray> — new connections are allowed again.</gray>
-disabled = "<green>✔</green> <white>Server lockdown </white><red>DISABLED</red><gray> — new connections are allowed again.</gray>"
-# Default: <yellow>⏰</yellow> <white>Server lockdown will be enabled in </white><yellow>%time%</yellow>
-scheduled_on = "<yellow>⏰</yellow> <white>Server lockdown will be enabled in </white><yellow>%time%</yellow>"
-# Default: <yellow>⏰</yellow> <white>Server lockdown will be disabled in </white><yellow>%time%</yellow>
-scheduled_off = "<yellow>⏰</yellow> <white>Server lockdown will be disabled in </white><yellow>%time%</yellow>"
+# Default: <red>🔒</red> <white>Блокировка сервера </white><green>ВКЛЮЧЕНА</green><gray> — новые подключения заблокированы.</gray>
+enabled = "<red>🔒</red> <white>Блокировка сервера </white><green>ВКЛЮЧЕНА</green><gray> — новые подключения заблокированы.</gray>"
+# Default: <green>✔</green> <white>Блокировка сервера </white><red>ВЫКЛЮЧЕНА</red><gray> — новые подключения снова разрешены.</gray>
+disabled = "<green>✔</green> <white>Блокировка сервера </white><red>ВЫКЛЮЧЕНА</red><gray> — новые подключения снова разрешены.</gray>"
+# Default: <yellow>⏰</yellow> <white>Блокировка сервера включится через </white><yellow>%time%</yellow>
+scheduled_on = "<yellow>⏰</yellow> <white>Блокировка сервера включится через </white><yellow>%time%</yellow>"
+# Default: <yellow>⏰</yellow> <white>Блокировка сервера выключится через </white><yellow>%time%</yellow>
+scheduled_off = "<yellow>⏰</yellow> <white>Блокировка сервера выключится через </white><yellow>%time%</yellow>"
 
 # Alert thresholds: when the number of blocked joins in the CURRENT lockdown
 # session reaches a threshold, admins (ui.alerts / OP) get the message ONCE
@@ -832,9 +912,9 @@ scheduled_off = "<yellow>⏰</yellow> <white>Server lockdown will be disabled in
 # Add your own lines (e.g. 5000 = "...") or remove the defaults freely;
 # deleting the whole section restores the built-in 10/100/1000 defaults.
 [messages.server_lockdown.alerts]
-10 = "<red>🔒</red> <white>Server lockdown:</white> <yellow>%count%</yellow> <gray>joins blocked this session.</gray>"
-100 = "<red>🔒</red> <white>Server lockdown:</white> <yellow>%count%</yellow> <red>joins blocked — this looks like a bot attack!</red>"
-1000 = "<dark_red>🔒 CRITICAL:</dark_red> <white>Server lockdown has blocked </white><yellow>%count%</yellow> <white>joins this session!</white>"
+10 = "<red>🔒</red> <white>Блокировка сервера:</white> <yellow>%count%</yellow> <gray>подключений заблокировано за сессию.</gray>"
+100 = "<red>🔒</red> <white>Блокировка сервера:</white> <yellow>%count%</yellow> <red>подключений заблокировано — похоже на бот-атаку!</red>"
+1000 = "<dark_red>🔒 КРИТИЧНО:</dark_red> <white>Блокировка сервера заблокировала </white><yellow>%count%</yellow> <white>подключений за сессию!</white>"
 
 # redstone guard section (alerts of the redstone_guard feature).
 # The plugin prefix is added automatically — don't repeat it here.
@@ -912,11 +992,11 @@ alert_started = "<red>⚠</red> <white>Стресс-тест </white><yellow>%ty
 # First report line: %type%, %power%, %duration%, %reason%.
 report_header = "<gray>══ Стресс-тест: </gray><yellow>%type% / %power%</yellow><gray> — </gray><yellow>%duration%s</yellow><gray> (</gray>%reason%<gray>) ══</gray>"
 # Second report line: %mspt_base%, %mspt_avg%, %mspt_max%, %tps_base%, %tps_avg%, %tps_min%.
-report_stats = "<gray>MSPT:</gray> <white>%mspt_base%</white> <dark_gray>→</dark_gray> <yellow>%mspt_avg%</yellow><gray> avg / </gray><red>%mspt_max%</red><gray> max</gray>   <gray>TPS:</gray> <white>%tps_base%</white> <dark_gray>→</dark_gray> <yellow>%tps_avg%</yellow><gray> avg / </gray><red>%tps_min%</red><gray> min</gray>"
+report_stats = "<gray>MSPT:</gray> <white>%mspt_base%</white> <dark_gray>→</dark_gray> <yellow>%mspt_avg%</yellow><gray> сред. / </gray><red>%mspt_max%</red><gray> макс</gray>   <gray>TPS:</gray> <white>%tps_base%</white> <dark_gray>→</dark_gray> <yellow>%tps_avg%</yellow><gray> сред. / </gray><red>%tps_min%</red><gray> мин</gray>"
 # Third report line: %ram_base%, %ram_avg%, %ram_max%, %entities%.
-report_memory = "<gray>RAM:</gray> <white>%ram_base%</white> <dark_gray>→</dark_gray> <yellow>%ram_avg%</yellow><gray> avg / </gray><red>%ram_max%</red><gray> max</gray>   <gray>Entities:</gray> <white>%entities%</white>"
+report_memory = "<gray>RAM:</gray> <white>%ram_base%</white> <dark_gray>→</dark_gray> <yellow>%ram_avg%</yellow><gray> сред. / </gray><red>%ram_max%</red><gray> макс</gray>   <gray>Сущностей:</gray> <white>%entities%</white>"
 # Fourth report line: %work% (counter), %unit% (localised unit label).
-report_work = "<gray>Work:</gray> <yellow>%work%</yellow> <white>%unit%</white>"
+report_work = "<gray>Работа:</gray> <yellow>%work%</yellow> <white>%unit%</white>"
 
 # Why a run ended (stresstest.reason.<id>).
 [messages.stresstest.reason]

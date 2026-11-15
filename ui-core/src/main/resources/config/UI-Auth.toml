@@ -442,12 +442,6 @@ logout = "Account logout"
 # Placeholders: %remaining%, %min%, %max%, %count%, %limit%, %seconds%
 
 [messages_en.auth.messages]
-# Title text (MiniMessage).
-# Default: <dark_gray>Register</dark_gray>
-register_title = "<dark_gray>Register</dark_gray>"
-# Title text (MiniMessage).
-# Default: <dark_gray>Enter password</dark_gray>
-login_title = "<dark_gray>Enter password</dark_gray>"
 # Default: <green>✔ Registration successful!</green>
 success_register = "<green>✔ Registration successful!</green>"
 # Default: <green>✔ You have successfully logged in!</green>
@@ -490,7 +484,7 @@ max_accounts_per_ip = "<red>❌</red> <yellow>%count%</yellow> <red>accounts are
 enter_password_hint = "<yellow>✦</yellow> <gray>Type your password in the name field, then click</gray> <green>✔</green>"
 # Default: <yellow>✦</yellow> <gray>Enter new password in the name field, then click</gray> <green>✔</green>
 enter_new_password_hint = "<yellow>✦</yellow> <gray>Enter new password in the name field, then click</gray> <green>✔</green>"
-# Default: <yellow>✦</yellow> <gray>Enter your password to log out.</gray>
+# Default: <yellow>✦</yellow> <gray>/ui auth logout — no password required.</gray>
 enter_logout_password_hint = "<yellow>✦</yellow> <gray>/ui auth logout — no password required.</gray>"
 # Default: <red>❌ Enter your password in the item name field!</red>
 enter_password_field = "<red>❌ Enter your password in the item name field!</red>"
@@ -530,6 +524,18 @@ force_login_message = "<green>✔</green> <white>You have been force authorized 
 # Limit.
 # Default: <red>❌ Please wait </red><yellow>%seconds%</yellow> <red>seconds before the next request!</red>
 rate_limit = "<red>❌ Please wait </red><yellow>%seconds%</yellow> <red>seconds before the next request!</red>"
+# Default: <gray>Enter your password in the login window that opens on join.</gray>
+try_again_hint = "<gray>Enter your password in the login window that opens on join.</gray>"
+# Default: <gold>✦</gold> <white>You are already logged in!</white>
+already_authenticated = "<gold>✦</gold> <white>You are already logged in!</white>"
+# Title text (MiniMessage).
+# Default: <dark_gray>Enter password</dark_gray>
+login_title = "<dark_gray>Enter password</dark_gray>"
+# Title text (MiniMessage).
+# Default: <dark_gray>Register</dark_gray>
+register_title = "<dark_gray>Register</dark_gray>"
+# Default: <gray>Use: </gray><gold>/ui auth logout</gold>
+logout_usage = "<gray>Use: </gray><gold>/ui auth logout</gold>"
 # Default: <gray>Enter your password in the authorization window that has just opened.</gray>\n<gray>If no window appeared, reconnect to the server.</gray>
 dialog_join_hint = "<gray>Enter your password in the authorization window that has just opened.</gray>\n<gray>If no window appeared, reconnect to the server.</gray>"
 # Default: <red>❌ Action blocked — you are not authorized yet.</red>\n<gray>If the authorization window did not open, reconnect to the server.</gray>
@@ -544,12 +550,6 @@ no_password_in_chat = "<yellow>⚠ Do not type passwords in chat — open the pa
 current_password_required = "<red>❌ Enter your current password in the password change window.</red>"
 # Default: <red>❌ Old and new password are required.</red>
 changepass_fields_required = "<red>❌ Old and new password are required.</red>"
-# Default: <gray>Enter your password in the login window that opens on join.</gray>
-try_again_hint = "<gray>Enter your password in the login window that opens on join.</gray>"
-# Default: <gold>✦</gold> <white>You are already logged in!</white>
-already_authenticated = "<gold>✦</gold> <white>You are already logged in!</white>"
-# Default: <gray>Use: </gray><gold>/ui auth logout</gold>
-logout_usage = "<gray>Use: </gray><gold>/ui auth logout</gold>"
 # Default: <red>❌ Authorization system is not initialized!</red>
 not_initialized = "<red>❌ Authorization system is not initialized!</red>"
 
@@ -557,10 +557,26 @@ not_initialized = "<red>❌ Authorization system is not initialized!</red>"
 # Placeholders: %subcommand%, %player%, %password%, %seconds%, %attempts%, %details%
 
 [messages_en.auth.admin]
-# Default: <red>❌ Authorization system is disabled in config!</red>
-system_disabled = "<red>❌ Authorization system is disabled in config!</red>"
 # Default: <red>❌ Usage: </red><white>/ui auth 2fa|logout|forcelogin|resetauth|chgpass|delsession</white>
 usage = "<red>❌ Usage: </red><white>/ui auth 2fa|logout|forcelogin|resetauth|chgpass|delsession</white>"
+# Default: <green>✔</green> You have successfully logged out!\n<gray>On next login you will need to enter your password …
+kick_logout = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Session reset.</red>\n<gray>You logged out — enter your password again on the next login.</gray>"
+# Default: <red>❌ Player nickname and new password are required.</red>
+chgpass_dialog_fields = "<red>❌ Player nickname and new password are required.</red>"
+# Default: <red>❌ Player </red><yellow>%player%</yellow><red> is not registered!</red>
+chgpass_dialog_not_registered = "<red>❌ Player </red><yellow>%player%</yellow><red> is not registered!</red>"
+# Default: <red>❌ Authorization system is not initialized!</red>
+chgpass_dialog_not_initialized = "<red>❌ Authorization system is not initialized!</red>"
+# Default: <green>✔</green> <white>Password of player </white><yellow>%player%</yellow><white> changed.</white>
+chgpass_dialog_success = "<green>✔</green> <white>Password of player </white><yellow>%player%</yellow><white> changed.</white>"
+# Default: <dark_red>❌</dark_red> <red>Failed to change the password (check the length).</red>
+chgpass_dialog_fail = "<dark_red>❌</dark_red> <red>Failed to change the password (check the length).</red>"
+# Default: <red>❌ Player</red> <yellow>%player%</yellow> <red>is not registered!</red>
+chgpass_not_registered = "<red>❌ Player</red> <yellow>%player%</yellow> <red>is not registered!</red>"
+# Default: <red>❌ Authorization system is not initialized!</red>
+chgpass_not_initialized = "<red>❌ Authorization system is not initialized!</red>"
+# Default: <red>❌ Authorization system is disabled in config!</red>
+system_disabled = "<red>❌ Authorization system is disabled in config!</red>"
 # Command.
 # Default: <red>❌ Unknown subcommand: </red><white>%subcommand%</white>
 unknown_subcommand = "<red>❌ Unknown subcommand: </red><white>%subcommand%</white>"
@@ -620,16 +636,6 @@ chgpass_success = "<green>✔</green> <white>Password of player</white> <yellow>
 chgpass_session_reset = "<gray>Session reset — player must log in again.</gray>"
 # Default: <red>❌ Failed to change password of player</red> <yellow>%player%</yellow>
 chgpass_fail = "<red>❌ Failed to change password of player</red> <yellow>%player%</yellow>"
-# Default: <red>❌ Player nickname and new password are required.</red>
-chgpass_dialog_fields = "<red>❌ Player nickname and new password are required.</red>"
-# Default: <red>❌ Player </red><yellow>%player%</yellow><red> is not registered!</red>
-chgpass_dialog_not_registered = "<red>❌ Player </red><yellow>%player%</yellow><red> is not registered!</red>"
-# Default: <red>❌ Authorization system is not initialized!</red>
-chgpass_dialog_not_initialized = "<red>❌ Authorization system is not initialized!</red>"
-# Default: <green>✔</green> <white>Password of player </white><yellow>%player%</yellow><white> changed.</white>
-chgpass_dialog_success = "<green>✔</green> <white>Password of player </white><yellow>%player%</yellow><white> changed.</white>"
-# Default: <dark_red>❌</dark_red> <red>Failed to change the password (check the length).</red>
-chgpass_dialog_fail = "<dark_red>❌</dark_red> <red>Failed to change the password (check the length).</red>"
 # Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Your registration has been deleted by an administrator!</red…
 kick_resetauth = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Your registration has been deleted by an administrator!</red>\n<gray>On next login you will need to register again.</gray>"
 # Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Your session has been reset by an administrator!</red>\n<gra…
@@ -641,15 +647,9 @@ kick_timeout = "<red>⏱ Login timeout!</red>\n<gray>You did not log in within %
 kick_too_many_attempts = "<red>❌ Too many incorrect attempts!</red>\n<gray>You entered the wrong password %attempts% times.</gray>"
 # Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Authorization is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later or contact an administrator.</gray>
 kick_storage_unavailable = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Authorization is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later or contact an administrator.</gray>"
-# Default: <green>✔</green> You have successfully logged out!\n<gray>On next login you will need to enter your password …
-kick_logout = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Session reset.</red>\n<gray>You logged out — enter your password again on the next login.</gray>"
 # Display name (MiniMessage).
 # Default: <yellow>✦</yellow> UltimateImprovments\n\n%details%\n\n
 kick_duplicate_name = "<yellow>✦</yellow> UltimateImprovments\n\n%details%\n\n"
-# Default: <red>❌ Player</red> <yellow>%player%</yellow> <red>is not registered!</red>
-chgpass_not_registered = "<red>❌ Player</red> <yellow>%player%</yellow> <red>is not registered!</red>"
-# Default: <red>❌ Authorization system is not initialized!</red>
-chgpass_not_initialized = "<red>❌ Authorization system is not initialized!</red>"
 
 # dialog section.
 # Placeholders: %account%, %url%
