@@ -3,6 +3,42 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-release.1] — since 1.8.5-beta.22 (2026-11-15)
+
+> **Release channel** — the first stable release of the 1.8.5 line: everything
+> published after the `1.8.5-beta.21` release, from the external authentication
+> audit up to the final reactor and configuration work. Every per-beta entry
+> below is part of this release.
+
+Highlights of the line:
+
+- **Authentication is hardened end to end** (beta.22, beta.23): 2FA cannot be
+  skipped by reconnecting, the login gate fails closed, wrong-password attempts
+  and exponential lockouts are persisted, parallel dialog submits are
+  serialised, and the pre-login freeze covers chat, entities and inventory.
+- **The OP subsystem agrees with `ops.json`** (beta.25-beta.28): `/ui op` and
+  `/ui deop` accept offline players, `deop all` revokes real OPs, list/flag
+  drift is repaired instead of blocking the command, and every message of the
+  group is configurable in both languages.
+- **Items**: air-fired vanilla Fire Charge (beta.29-beta.32), air-only Remote
+  Detonator (beta.33, beta.34), Portable Workbench (beta.36-beta.39),
+  exact-amount experience bottles (beta.37), and the Structure Indicator turned
+  into a real structure tool (beta.35, beta.51).
+- **Photon Cannon** physics and balance (beta.40-beta.44): hardness-based block
+  piercing, no speed loss per ricochet, entity probes, claim-aware blocks and a
+  much higher DPS.
+- **Datapack, advancements and enchantments are configured, not compiled in**
+  (beta.45-beta.49): `UI-Advancements.toml` (43 achievements),
+  `UI-Enchantments.toml` (18 enchantments), independently gated pack parts, and
+  a single deterministic datapack zip with a hash cache.
+- **Reactor safety and presentation** (beta.52-beta.55): scooping the CER lava
+  core no longer detonates the reactor, both reactors run 20-second countdowns
+  with staged T-20/15/10/5 alerts, and the core check interval is configurable
+  in real ticks.
+- **Console and validation texts** (beta.48, beta.50): repeating startup scan
+  lines are behind `[debug] startup_scans`, and config validation output is a
+  bilingual config section.
+
 ## [1.8.5-beta.55] - 2026-11-15
 
 ### Changed
