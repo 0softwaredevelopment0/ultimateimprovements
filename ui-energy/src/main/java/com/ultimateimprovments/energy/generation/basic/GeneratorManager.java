@@ -167,10 +167,16 @@ public class GeneratorManager implements Listener {
         // its listener instead of demanding (and cancelling with) a multimeter.
         if (StructureIndicatorApi.holdsStructureIndicator(player)) return;
 
+        // Only the hand that performed the click decides: a multimeter gives
+        // the readout, an empty hand asks for one, any other item (a block
+        // being placed, ...) keeps its vanilla interaction.
+        MultimeterApi.ClickAction action = MultimeterApi.resolveClick(player);
+        if (action == MultimeterApi.ClickAction.PASS) return;
+
         // The measurement owns the click: no furnace GUI on SHIFT+RMB
         e.setCancelled(true);
 
-        if (!MultimeterApi.holdsMultimeter(player)) {
+        if (action == MultimeterApi.ClickAction.REQUIRE_MULTIMETER) {
             player.sendMessage(MessageUtil.parse(prefix() + msg("multimeter_required",
                     "<red>A multimeter is required to read the data!")));
             return;

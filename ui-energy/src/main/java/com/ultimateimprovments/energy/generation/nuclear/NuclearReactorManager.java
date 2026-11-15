@@ -464,7 +464,15 @@ public final class NuclearReactorManager {
         if (reactor == null) return false;
 
         if (sameBlock(loc, reactor.getCenterBlockLocation())) {
-            detonate(reactor);
+            // During the countdown the center is the lava core itself: removing
+            // it (bucket, break, ...) seals the meltdown and dismantles the
+            // reactor exactly like placing a non-reinforced block into it —
+            // it must not trigger the detonation it was meant to stop.
+            if (reactor.isMeltdown()) {
+                abandonMeltdown(reactor);
+            } else {
+                detonate(reactor);
+            }
             return true;
         }
 

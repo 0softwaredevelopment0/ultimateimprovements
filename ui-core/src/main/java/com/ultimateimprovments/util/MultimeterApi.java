@@ -94,6 +94,52 @@ public final class MultimeterApi {
     }
 
     // =========================
+    // SHIFT+RMB CLICK OWNERSHIP
+    // =========================
+
+    /**
+     * What a SHIFT+RMB click on a block should do, decided by the item in the
+     * hand that actually performed the click.
+     */
+    public enum ClickAction {
+        /** The multimeter is in that hand — the subsystem delivers its readout. */
+        MEASURE,
+        /** The hand is empty — the click asks for a readout without the tool. */
+        REQUIRE_MULTIMETER,
+        /** Any other item is held — the click belongs to vanilla / other plugins. */
+        PASS
+    }
+
+    /**
+     * Resolves a SHIFT+RMB click against the item of <b>the hand that performed
+     * the click</b> (the main hand when it holds an item, otherwise the off
+     * hand — the vanilla right-click rule), not "a multimeter somewhere in the
+     * inventory":
+     * <ul>
+     *   <li>multimeter in that hand → {@link ClickAction#MEASURE};</li>
+     *   <li>empty hand → {@link ClickAction#REQUIRE_MULTIMETER} (the caller
+     *       cancels the click and prints the "multimeter required" hint);</li>
+     *   <li>any other item (a lever, a block being placed, ...) →
+     *       {@link ClickAction#PASS}: the click must not be cancelled, so the
+     *       vanilla placement / interaction still happens.</li>
+     * </ul>
+     * Callers act once per click (on the main-hand event), so the empty
+     * off-hand event of the same click can never message or cancel anything.
+     */
+    public static ClickAction resolveClick(Player player) {
+        if (player == null) return ClickAction.PASS;
+
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (item == null || item.getType().isAir()) {
+            item = player.getInventory().getItemInOffHand();
+        }
+
+        if (isMultimeter(item)) return ClickAction.MEASURE;
+        if (item == null || item.getType().isAir()) return ClickAction.REQUIRE_MULTIMETER;
+        return ClickAction.PASS;
+    }
+
+    // =========================
     // PER-CLICK READOUT STATE
     // =========================
 

@@ -84,8 +84,25 @@ public class NuclearReactorTask extends BukkitRunnable {
             }
 
             // 0. Meltdown countdown: the center is lava and the reactor
-            //    produces nothing — only the clock runs.
+            //    produces nothing — only the clock runs. The lava core is the
+            //    countdown: if it is gone next second (scooped with a bucket,
+            //    broken, replaced by a plugin — anything that never fires the
+            //    player events), the meltdown is sealed instead of exploding.
             if (reactor.isMeltdown()) {
+                Block center = reactor.getCenterBlock();
+                Material centerType = center.getType();
+                if (centerType != Material.LAVA) {
+                    if (centerType == Material.REINFORCED_DEEPSLATE) {
+                        // The proper fix: restore the core block in time.
+                        NuclearReactorManager.preventDetonation(reactor);
+                    } else {
+                        // Removed / sealed with the wrong block: no blast,
+                        // but the reactor is dismantled.
+                        NuclearReactorManager.abandonMeltdown(reactor);
+                    }
+                    continue;
+                }
+
                 NuclearReactorManager.spawnHeatParticles(reactor);
                 int left = reactor.getMeltdownSeconds() - 1;
                 reactor.setMeltdownSeconds(left);

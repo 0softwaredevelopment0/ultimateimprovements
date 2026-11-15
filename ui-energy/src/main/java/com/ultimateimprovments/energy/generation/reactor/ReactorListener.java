@@ -157,7 +157,17 @@ public class ReactorListener implements Listener {
         // owns that click, so this energy readout must not cancel it.
         if (StructureIndicatorApi.holdsStructureIndicator(e.getPlayer())) return;
 
-        // The measurement owns the click: no barrel GUI / block interactions.
+        // Only the hand that performed the click decides: a multimeter gives
+        // the readout, an empty hand asks for one, any other item (a lever, a
+        // block being placed, ...) keeps its vanilla interaction — the reactor
+        // must not swallow the click and demand a multimeter for it.
+        if (MultimeterApi.resolveClick(e.getPlayer()) == MultimeterApi.ClickAction.PASS) {
+            return;
+        }
+
+        // The measurement owns the click: no barrel GUI / block placement.
+        // sendReadout prints the "multimeter required" hint when the active
+        // hand is empty.
         e.setCancelled(true);
         NuclearReactorManager.sendReadout(e.getPlayer(), reactor);
     }
@@ -724,7 +734,7 @@ public class ReactorListener implements Listener {
     public void onSignClick(PlayerInteractEvent e) {
 
         if (e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (e.getHand() != EquipmentSlot.HAND) return;
+        if (e.getHand() != EquipmentSlot.HAND) return; // once per click
 
         Block block = e.getClickedBlock();
         if (block == null) return;
@@ -757,11 +767,16 @@ public class ReactorListener implements Listener {
         Location reactorLoc = reactor.getReactorLocation();
         if (reactorLoc == null) return;
 
+        // Only the hand that performed the click decides what happens: a
+        // multimeter reads the panel, an empty hand asks for one, any other
+        // item keeps its normal sign interaction (no swallowed click).
+        MultimeterApi.ClickAction action = MultimeterApi.resolveClick(player);
+        if (action == MultimeterApi.ClickAction.PASS) return;
+
         // Prevent sign editor from opening
         e.setCancelled(true);
 
-        // The data readout only works with a multimeter in hand
-        if (!MultimeterApi.holdsMultimeter(player)) {
+        if (action == MultimeterApi.ClickAction.REQUIRE_MULTIMETER) {
             player.sendMessage(MessageUtil.parse(dfcPrefix() + msg("sign_multimeter_required",
                     "<red>A multimeter is required to read the data!")));
             return;

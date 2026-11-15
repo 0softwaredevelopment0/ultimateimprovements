@@ -3,6 +3,28 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-beta.52] - 2026-11-15
+
+### Fixed
+- **CER: removing the lava core no longer detonates the reactor.** During the
+  10-second countdown the meltdown branch only ran the clock, so a core that
+  stopped being lava without a player block event (scooped with a bucket,
+  broken, changed by another plugin) still exploded when the timer expired.
+  The tick now checks the center every second: reinforced deepslate restored in
+  time prevents the detonation as before, while air / any other block seals the
+  blast and dismantles the reactor — the same outcome as placing a wrong block
+  into the core. Breaking the center block during the countdown follows the
+  same rule instead of detonating.
+- **SHIFT+RMB readouts only claim the click when the clicking hand is empty or
+  holds the Multimeter.** The CER readout, the DFC data-panel sign and the coal
+  generator readout cancelled every SHIFT+RMB on their blocks and answered "a
+  multimeter is required" regardless of the held item, so a lever or any other
+  block could not be placed on top of them (and the generic empty-off-hand
+  event could not be told apart from the real click). `MultimeterApi` now
+  resolves the click from the item of the hand that performed it: a multimeter
+  gives the readout, an empty hand gets the hint, and any other item leaves the
+  event untouched so vanilla placement/interaction still runs.
+
 ## [1.8.5-beta.51] - 2026-11-15
 
 ### Changed
