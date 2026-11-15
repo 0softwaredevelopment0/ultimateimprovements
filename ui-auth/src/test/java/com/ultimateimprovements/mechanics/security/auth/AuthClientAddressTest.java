@@ -34,6 +34,7 @@ class AuthClientAddressTest {
         assertNull(AuthClientAddress.normalize(new InetSocketAddress("127.0.0.1", 25565)));
         assertNull(AuthClientAddress.normalize(new InetSocketAddress("::1", 25565)));
         assertNull(AuthClientAddress.normalize(new InetSocketAddress("224.0.0.1", 25565)));
+        assertNull(AuthClientAddress.normalize(new InetSocketAddress("255.255.255.255", 25565)));
     }
 
     @Test
