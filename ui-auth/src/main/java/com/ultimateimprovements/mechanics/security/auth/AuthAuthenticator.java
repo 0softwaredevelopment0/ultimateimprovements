@@ -905,9 +905,10 @@ public class AuthAuthenticator {
 
     /**
      * Refuses authentication when Paper cannot provide a usable client IP.
-     * This includes unresolved, wildcard, multicast and loopback addresses; the
-     * loopback guard catches proxy/Unix-socket setups that failed to forward the
-     * real client address.
+     * This includes unresolved, wildcard and multicast addresses, plus loopback
+     * addresses when auth.reject_loopback_ips is enabled. The optional loopback
+     * guard can catch proxy/Unix-socket setups that failed to forward the real
+     * client address without blocking direct localhost development by default.
      */
     private void kickInvalidClientIp(Player player) {
         UUID uuid = player.getUniqueId();
