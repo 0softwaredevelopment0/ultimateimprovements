@@ -33,6 +33,11 @@ public class AuthConfig {
         return getBool("auth.check_ip.enabled", true);
     }
 
+    /** Reject loopback client IPs (127.0.0.0/8 and ::1); disabled by default for local testing. */
+    public static boolean isRejectLoopbackIps() {
+        return getBool("auth.reject_loopback_ips", false);
+    }
+
     public static boolean isDupNameCheckEnabled() {
         return getBool("auth.check_duplicate_name.enabled", true);
     }
