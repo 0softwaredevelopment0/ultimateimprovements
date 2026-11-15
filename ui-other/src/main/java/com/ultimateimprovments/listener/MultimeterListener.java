@@ -8,6 +8,7 @@ import com.ultimateimprovments.util.LocationUtil;
 import com.ultimateimprovments.util.Materials;
 import com.ultimateimprovments.util.MessageUtil;
 import com.ultimateimprovments.util.MultimeterApi;
+import com.ultimateimprovments.util.StructureIndicatorApi;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -24,8 +25,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Generic multimeter readout: cables, batteries, junctions, particle-accelerator
- * blocks and structure-integrity blocks.
+ * Generic multimeter readout: cables, batteries, junctions and
+ * particle-accelerator blocks. Structures belong to the Structure Indicator
+ * ({@link StructureIndicatorApi}); the two tools share the same click
+ * contract.
  * <p>
  * It is the LAST listener of the click ({@link EventPriority#HIGHEST}) and the
  * fallback of the whole multimeter feature: subsystem readouts (generator, CER,

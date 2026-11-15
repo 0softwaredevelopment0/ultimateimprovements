@@ -262,7 +262,7 @@ Crafter). Recipes come from the bundled datapack.
 | **Hazmat Suit** (4 leather pieces) | Radiation protection: −20% per piece, −80% for the full set. |
 | **Dosimeter** | Shows the radiation level in the actionbar (emerald is the crafting sensor). |
 | **Concrete Bucket** | Place concrete instantly. |
-| **Structure Indicator** | **SHIFT+RMB** on a structure reads its stress, degradation and integrity (sculk-sensor base). This is the structure tool; the Multimeter no longer reads structures. |
+| **Structure Indicator** | **SHIFT+RMB** on a structure reads its structural report: ender-chest stress/degradation/integrity, DFC reactor core and case integrity with temperatures, compact reactor status/temperature/cooling, and the generator, battery, magnet, lightning-rod, chunk-loader, light and particle-accelerator assemblies (components, block counts, ids). Recovery-compass base — a tool, not a placeable block; crafted from 4 diamonds + 4 iron ingots + a recovery compass. Blocks that are not structures answer with the `[STRUCT] Can't measure the structure of this block.` error. The Multimeter keeps the energy side. |
 | **Particle Engine / Injector / Ring / Speed Sensor** | Particle accelerator components. |
 | **Chunk Loader** | Keep chunks loaded (consumes an XP bottle). |
 | **Portable Workbench** | Right-click opens a real crafting table GUI and spends one of **64** charges (shown in the lore). Block placement is suppressed; the last charge breaks the item (simulated break with sound and particles — a block item has no durability). Charges, name, lore, sounds and particles are configured in `[portable_workbench]` / `[messages.portable_workbench]` of `UI-Items.toml`. Crafted in the Crafter only (iron + leather + a crafting table). |

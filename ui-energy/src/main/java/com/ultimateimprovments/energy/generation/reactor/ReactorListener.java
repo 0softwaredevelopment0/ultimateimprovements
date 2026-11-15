@@ -8,6 +8,7 @@ import com.ultimateimprovments.structure.StructureOccupancy;
 import com.ultimateimprovments.util.Materials;
 import com.ultimateimprovments.util.MessageUtil;
 import com.ultimateimprovments.util.MultimeterApi;
+import com.ultimateimprovments.util.StructureIndicatorApi;
 import com.ultimateimprovments.util.StructureTemplate;
 import com.ultimateimprovments.util.StructuresMessages;
 import com.ultimateimprovments.util.LocationUtil;
@@ -151,6 +152,10 @@ public class ReactorListener implements Listener {
 
         NuclearReactor reactor = NuclearReactorManager.getByBlockLocation(block.getLocation());
         if (reactor == null) return;
+
+        // The Structure Indicator reads the reactor's structure; its listener
+        // owns that click, so this energy readout must not cancel it.
+        if (StructureIndicatorApi.holdsStructureIndicator(e.getPlayer())) return;
 
         // The measurement owns the click: no barrel GUI / block interactions.
         e.setCancelled(true);
@@ -728,6 +733,12 @@ public class ReactorListener implements Listener {
         if (!isAnyWallSign(type)) return;
 
         Player player = e.getPlayer();
+
+        // The data panel belongs to the Multimeter. With the Structure
+        // Indicator in hand the click is left to StructureIndicatorListener,
+        // which reports the reactor's structure instead (and cancels the
+        // event itself, so the sign editor never opens).
+        if (StructureIndicatorApi.holdsStructureIndicator(player)) return;
 
         // The multimeter is a SHIFT+RMB tool: a plain right-click keeps the
         // vanilla sign editor.

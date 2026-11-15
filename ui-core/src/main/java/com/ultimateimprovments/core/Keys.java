@@ -56,6 +56,9 @@ public class Keys {
     // Multimeter
     public static NamespacedKey MULTIMETER;
 
+    // Structure Indicator (the structural counterpart of the Multimeter)
+    public static NamespacedKey STRUCTURE_INDICATOR;
+
     // Remote Detonator (item tag + the bound TNT block, encoded "x;y;z;world")
     public static NamespacedKey REMOTE_DETONATOR;
     public static NamespacedKey DETONATOR_TARGET;
@@ -121,6 +124,10 @@ public class Keys {
         GUI_PROTECTED = new NamespacedKey(plugin, "gui_protected");
 
         MULTIMETER = new NamespacedKey(plugin, "is_multimeter");
+
+        // Kept byte-for-byte identical to the key the old Structure Integrity
+        // Indicator used, so already crafted items keep working.
+        STRUCTURE_INDICATOR = new NamespacedKey(plugin, "is_structure_integrity_indicator");
 
         REMOTE_DETONATOR = new NamespacedKey(plugin, "is_remote_detonator");
         DETONATOR_TARGET = new NamespacedKey(plugin, "remote_detonator_target");

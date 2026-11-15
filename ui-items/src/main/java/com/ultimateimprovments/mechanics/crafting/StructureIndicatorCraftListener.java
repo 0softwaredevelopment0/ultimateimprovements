@@ -1,5 +1,6 @@
 package com.ultimateimprovments.mechanics.crafting;
 
+import com.ultimateimprovments.core.Keys;
 import com.ultimateimprovments.core.Main;
 import com.ultimateimprovments.util.MessageUtil;
 import org.bukkit.Bukkit;
@@ -12,40 +13,47 @@ import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 
-public class StructureIntegrityCraftListener implements Listener {
+/**
+ * Structure Indicator — the structural counterpart of the Multimeter.
+ * <p>
+ * The base item is a <b>recovery compass</b>, not a calibrated sculk sensor:
+ * the indicator must be a tool, never a placeable block. The recipe is in the
+ * multimeter's cost class (diamonds + iron) but a different layout:
+ * <pre>
+ *   D I D      D = diamond (sensor ring)
+ *   I R I      I = iron ingot (frame)
+ *   D I D      R = recovery compass (core)
+ * </pre>
+ * The result is rebuilt in {@code PrepareItemCraftEvent} so the PDC tag and
+ * the lore are always present, even when the recipe is matched through a
+ * vanilla click.
+ */
+public class StructureIndicatorCraftListener implements Listener {
 
-    private static NamespacedKey KEY;
     private static NamespacedKey RECIPE_KEY;
 
     public static void init() {
-        KEY = new NamespacedKey(Main.getInstance(), "is_structure_integrity_indicator");
-        RECIPE_KEY = new NamespacedKey(Main.getInstance(), "structure_integrity_indicator");
+        RECIPE_KEY = new NamespacedKey(Main.getInstance(), "structure_indicator");
         registerRecipe();
     }
 
-    /**
-     * Builds the Structure Indicator item (shift+RMB on a structure).
-     * The base material is a calibrated sculk sensor: the spyglass base made the
-     * item feel like a scoped tool and clashed with the Mob Finder, which also
-     * uses SPYGLASS.
-     */
+    /** Builds the Structure Indicator item (SHIFT+RMB on a structure). */
     public static ItemStack createItem() {
-        ItemStack result = new ItemStack(Material.CALIBRATED_SCULK_SENSOR);
+        ItemStack result = new ItemStack(Material.RECOVERY_COMPASS);
         result.editMeta(meta -> {
             meta.displayName(MessageUtil.parse("<i:false><white>Structure Indicator *</white>"));
             meta.lore(List.of(
                     MessageUtil.parse("<i:false><gray>Shift+RMB on a structure to inspect</gray>"),
-                    MessageUtil.parse("<i:false><gray>its stress, degradation, and integrity.</gray>"),
+                    MessageUtil.parse("<i:false><gray>its integrity, status and components.</gray>"),
                     MessageUtil.parse(""),
                     MessageUtil.parse("<i:false><dark_gray>Structure tool: the Multimeter</dark_gray>"),
                     MessageUtil.parse("<i:false><dark_gray>reads cables and energy only.</dark_gray>")
             ));
-            meta.getPersistentDataContainer().set(KEY, PersistentDataType.BYTE, (byte) 1);
+            meta.getPersistentDataContainer().set(Keys.STRUCTURE_INDICATOR, PersistentDataType.BYTE, (byte) 1);
         });
         return result;
     }
@@ -60,13 +68,13 @@ public class StructureIntegrityCraftListener implements Listener {
         ShapedRecipe recipe = new ShapedRecipe(RECIPE_KEY, result);
         recipe.setGroup(RECIPE_KEY.getKey());
         recipe.shape(
-                " I ",
-                "SGS",
-                " I "
+                "DID",
+                "IRI",
+                "DID"
         );
+        recipe.setIngredient('D', Material.DIAMOND);
         recipe.setIngredient('I', Material.IRON_INGOT);
-        recipe.setIngredient('S', Material.STONE);
-        recipe.setIngredient('G', Material.GLASS);
+        recipe.setIngredient('R', Material.RECOVERY_COMPASS);
 
         plugin.getServer().addRecipe(recipe);
         RecipeRegistry.registerRecipe(RECIPE_KEY);
@@ -79,11 +87,6 @@ public class StructureIntegrityCraftListener implements Listener {
         if (!sr.getKey().equals(RECIPE_KEY)) return;
 
         CraftingInventory inv = e.getInventory();
-        ItemStack result = createItem();
-        inv.setResult(result);
-    }
-
-    public static NamespacedKey getKey() {
-        return KEY;
+        inv.setResult(createItem());
     }
 }

@@ -3,6 +3,47 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-beta.51] - 2026-11-15
+
+### Changed
+- **The Structure Indicator is a real tool now, not a half-finished
+  ender-chest gadget.** It works exactly like the Multimeter (SHIFT+RMB, chat
+  readout, shared per-click state, standard "can't measure" error) but has its
+  own measurement list — structures:
+  - **ender chest** — the existing stress / degradation / integrity report;
+  - **DFC reactor** — core and case integrity, core/case temperatures, meltdown
+    countdown, damaged/breached state;
+  - **compact nuclear reactor (CER)** — status, structure damage, temperature,
+    cooling, detonation countdown;
+  - **coal generator** — assembly state, redstone gate, structure id;
+  - **battery multiblock** — block count, shared capacity, mode;
+  - **particle accelerator** — component (engine / sensor / ring / injector),
+    engine buffer and readiness, sensor last speed;
+  - **magnet** — cluster size, power tier, radius, centre;
+  - **lightning rod** — structure state and centre;
+  - **light structure** — lamps, junctions, lit state, consumption;
+  - **chunk loader** — the kept-loaded chunk;
+  - any other structure-registry row — type, id and block count.
+  Blocks that are not structures answer with
+  `<plugin prefix> [STRUCT] Can't measure the structure of this block.` The
+  tag word and the body are configurable in the new
+  `[messages.structures.structure_indicator]` / `messages_en` sections of
+  `UI-Other.toml`, and `StructureIndicatorMessagesTest` guards both languages.
+- **The item is no longer a block.** The calibrated sculk sensor is replaced by
+  a **recovery compass**, so the indicator cannot be placed. The PDC tag stays
+  `is_structure_integrity_indicator:1b`, so already crafted items keep working.
+- **Its craft is in the Multimeter's cost class but its own shape** —
+  `DID / IRI / DID` (4 diamonds, 4 iron ingots, a recovery compass). The recipe
+  moved from UI-Other into UI-Items together with the other tool recipes, and
+  the admin-menu entry now comes from the same factory instead of a hand-built
+  copy.
+- **The structure readouts now route the tool correctly.** The generator furnace,
+  CER block and DFC data-panel sign readouts leave the click to the Structure
+  Indicator when it is in hand instead of cancelling it with "a multimeter is
+  required"; the Multimeter still answers for energy. The ender-chest report is
+  handled at `LOWEST` because `EnderChestManager` cancels the interaction at
+  `NORMAL` for its custom GUI.
+
 ## [1.8.5-beta.50] - 2026-11-15
 
 ### Changed

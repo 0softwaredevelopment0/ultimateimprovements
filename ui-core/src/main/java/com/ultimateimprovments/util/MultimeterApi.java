@@ -16,8 +16,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * One click can pass through several independent readout owners: the generic
  * {@code MultimeterListener} (cables / batteries / junctions / particle
- * accelerator blocks / structure integrity) in UI-Other, the generator readout
- * in UI-Energy, the CER readout and the DFC control-panel sign in UI-Energy.
+ * accelerator blocks) in UI-Other, the generator readout in UI-Energy, the CER
+ * readout and the DFC control-panel sign in UI-Energy. Structures are the
+ * Structure Indicator's list ({@link StructureIndicatorApi}), not the
+ * multimeter's.
  * Each of them listens to its own {@code PlayerInteractEvent} and the event is
  * fired once per hand, so before this API a successful reactor readout was
  * followed by the generic "nothing here" message of a listener that did not
@@ -156,12 +158,16 @@ public final class MultimeterApi {
      * the parameters for this click; when none did, sends the standard
      * {@code [METER] Can't measure parameters of this block.} error to the
      * player instead.
+     * <p>
+     * A Structure Indicator report delivered for the same click also counts as
+     * "answered" — with one tool in each hand the second hand's generic
+     * fallback must not append its own error.
      *
      * @return true when a readout was already delivered (no error sent),
      *         false when the error was sent
      */
     public static boolean finishMeasurement(Player player) {
-        if (wasMeasured(player)) return true;
+        if (wasMeasured(player) || StructureIndicatorApi.wasMeasured(player)) return true;
         sendCantMeasure(player);
         return false;
     }

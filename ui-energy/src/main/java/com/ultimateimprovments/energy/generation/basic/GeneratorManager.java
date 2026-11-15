@@ -12,6 +12,7 @@ import com.ultimateimprovments.util.LocationUtil;
 import com.ultimateimprovments.util.MessageUtil;
 import com.ultimateimprovments.util.ConsoleLogger;
 import com.ultimateimprovments.util.MultimeterApi;
+import com.ultimateimprovments.util.StructureIndicatorApi;
 import com.ultimateimprovments.util.StructuresMessages;
 
 import java.util.UUID;
@@ -162,6 +163,10 @@ public class GeneratorManager implements Listener {
         if (loc == null || !isAssembled(loc)) return;  // plain furnaces untouched
 
         Player player = e.getPlayer();
+        // The Structure Indicator owns structure reports — leave the click to
+        // its listener instead of demanding (and cancelling with) a multimeter.
+        if (StructureIndicatorApi.holdsStructureIndicator(player)) return;
+
         // The measurement owns the click: no furnace GUI on SHIFT+RMB
         e.setCancelled(true);
 

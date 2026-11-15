@@ -40,6 +40,7 @@ public final class ItemsModules {
                 ConcreteBucketManager.init(main);
 
                 MultimeterCraftListener.init();
+                StructureIndicatorCraftListener.init();
                 PlasmaCannonCraftListener.init();
                 ShokerCraftListener.init();
                 BlazingSwordCraftListener.init();
@@ -63,6 +64,7 @@ public final class ItemsModules {
 
                 var pm = main.getServer().getPluginManager();
                 pm.registerEvents(new MultimeterCraftListener(), main);
+                pm.registerEvents(new StructureIndicatorCraftListener(), main);
                 pm.registerEvents(new PlasmaCannonCraftListener(), main);
                 pm.registerEvents(new ShokerCraftListener(), main);
                 pm.registerEvents(new BlazingSwordCraftListener(), main);

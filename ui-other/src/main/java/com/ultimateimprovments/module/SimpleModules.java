@@ -38,11 +38,10 @@ import com.ultimateimprovments.mechanics.features.blocks.EnderChestManager;
 import com.ultimateimprovments.mechanics.features.blocks.GlassBreakManager;
 import com.ultimateimprovments.mechanics.features.blocks.TerracotaSpeedManager;
 import com.ultimateimprovments.mechanics.features.creativeitem.CreativeItemValidator;
-import com.ultimateimprovments.mechanics.crafting.StructureIntegrityCraftListener;
 import com.ultimateimprovments.mechanics.features.integrity.ItemDurabilityUtil;
 import com.ultimateimprovments.mechanics.features.integrity.LowDurabilityWarningListener;
 import com.ultimateimprovments.mechanics.features.integrity.PiercingListener;
-import com.ultimateimprovments.mechanics.features.structure.StructureIntegrityListener;
+import com.ultimateimprovments.mechanics.features.structure.StructureIndicatorListener;
 import com.ultimateimprovments.mechanics.features.structure.StructureIntegrityManager;
 import com.ultimateimprovments.util.ConsoleLogger;
 
@@ -452,12 +451,9 @@ public final class SimpleModules {
                 // Initialize manager (starts ticker)
                 StructureIntegrityManager.init(main);
 
-                // Register craft listener
-                StructureIntegrityCraftListener.init();
-                main.getServer().getPluginManager().registerEvents(new StructureIntegrityCraftListener(), main);
-
-                // Register interaction listener
-                main.getServer().getPluginManager().registerEvents(new StructureIntegrityListener(), main);
+                // Register interaction listener — the Structure Indicator
+                // craft recipe lives in UI-Items together with the other tools.
+                main.getServer().getPluginManager().registerEvents(new StructureIndicatorListener(), main);
 
                 ConsoleLogger.info("[StructureIntegrityModule] ✔ Initialized.");
             }

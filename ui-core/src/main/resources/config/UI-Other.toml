@@ -1514,6 +1514,17 @@ prefix = "METER"
 # Default: Can't measure parameters of this block.
 cant_measure = "Не удалось измерить параметры этого блока."
 
+# Generic Structure Indicator (SHIFT+RMB) messages — shared by every addon
+# through StructureIndicatorApi in UI-Core. The global plugin prefix is
+# prepended by the code.
+[messages.structures.structure_indicator]
+# Chat tag word inside [<yellow>word<dark_gray>].
+# Default: STRUCT
+prefix = "STRUCT"
+# Shown when SHIFT+RMB with the indicator hits a block that is not a structure.
+# Default: Can't measure the structure of this block.
+cant_measure = "Не удалось измерить структуру этого блока."
+
 # names section.
 [messages.structures.names]
 # Default: <red>Реактор тёмного синтеза</red>
@@ -2033,6 +2044,17 @@ prefix = "METER"
 # Shown when SHIFT+RMB with the multimeter hits a block that no subsystem can read.
 # Default: Can't measure parameters of this block.
 cant_measure = "Can't measure parameters of this block."
+
+# Generic Structure Indicator (SHIFT+RMB) messages — shared by every addon
+# through StructureIndicatorApi in UI-Core. The global plugin prefix is
+# prepended by the code.
+[messages_en.structures.structure_indicator]
+# Chat tag word inside [<yellow>word<dark_gray>].
+# Default: STRUCT
+prefix = "STRUCT"
+# Shown when SHIFT+RMB with the indicator hits a block that is not a structure.
+# Default: Can't measure the structure of this block.
+cant_measure = "Can't measure the structure of this block."
 
 # names section.
 [messages_en.structures.names]

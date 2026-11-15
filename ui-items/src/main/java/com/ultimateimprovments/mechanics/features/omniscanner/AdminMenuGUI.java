@@ -449,20 +449,10 @@ public class AdminMenuGUI implements Listener {
         // 24. Dosimeter — radiation readout (clock base, same build as the recipe result)
         CUSTOM_ITEMS.add(com.ultimateimprovments.mechanics.crafting.DosimeterCraftListener.createDosimeter());
 
-        // 25. Structure Indicator — structural diagnostics (same PDC key the
-        // UI-Other listener checks; the key namespace is the core plugin name).
-        ItemStack structureIndicator = new ItemStack(Material.CALIBRATED_SCULK_SENSOR);
-        structureIndicator.editMeta(siMeta -> {
-            siMeta.displayName(MessageUtil.parse("<i:false><white>Structure Indicator *</white>"));
-            siMeta.lore(List.of(
-                    MessageUtil.parse("<i:false><gray>Shift+RMB on a structure to inspect</gray>"),
-                    MessageUtil.parse("<i:false><gray>its stress, degradation, and integrity.</gray>")
-            ));
-            siMeta.getPersistentDataContainer().set(
-                    new NamespacedKey(Main.getInstance(), "is_structure_integrity_indicator"),
-                    PersistentDataType.BYTE, (byte) 1);
-        });
-        CUSTOM_ITEMS.add(structureIndicator);
+        // 25. Structure Indicator — structural diagnostics (recovery compass
+        // base, built by the crafting listener so the PDC tag, the name and
+        // the lore can never drift from the recipe result).
+        CUSTOM_ITEMS.add(com.ultimateimprovments.mechanics.crafting.StructureIndicatorCraftListener.createItem());
 
         // 26. Portable Workbench — charges come from [portable_workbench] (64 by default)
         CUSTOM_ITEMS.add(com.ultimateimprovments.mechanics.crafting.PortableWorkbenchCraftListener.createItem());

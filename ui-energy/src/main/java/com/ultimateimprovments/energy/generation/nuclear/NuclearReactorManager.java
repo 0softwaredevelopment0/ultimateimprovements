@@ -820,7 +820,7 @@ public final class NuclearReactorManager {
     }
 
     // Also changed the red cross to "❌" because that's better.
-    private static String statusLabel(NuclearReactor reactor) {
+    public static String statusLabel(NuclearReactor reactor) {
         NuclearReactor.Status status = reactor.getStatus();
         if (status == null) return "?";
         return switch (status) {
