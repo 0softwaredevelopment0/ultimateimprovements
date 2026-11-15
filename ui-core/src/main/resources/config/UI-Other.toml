@@ -57,7 +57,7 @@ attribute = "minecraft:waypoint_receive_range"
 # Desired FINAL value (modifier type only): the plugin computes the modifier
 # amount itself as `target - current base value`, so a server-side default or a
 # value changed by another plugin cannot skew the result. Measured on the server
-# (Purpur 26.3 registry): waypoint_receive/transmit_range default 0 with a
+# (Leaf 26.3 registry): waypoint_receive/transmit_range default 0 with a
 # 60 000 000 maximum, below_name_distance 10, name_tag_distance 64,
 # sneaking_speed 0.3 (capped at 1.0), attack_speed 4, attack_damage 2 (players
 # get their own base from DefaultAttributes). The attribute's own min/max limit
