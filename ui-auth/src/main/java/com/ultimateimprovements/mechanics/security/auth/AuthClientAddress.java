@@ -25,9 +25,10 @@ public final class AuthClientAddress {
      *         provide a usable client address
      */
     public static String getClientIp(Player player) {
-        if (player == null || !player.isOnline()) return null;
+        if (player == null) return null;
 
         try {
+            if (!player.isOnline()) return null;
             PlayerGameConnection connection = player.getConnection();
             if (connection == null) return null;
             return normalize(connection.getClientAddress());
@@ -49,6 +50,14 @@ public final class AuthClientAddress {
 
         byte[] rawAddress = resolved.getAddress();
         if (rawAddress == null || (rawAddress.length != 4 && rawAddress.length != 16)) {
+            return null;
+        }
+        // The limited broadcast address is not a valid unicast client identity.
+        if (rawAddress.length == 4
+                && (rawAddress[0] & 0xff) == 255
+                && (rawAddress[1] & 0xff) == 255
+                && (rawAddress[2] & 0xff) == 255
+                && (rawAddress[3] & 0xff) == 255) {
             return null;
         }
 
