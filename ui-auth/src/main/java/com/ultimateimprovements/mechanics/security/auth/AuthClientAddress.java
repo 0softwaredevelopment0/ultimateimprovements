@@ -38,12 +38,21 @@ public final class AuthClientAddress {
     }
 
     static String normalize(InetSocketAddress address) {
+        return normalize(address, AuthConfig.isRejectLoopbackIps());
+    }
+
+    /**
+     * Normalizes the client IP and optionally rejects loopback addresses.
+     * Loopback rejection is configurable so direct localhost development works
+     * by default, while proxy deployments can opt into the stricter check.
+     */
+    static String normalize(InetSocketAddress address, boolean rejectLoopbackIps) {
         if (address == null || address.isUnresolved()) return null;
 
         InetAddress resolved = address.getAddress();
         if (resolved == null
                 || resolved.isAnyLocalAddress()
-                || resolved.isLoopbackAddress()
+                || (rejectLoopbackIps && resolved.isLoopbackAddress())
                 || resolved.isMulticastAddress()) {
             return null;
         }
