@@ -270,17 +270,19 @@ public class AuthDatabase {
     // =========================
     // UPDATE LAST IP
     // =========================
-    public static void updateLastIp(UUID uuid, String ip) {
+    public static boolean updateLastIp(UUID uuid, String ip) {
+        if (uuid == null || ip == null || ip.isBlank()) return false;
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement ps = con.prepareStatement(
                      "UPDATE auth SET ip_address = ? WHERE uuid = ?")) {
 
             ps.setString(1, ip);
             ps.setString(2, uuid.toString());
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
 
         } catch (Exception e) {
             ConsoleLogger.error("[Auth] Update IP failed: " + e.getMessage());
+            return false;
         }
     }
 
