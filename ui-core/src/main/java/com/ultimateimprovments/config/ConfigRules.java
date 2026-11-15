@@ -234,7 +234,7 @@ final class ConfigRules {
             // Meltdown and alerts
             integer("nuclear_reactor.audit_cells_per_second", 1, 4096, "Template cells re-read per second (lazy audit)"),
             integer("nuclear_reactor.meltdown_seconds", 1, 3600, "Detonation countdown in seconds"),
-            integer("nuclear_reactor.meltdown_core_check_seconds", 1, 3600, "Lava core re-read interval during a meltdown, in seconds"),
+            integer("nuclear_reactor.meltdown_core_check_ticks", 1, 72000, "Lava core re-read interval during a meltdown, in ticks"),
             integer("nuclear_reactor.explosion_power", 1, 500, "Charged creeper explosion radius"),
             integer("nuclear_reactor.alert_radius", 1, 512, "CER alert broadcast radius in blocks"),
 

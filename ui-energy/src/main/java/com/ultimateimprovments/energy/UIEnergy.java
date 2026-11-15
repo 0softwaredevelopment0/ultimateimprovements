@@ -4,6 +4,7 @@ import com.ultimateimprovments.core.Main;
 import com.ultimateimprovments.energy.consumption.light.LightManager;
 import com.ultimateimprovments.energy.generation.basic.GeneratorManager;
 import com.ultimateimprovments.energy.generation.basic.GeneratorTask;
+import com.ultimateimprovments.energy.generation.nuclear.NuclearMeltdownCoreTask;
 import com.ultimateimprovments.energy.generation.nuclear.NuclearReactorManager;
 import com.ultimateimprovments.energy.generation.nuclear.NuclearReactorPersistence;
 import com.ultimateimprovments.energy.generation.nuclear.NuclearReactorTask;
@@ -26,6 +27,7 @@ public class UIEnergy extends JavaPlugin {
     private BukkitTask generatorTask;
     private BukkitTask reactorTask;
     private BukkitTask nuclearReactorTask;
+    private BukkitTask nuclearMeltdownCoreTask;
     private BukkitTask balancerTask;
     private BukkitTask cableVisualTask;
     private BukkitTask persistenceTask;
@@ -82,6 +84,13 @@ public class UIEnergy extends JavaPlugin {
         NuclearReactorManager.init();
         nuclearReactorTask = new NuclearReactorTask().runTaskTimer(main, 20L, 20L);
 
+        // The lava-core lookup during a meltdown is independent of the 1s
+        // countdown: its period is configurable in real ticks (default 20).
+        long coreCheckTicks = Math.max(1L,
+                main.getConfig().getLong("nuclear_reactor.meltdown_core_check_ticks", 20L));
+        nuclearMeltdownCoreTask = new NuclearMeltdownCoreTask()
+                .runTaskTimer(main, coreCheckTicks, coreCheckTicks);
+
         ElectricFurnaceManager.init();
 
         // Batteries last: their registry rebuild creates the block nodes AND
@@ -119,6 +128,7 @@ public class UIEnergy extends JavaPlugin {
         if (generatorTask != null) { generatorTask.cancel(); generatorTask = null; }
         if (reactorTask != null) { reactorTask.cancel(); reactorTask = null; }
         if (nuclearReactorTask != null) { nuclearReactorTask.cancel(); nuclearReactorTask = null; }
+        if (nuclearMeltdownCoreTask != null) { nuclearMeltdownCoreTask.cancel(); nuclearMeltdownCoreTask = null; }
         if (balancerTask != null) { balancerTask.cancel(); balancerTask = null; }
         if (cableVisualTask != null) { cableVisualTask.cancel(); cableVisualTask = null; }
         if (persistenceTask != null) { persistenceTask.cancel(); persistenceTask = null; }

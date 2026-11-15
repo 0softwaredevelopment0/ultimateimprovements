@@ -592,6 +592,37 @@ public final class NuclearReactorManager {
     }
 
     /**
+     * Re-reads the melting-down reactor's center block and seals the meltdown
+     * when it is no longer lava:
+     * <ul>
+     *   <li>{@code REINFORCED_DEEPSLATE} — the proper fix, the reactor keeps
+     *       running ({@link #preventDetonation(NuclearReactor)});</li>
+     *   <li>anything else (air / a wrong block / a plugin change) — the blast
+     *       is cancelled but the reactor is dismantled
+     *       ({@link #abandonMeltdown(NuclearReactor)}).</li>
+     * </ul>
+     * Runs from the periodic core-check task
+     * ({@code nuclear_reactor.meltdown_core_check_ticks}) and from the
+     * countdown's final second, so a removed core can never be missed.
+     *
+     * @return {@code true} when the meltdown was sealed (the reactor is gone
+     *         or restored); {@code false} when the center is still lava
+     */
+    public static boolean verifyMeltdownCore(NuclearReactor reactor) {
+        if (reactor == null || !reactor.isMeltdown()) return false;
+
+        Material centerType = reactor.getCenterBlock().getType();
+        if (centerType == Material.LAVA) return false;
+
+        if (centerType == Material.REINFORCED_DEEPSLATE) {
+            preventDetonation(reactor);
+        } else {
+            abandonMeltdown(reactor);
+        }
+        return true;
+    }
+
+    /**
      * The player replaced the lava center with reinforced deepslate in time:
      * the detonation is cancelled, the reactor drops to its working
      * temperature and keeps running.

@@ -3,6 +3,19 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-beta.54] - 2026-11-15
+
+### Changed
+- **The CER meltdown core check is configured in real ticks:
+  `nuclear_reactor.meltdown_core_check_ticks` (default `20` = once per
+  second), replacing `meltdown_core_check_seconds`.** The check now runs in its
+  own small task (`NuclearMeltdownCoreTask`) scheduled with that exact period,
+  so values such as `10` or `30` are honored precisely instead of being
+  rounded to the 1-second countdown cadence. The countdown itself is unchanged,
+  and its final second is still checked so a removed core can never explode.
+  Validated in `ConfigRules` (`1..72000`) and documented in `UI-MBS.toml` /
+  `GUIDE.md`.
+
 ## [1.8.5-beta.53] - 2026-11-15
 
 ### Changed
