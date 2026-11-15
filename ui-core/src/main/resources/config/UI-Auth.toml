@@ -278,6 +278,8 @@ kick_timeout = "<red>⏱ Время входа истекло!</red>\n<gray>Вы
 kick_too_many_attempts = "<red>❌ Слишком много неверных попыток!</red>\n<gray>Вы ввели неверный пароль %attempts% раз.</gray>"
 # Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Авторизация временно недоступна.</red>\n<gray>База аккаунтов недоступна. Попробуйте позже или обратитесь к администратору.</gray>
 kick_storage_unavailable = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Авторизация временно недоступна.</red>\n<gray>База аккаунтов недоступна. Попробуйте позже или обратитесь к администратору.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Авторизация недоступна: сервер не смог определить ваш IP-адрес.</red>\n<gray>Подключение не передало корректный адрес клиента. Проверьте настройки forwarding на прокси и попробуйте снова.</gray>
+kick_invalid_client_ip = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Авторизация недоступна: сервер не смог определить ваш IP-адрес.</red>\n<gray>Подключение не передало корректный адрес клиента. Проверьте настройки forwarding на прокси и попробуйте снова.</gray>"
 # Default: <yellow>✦</yellow> UltimateImprovements\n\n%details%\n\n
 kick_duplicate_name = "<yellow>✦</yellow> UltimateImprovements\n\n%details%\n\n"
 
@@ -647,6 +649,8 @@ kick_timeout = "<red>⏱ Login timeout!</red>\n<gray>You did not log in within %
 kick_too_many_attempts = "<red>❌ Too many incorrect attempts!</red>\n<gray>You entered the wrong password %attempts% times.</gray>"
 # Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Authorization is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later or contact an administrator.</gray>
 kick_storage_unavailable = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Authorization is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later or contact an administrator.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Authentication is unavailable: the server could not determine your client IP address.</red>\n<gray>The connection did not provide a valid client address. Check proxy forwarding configuration and try again.</gray>
+kick_invalid_client_ip = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Authentication is unavailable: the server could not determine your client IP address.</red>\n<gray>The connection did not provide a valid client address. Check proxy forwarding configuration and try again.</gray>"
 # Display name (MiniMessage).
 # Default: <yellow>✦</yellow> UltimateImprovements\n\n%details%\n\n
 kick_duplicate_name = "<yellow>✦</yellow> UltimateImprovements\n\n%details%\n\n"
