@@ -1,0 +1,881 @@
+package com.ultimateimprovements.energy.generation.reactor;
+
+import com.ultimateimprovements.mechanics.environment.lightning.LightningManager;
+import com.ultimateimprovements.mechanics.environment.lightning.LightningStructure;
+import com.ultimateimprovements.mechanics.environment.magnet.MagnetManager;
+import com.ultimateimprovements.mechanics.environment.magnet.MagnetStructure;
+import com.ultimateimprovements.structure.StructureOccupancy;
+import com.ultimateimprovements.util.Materials;
+import com.ultimateimprovements.util.MessageUtil;
+import com.ultimateimprovements.util.MultimeterApi;
+import com.ultimateimprovements.util.StructureIndicatorApi;
+import com.ultimateimprovements.util.StructureTemplate;
+import com.ultimateimprovements.util.StructuresMessages;
+import com.ultimateimprovements.util.LocationUtil;
+import com.ultimateimprovements.energy.generation.basic.GeneratorManager;
+import com.ultimateimprovements.energy.generation.basic.GeneratorStructure;
+import com.ultimateimprovements.energy.generation.nuclear.NuclearReactor;
+import com.ultimateimprovements.energy.generation.nuclear.NuclearReactorManager;
+import com.ultimateimprovements.energy.storage.battery.BatteryManager;
+import com.ultimateimprovements.energy.consumption.light.LightManager;
+
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
+
+public class ReactorListener implements Listener {
+
+    // =========================
+    // TEMPLATE LOADING FLAG (prevents repeated attempts on load errors)
+    // =========================
+    private static boolean templatesLoaded = false;
+
+    // =========================
+    // REACTOR BLOCKS (for monitoring)
+    // =========================
+    private static final Material[] KEY_BLOCKS = {
+            Materials.WAXED_COPPER_BULB,
+            Materials.WAXED_COPPER_BLOCK,
+            Materials.WAXED_CUT_COPPER,
+            Materials.WAXED_CHISELED_COPPER,
+            Materials.WAXED_COPPER_GRATE,
+            Materials.WAXED_COPPER_BARS,
+            Material.BARREL,
+            Material.OAK_SIGN, Material.OAK_WALL_SIGN,
+            Material.DARK_OAK_SIGN, Material.DARK_OAK_WALL_SIGN,
+            Material.BIRCH_SIGN, Material.BIRCH_WALL_SIGN,
+            Material.SPRUCE_SIGN, Material.SPRUCE_WALL_SIGN,
+            Material.JUNGLE_SIGN, Material.JUNGLE_WALL_SIGN,
+            Material.ACACIA_SIGN, Material.ACACIA_WALL_SIGN,
+            Material.CHERRY_SIGN, Material.CHERRY_WALL_SIGN,
+            Material.MANGROVE_SIGN, Material.MANGROVE_WALL_SIGN,
+            Material.CRIMSON_SIGN, Material.CRIMSON_WALL_SIGN,
+            Material.WARPED_SIGN, Material.WARPED_WALL_SIGN,
+            Material.PALE_OAK_SIGN, Material.PALE_OAK_WALL_SIGN
+    };
+
+    // =========================
+    // ITEM FRAME INTERACT → AUTO-DETECT + ASSEMBLE
+    // =========================
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onItemFrameInteract(PlayerInteractEntityEvent e) {
+
+        Entity clicked = e.getRightClicked();
+
+        if (!(clicked instanceof ItemFrame frame)) {
+            return;
+        }
+
+        Player player = e.getPlayer();
+
+        // =========================
+        // SHIFT+right-click — auto-detect and assemble (no menu)
+        // =========================
+        if (player.isSneaking()) {
+            e.setCancelled(true);
+            autoDetectAndAssemble(player, frame);
+            return;
+        }
+
+        // =========================
+        // Normal right-click — show info
+        // =========================
+
+        // Check: part of a reactor (multi-reactor support)
+        ReactorManager clickedReactor = ReactorManager.getReactorForBlock(clicked.getLocation());
+        if (clickedReactor != null) {
+            player.sendMessage(MessageUtil.parse(msg("reactor_stats_click",
+                    "<dark_gray>[<red>D.F.C<dark_gray>] <gray>ID: <white>%id% <dark_gray>| <white>T=%temp% <dark_gray>| <white>P=%press% MPa <dark_gray>| <white>S=%spin% RPS <dark_gray>| <white>I=%shield%%")
+                    .replace("%id%", String.valueOf(clickedReactor.getReactorId()))
+                    .replace("%temp%", String.valueOf(clickedReactor.getCoreTemp()))
+                    .replace("%press%", String.format("%.3f", clickedReactor.getShieldPress()))
+                    .replace("%spin%", String.format("%.2f", clickedReactor.getCoreSpin()))
+                    .replace("%shield%", clickedReactor.getCoreShInt() + "%")));
+            return;
+        }
+
+        // Check: an active magnet?
+        if (MagnetStructure.isActive(clicked.getLocation())) {
+            player.sendMessage(MessageUtil.parse(msg("magnet_already_active",
+                    "<yellow>A magnet is already active at this place!")));
+            return;
+        }
+
+        // Check: an active lightning structure?
+        Location lightningCenter = LightningStructure.findCenter(clicked.getLocation());
+        if (lightningCenter != null && LightningManager.isActive(lightningCenter)) {
+            boolean enabled = LightningManager.isEnabled(lightningCenter);
+            String status = MessageUtil.legacy(enabled
+                    ? msg("lightning_status_on", "<green>✔ On")
+                    : msg("lightning_status_off", "<red>❌ Off"));
+            player.sendMessage(MessageUtil.parse(msg("lightning_status_click",
+                    "<dark_gray>[<yellow>⚡ Lightning<dark_gray>] <gray>Active <dark_gray>| <white>%coords% <dark_gray>[%status%<dark_gray>]")
+                    .replace("%coords%", coords(lightningCenter))
+                    .replace("%status%", status)));
+            player.sendMessage(MessageUtil.parse(msg("lightning_status_hint",
+                    "<dark_gray>┃ <gray>SHIFT+RMB on the frame — toggle on/off")));
+            return;
+        }
+
+        // The compact nuclear reactor is read with a multimeter on ANY of its
+        // blocks (see onNuclearMeterClick) — the trigger frame is consumed on
+        // assembly, so there is nothing frame-specific to show here.
+
+    }
+
+    // =========================
+    // CER — SHIFT+RMB WITH A MULTIMETER ON ANY REACTOR BLOCK
+    // =========================
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onNuclearMeterClick(PlayerInteractEvent e) {
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (e.getHand() != EquipmentSlot.HAND) return; // once per click
+        if (!e.getPlayer().isSneaking()) return;
+
+        Block block = e.getClickedBlock();
+        if (block == null) return;
+
+        NuclearReactor reactor = NuclearReactorManager.getByBlockLocation(block.getLocation());
+        if (reactor == null) return;
+
+        // The Structure Indicator reads the reactor's structure; its listener
+        // owns that click, so this energy readout must not cancel it.
+        if (StructureIndicatorApi.holdsStructureIndicator(e.getPlayer())) return;
+
+        // Only the hand that performed the click decides: a multimeter gives
+        // the readout, an empty hand asks for one, any other item (a lever, a
+        // block being placed, ...) keeps its vanilla interaction — the reactor
+        // must not swallow the click and demand a multimeter for it.
+        if (MultimeterApi.resolveClick(e.getPlayer()) == MultimeterApi.ClickAction.PASS) {
+            return;
+        }
+
+        // The measurement owns the click: no barrel GUI / block placement.
+        // sendReadout prints the "multimeter required" hint when the active
+        // hand is empty.
+        e.setCancelled(true);
+        NuclearReactorManager.sendReadout(e.getPlayer(), reactor);
+    }
+
+    // =========================
+    // BLOCK BREAK — MAGNET (dynamic recompute)
+    // =========================
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockBreak(BlockBreakEvent e) {
+
+        Block block = e.getBlock();
+        Location loc = LocationUtil.normalize(block.getLocation());
+        Player player = e.getPlayer();
+
+        // =========================
+        // 🧲 MAGNET: LODESTONE in an active cluster → recompute
+        // =========================
+        if (block.getType() == Material.LODESTONE && MagnetManager.isActive(loc)) {
+            MagnetManager.onBlockBroken(loc, player);
+            return;
+        }
+
+        // =========================
+        // ⚡ LIGHTNING: any block of an active structure → disassemble
+        // =========================
+        Location lightningCenter = LightningManager.getCenterForBlock(loc);
+        if (lightningCenter != null) {
+            LightningManager.disassemble(lightningCenter);
+            if (player != null) {
+                player.sendMessage(MessageUtil.parse(msg("lightning_broken",
+                        "<yellow>⚡ Lightning structure destroyed and deactivated! <dark_gray>[<gray>%coords%<dark_gray>]")
+                        .replace("%coords%", coords(lightningCenter))));
+            }
+            return;
+        }
+
+        // =========================
+        // ⚛ COMPACT NUCLEAR REACTOR: a template block of an active reactor.
+        // Breaking the redstone center detonates the reactor; breaking the
+        // last remaining template block dismantles it (failure); any other
+        // block flips the structure into the damaged state once.
+        // =========================
+        if (NuclearReactorManager.handleBlockBreak(loc)) {
+            return;
+        }
+
+        // =========================
+        // ⚛ REACTOR: a template cell inside a structure → damage report.
+        // Air cells and non-structure blocks (the interior, decorations around
+        // the reactor) are ignored — the reactor reacts to its OWN blocks only.
+        // Levers are never tracked (control devices, not structure).
+        // (the reactor stays up in uncontrolled mode — no teardown here)
+        // =========================
+        ReactorManager reactor = ReactorManager.getReactorForBlock(loc);
+        if (reactor == null) return;
+
+        Location reactorLoc = reactor.getReactorLocation();
+        if (reactorLoc == null) return;
+
+        // Anchor-relative cell of the broken block
+        int dx = loc.getBlockX() - reactorLoc.getBlockX();
+        int dy = loc.getBlockY() - reactorLoc.getBlockY();
+        int dz = loc.getBlockZ() - reactorLoc.getBlockZ();
+
+        ReactorDamageTracker.Category cat = ReactorDamageTracker.categoryOf(dx, dy, dz);
+        if (cat == null) {
+            // Not a template cell (air space, lever, decoration) — not our block
+            return;
+        }
+        reactor.addDamage(dx, dy, dz, cat);
+    }
+
+    // =========================
+    // BLOCK PLACE — MAGNET (dynamic expansion)
+    // =========================
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onMagnetBlockPlace(BlockPlaceEvent e) {
+        if (e.getBlock().getType() == Material.LODESTONE) {
+            MagnetManager.onBlockPlaced(
+                    LocationUtil.normalize(e.getBlock().getLocation())
+            );
+        }
+    }
+
+    // =========================
+    // BLOCK PLACE
+    // =========================
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent e) {
+
+        Block block = e.getBlock();
+        Location loc = LocationUtil.normalize(block.getLocation());
+
+        // Compact nuclear reactor: the reinforced deepslate placed back into a
+        // melting-down center prevents the detonation; any placement may also
+        // complete the repair of a damaged structure.
+        NuclearReactorManager.handleBlockPlace(block);
+
+        // Block inside an ACTIVE reactor → repair report for that reactor.
+        // Only template cells count: placing blocks into the air cells (or any
+        // non-structure position) inside the bounds is NOT a repair and must
+        // not spam reports. Levers are ignored as well.
+        ReactorManager reactor = ReactorManager.getReactorForBlock(loc);
+        if (reactor != null) {
+            Location reactorLoc = reactor.getReactorLocation();
+            int dx = loc.getBlockX() - reactorLoc.getBlockX();
+            int dy = loc.getBlockY() - reactorLoc.getBlockY();
+            int dz = loc.getBlockZ() - reactorLoc.getBlockZ();
+
+            ReactorDamageTracker.Category cat = ReactorDamageTracker.categoryOf(dx, dy, dz);
+            if (cat == null) {
+                return; // not a tracked structure cell — ignore silently
+            }
+            if (cat == ReactorDamageTracker.Category.GLASS) {
+                // Case glass repairs are gated (player path only): heat wins
+                // the message priority, then the off-hand iron ingot. A
+                // failed pane is placed but NOT counted — after 1 second it
+                // pops off naturally unless the conditions clear in the
+                // grace window (see ReactorCase.onPaneRepairFailed).
+                ReactorCase kase = reactor.getCase();
+                Player repairer = e.getPlayer();
+                if (kase.isRepairBlocked()) {
+                    kase.onPaneRepairFailed(repairer, reactorLoc, dx, dy, dz);
+                    repairer.sendMessage(MessageUtil.parse(dfcPrefix()
+                            + msg("case_repair_too_hot",
+                                    "<red>⚠ <white>Case too hot to repair (above %max% C*) — the pane will not hold!")
+                                    .replace("%max%", String.valueOf(ReactorConfig.getInstance().getCaseRepairMaxTemp()))));
+                    return;
+                }
+                if (ReactorCase.repairIronCost() > 0 && !ReactorCase.hasRepairIngot(repairer)) {
+                    kase.onPaneRepairFailed(repairer, reactorLoc, dx, dy, dz);
+                    repairer.sendMessage(MessageUtil.parse(dfcPrefix()
+                            + msg("case_repair_no_iron",
+                                    "<red>⚠ <white>Repair requires an iron ingot in the off-hand (×%cost%) — the pane will not hold!")
+                                    .replace("%cost%", String.valueOf(ReactorCase.repairIronCost()))));
+                    return;
+                }
+                if (ReactorCase.repairIronCost() > 0) ReactorCase.consumeRepairIngot(repairer);
+                reactor.addRepair(dx, dy, dz, cat);
+                return;
+            }
+            reactor.addRepair(dx, dy, dz, cat);
+            return;
+        }
+
+        // No reactor here: a reactor-block placement may re-validate any
+        // assembled reactor (multi-reactor support) — the rotating audit
+        // would catch it too, this just updates the status immediately
+        if (isReactorBlock(block.getType())) {
+            for (ReactorManager r : ReactorManager.getReactors()) {
+                if (r.isValid()) {
+                    r.validateStructure();
+                }
+            }
+        }
+    }
+
+
+
+    // =========================
+    // AUTO-DETECT STRUCTURE TYPE & ASSEMBLE
+    // Scans a 5-block radius from the frame and compares against NBT templates.
+    // =========================
+    private void autoDetectAndAssemble(Player player, ItemFrame frame) {
+
+        Location frameLoc = LocationUtil.normalize(frame.getLocation());
+        if (frameLoc == null) {
+            player.sendMessage(MessageUtil.parse(msg("frame_error",
+                    "<dark_red>❌ <red>Failed to resolve the frame position!")));
+            return;
+        }
+
+        // =========================
+        // 1. SCANNING BY NBT TEMPLATES
+        // Load the templates on the first call (once)
+        // =========================
+        if (!templatesLoaded) {
+            StructureTemplate.initAll();
+            templatesLoaded = true;
+        }
+        // Check: were there template loading errors
+        StructureTemplate lightningTmpl = StructureTemplate.get("lightning");
+        StructureTemplate reactorTmpl = StructureTemplate.get("darkfusionreactor");
+        StructureTemplate nuclearTmpl = StructureTemplate.get("nuclearreactor");
+
+        String lightningErr = StructureTemplate.getTemplateError("lightning");
+        String reactorErr = StructureTemplate.getTemplateError("darkfusionreactor");
+        String nuclearErr = StructureTemplate.getTemplateError("nuclearreactor");
+
+        if (lightningErr != null || reactorErr != null || nuclearErr != null) {
+            player.sendMessage(MessageUtil.parse(msg("template_errors_header",
+                    "<dark_red>⚠ <red>Failed to load the structure NBT templates:")));
+            if (lightningErr != null)
+                player.sendMessage(MessageUtil.parse(msg("template_error_line",
+                                "  <dark_gray>• <white>%structure%<dark_gray>: <red>%error%")
+                        .replace("%structure%", StructuresMessages.structureName("lightning"))
+                        .replace("%error%", lightningErr)));
+            if (reactorErr != null)
+                player.sendMessage(MessageUtil.parse(msg("template_error_line",
+                                "  <dark_gray>• <white>%structure%<dark_gray>: <red>%error%")
+                        .replace("%structure%", StructuresMessages.structureName("darkfusionreactor"))
+                        .replace("%error%", reactorErr)));
+            if (nuclearErr != null)
+                player.sendMessage(MessageUtil.parse(msg("template_error_line",
+                                "  <dark_gray>• <white>%structure%<dark_gray>: <red>%error%")
+                        .replace("%structure%", StructuresMessages.structureName("nuclearreactor"))
+                        .replace("%error%", nuclearErr)));
+            player.sendMessage(MessageUtil.parse(msg("template_errors_hint",
+                    "<gray>Check the server console for details.")));
+        }
+
+        // The block the clicked frame is attached to. Only the structure that
+        // OWNS this block is the one the player interacts with — a build standing
+        // nearby never owns it, so its matching volume must not hijack the click.
+        Location attachedLoc = LocationUtil.normalize(
+                frame.getLocation().getBlock().getRelative(
+                        frame.getFacing().getOppositeFace()
+                ).getLocation());
+
+        // =========================
+        // 1a. Lightning template
+        // =========================
+        if (lightningTmpl != null) {
+            Location center = resolveAssemblyCenter(lightningTmpl, frameLoc, attachedLoc, 5);
+            if (center != null) {
+                if (LightningManager.isActive(center)) {
+                    boolean enabled = LightningManager.isEnabled(center);
+                    LightningManager.setEnabled(center, !enabled);
+                    player.sendMessage(MessageUtil.parse(msg(enabled
+                            ? "lightning_toggled_off" : "lightning_toggled_on",
+                            enabled ? "<red>❌ <white>Lightning structure turned off!"
+                                    : "<green>✔ <white>Lightning structure turned on!")));
+                    return;
+                }
+                List<StructureOccupancy.Conflict> conflicts =
+                        StructureOccupancy.conflictsAt(lightningTmpl, center);
+                if (!conflicts.isEmpty()) {
+                    denyAssembly(player, lightningTmpl, center, conflicts);
+                    return;
+                }
+                player.sendMessage(MessageUtil.parse(msg("lightning_detected",
+                        "<dark_gray>[<yellow>⚡ Lightning<dark_gray>] <gray>Lightning structure detected — assembling...")));
+                LightningManager.assemble(center, frame, player);
+                return;
+            }
+        }
+
+        // =========================
+        // 1b. Reactor template
+        // =========================
+        if (reactorTmpl != null) {
+            Location center = resolveAssemblyCenter(reactorTmpl, frameLoc, attachedLoc, 5);
+            if (center != null) {
+                // Multi-reactor: only a structure that would OCCUPY THIS PLACE is
+                // a duplicate — a build standing next to an existing reactor has
+                // its own free volume and assembles its own reactor.
+                List<StructureOccupancy.Conflict> conflicts =
+                        StructureOccupancy.conflictsAt(reactorTmpl, center);
+                if (!conflicts.isEmpty()) {
+                    denyAssembly(player, reactorTmpl, center, conflicts);
+                    return;
+                }
+                ReactorManager.setPendingAssembly(player, center, frame, "dark_synthesis");
+                player.sendMessage(MessageUtil.parse(msg("reactor_detected",
+                        "<dark_gray>[<red>Reactor<dark_gray>] <gray>Reactor detected — assembling...")));
+                ReactorCommand.assembleDarkSynthesis(player);
+                return;
+            }
+        }
+
+        // =========================
+        // 1c. Compact nuclear reactor template
+        // =========================
+        if (nuclearTmpl != null) {
+            Location center = resolveAssemblyCenter(nuclearTmpl, frameLoc, attachedLoc, 5);
+            if (center != null) {
+                List<StructureOccupancy.Conflict> conflicts =
+                        StructureOccupancy.conflictsAt(nuclearTmpl, center);
+                if (!conflicts.isEmpty()) {
+                    denyAssembly(player, nuclearTmpl, center, conflicts);
+                    return;
+                }
+                player.sendMessage(MessageUtil.parse(msg("nuclear_reactor.detected",
+                        "<dark_gray>[<yellow>CER<dark_gray>] <gray>Structure detected — assembling...")));
+                NuclearReactor assembled = NuclearReactorManager.assemble(center, player);
+                if (assembled != null) {
+                    NuclearReactorManager.dropTriggerFrame(frame);
+                }
+                return;
+            }
+        }
+
+        // =========================
+        // 2. FULL STRUCTURE CHECK vs ADAPTIVE SINGLE-BLOCK STRUCTURES
+        // The adaptive trigger blocks are ordinary cells of the NBT templates
+        // too: the DFC is built from 12 waxed copper bulbs and 9 waxed copper
+        // grates, and its roof control bulbs sit right next to the chiseled
+        // copper junctions. Without this step a frame hung on a DFC control
+        // bulb assembled (or tried to assemble) an electric lamp, and the
+        // player never saw the real fix list of the reactor: the frame looked
+        // like a lamp trigger even though the structure around it was almost
+        // complete. So the full template check runs BEFORE any adaptive
+        // branch: the candidate must OWN the clicked block and already have at
+        // least CLAIM_MIN_SOLID_PERCENT of its solid body in place, otherwise
+        // the adaptive structure interpretation stays in charge.
+        // =========================
+        Material attachedType = attachedLoc != null ? attachedLoc.getBlock().getType() : null;
+        Location generatorLoc = LocationUtil.normalize(
+                frame.getLocation().clone().add(0, -1, 0));
+
+        boolean adaptiveTrigger = attachedType == Material.LODESTONE
+                || attachedType == Materials.WAXED_COPPER_GRATE
+                || attachedType == Materials.WAXED_COPPER_BULB
+                || (generatorLoc != null
+                    && generatorLoc.getBlock().getType() == Materials.BLAST_FURNACE);
+        if (adaptiveTrigger) {
+            StructureTemplate.BestCandidate owning =
+                    StructureTemplate.findOwningCandidate(frameLoc, 5, attachedLoc);
+            if (StructureTemplate.claimsFrame(owning, attachedLoc)) {
+                reportClosestStructure(player, owning);
+                return;
+            }
+        }
+
+        // =========================
+        // 3. CHECK: MAGNET (LODESTONE — not NBT, but multi-block)
+        // =========================
+        if (attachedLoc != null && attachedLoc.getBlock().getType() == Material.LODESTONE) {
+            if (MagnetManager.isActive(attachedLoc)) {
+                player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX + msg("magnet_already_active",
+                        "<yellow>A magnet is already active at this place!")));
+                return;
+            }
+            ReactorManager.setPendingAssembly(player, attachedLoc, frame, "magnet");
+            player.sendMessage(MessageUtil.parse(msg("magnet_detected",
+                    "<dark_gray>[<aqua>Magnet<dark_gray>] <gray>Magnet detected — assembling...")));
+            ReactorCommand.assembleMagnet(player);
+            return;
+        }
+
+        // =========================
+        // 4. CHECK: BATTERY (WAXED_COPPER_GRATE + frame)
+        // =========================
+        if (attachedLoc != null && attachedLoc.getBlock().getType() == Materials.WAXED_COPPER_GRATE) {
+            if (BatteryManager.isActive(attachedLoc)) {
+                player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX + msg("battery_already_active",
+                        "<yellow>A battery is already assembled at this place!")));
+                return;
+            }
+            BatteryManager.assemble(attachedLoc, player);
+            return;
+        }
+
+        // =========================
+        // 5. CHECK: LIGHT MULTIBLOCK (waxed copper bulb + frame)
+        // The lamp is an adaptive structure: waxed copper bulbs plus waxed
+        // chiseled copper junctions (the energy ports of the structure). A
+        // frame on a bulb assembles the whole connected component; junctions
+        // are deliberately NOT a trigger, so a decorative frame on a cable
+        // stays harmless.
+        // =========================
+        if (attachedLoc != null && attachedLoc.getBlock().getType() == Materials.WAXED_COPPER_BULB) {
+            if (LightManager.isActive(attachedLoc)) {
+                player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX + msg("lamp_already_active",
+                        "<yellow>A lamp is already assembled at this place!")));
+                return;
+            }
+            LightManager.assemble(attachedLoc, player, frame);
+            return;
+        }
+
+        // =========================
+        // 6. CHECK: GENERATOR (BLAST_FURNACE + frame on top)
+        // =========================
+        // The block under the frame (resolved above, for the adaptive check)
+        if (generatorLoc != null
+                && generatorLoc.getBlock().getType() == Materials.BLAST_FURNACE
+                && GeneratorStructure.isValid(generatorLoc)) {
+            // Check for a cable nearby
+            if (GeneratorManager.hasNearbyCable(generatorLoc)) {
+                if (GeneratorManager.isAssembled(generatorLoc)) {
+                    // Already assembled — silence. The full data readout moved
+                    // to the multimeter interaction (SHIFT+RMB on the furnace
+                    // itself, see GeneratorManager) — the frame click must not
+                    // spam "already assembled" on every sneaky pass.
+                    return;
+                }
+                GeneratorManager.assembleFromFrame(player, generatorLoc, frame);
+                return;
+            } else {
+                player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX + msg("generator_no_cable",
+                        "<dark_red>❌ <red>No cable near the electric furnace!")));
+                return;
+            }
+        }
+
+        // =========================
+        // 7. NOTHING RECOGNIZED — show the closest structure and how to fix it
+        // =========================
+        reportClosestStructure(player, StructureTemplate.findBestCandidate(frameLoc, 5));
+    }
+
+    /**
+     * Prints the full structure diagnostics for a candidate: the "closest
+     * structure" line with its match percentage and the concrete
+     * place / break / replace fixes (forbidden blocks keep their dedicated
+     * formatting). Used both for a frame that is not recognized as any
+     * structure at all and for a frame attached to a partially built NBT
+     * structure whose adaptive trigger block would otherwise hijack the click.
+     */
+    private static void reportClosestStructure(Player player, StructureTemplate.BestCandidate best) {
+
+        player.sendMessage("");
+        player.sendMessage(MessageUtil.parse(msg("not_recognized",
+                "<red>❌ Error: Structure not recognized!")));
+
+        if (best == null) {
+            player.sendMessage(MessageUtil.parse(msg("not_loaded",
+                    "<gray>Structure NBT templates are not loaded — check the server console.")));
+            return;
+        }
+
+        player.sendMessage(MessageUtil.parse(msg("closest_match",
+                        "<gray>Closest match: <yellow>%name% <gray>— <yellow>%percent%%<gray> match")
+                .replace("%name%", best.template().getDisplayName())
+                .replace("%percent%", String.valueOf(best.result().percent()))));
+
+        // Regular mismatches + forbidden blocks in one hint list (forbidden
+        // entries keep their distinct "forbidden" formatting)
+        java.util.List<StructureTemplate.Fix> allFixes =
+                new java.util.ArrayList<>(best.result().fixes());
+        allFixes.addAll(best.result().forbidden());
+
+        if (allFixes.isEmpty()) {
+            player.sendMessage(MessageUtil.parse(msg("no_fixes_needed",
+                    "<gray>No critical mismatches found — check the frame position.")));
+            return;
+        }
+
+        int limit = Math.min(allFixes.size(), 15);
+        player.sendMessage(MessageUtil.parse(msg("fixes_header",
+                        "<gray>To assemble you need (%count% pcs.):")
+                .replace("%count%", String.valueOf(allFixes.size()))));
+        for (StructureTemplate.Fix fix : allFixes.subList(0, limit)) {
+            String text = best.result().forbidden().contains(fix)
+                    ? StructureTemplate.formatFixForbidden(fix, best.result().center())
+                    : StructureTemplate.formatFix(fix, best.result().center());
+            player.sendMessage(MessageUtil.parse("<dark_gray> • <gray>" + text));
+        }
+        if (allFixes.size() > limit) {
+            player.sendMessage(MessageUtil.parse(msg("fixes_more",
+                            "<dark_gray> • <gray>...and %count% more fixes")
+                    .replace("%count%", String.valueOf(allFixes.size() - limit))));
+        }
+    }
+
+    // =========================
+    // ASSEMBLY CENTER / REFUSAL HELPERS
+    // =========================
+    /**
+     * Resolves the template center the clicked frame belongs to.
+     * <ol>
+     *   <li><b>First</b> an exact match whose VOLUME (all 3 coordinates) does not
+     *       overlap any assembled structure is returned. A build standing next
+     *       to an existing one — even with no gap — therefore gets assembled at
+     *       its OWN position; the neighbouring structure's matching volume can
+     *       no longer be mistaken for it.</li>
+     *   <li><b>Only when every match is already occupied</b> the match that
+     *       actually OWNS the block the frame is attached to is returned (the
+     *       structure the player is interacting with) — that is the genuine
+     *       "already assembled here" / lightning-toggle case.</li>
+     * </ol>
+     *
+     * @return the center to assemble / report on, or {@code null} when this
+     *         template does not match the clicked frame at all
+     */
+    private static Location resolveAssemblyCenter(StructureTemplate template, Location frameLoc,
+                                                  Location attachedLoc, int radius) {
+        Location free = template.findMatch(frameLoc, radius,
+                center -> StructureOccupancy.isFree(template, center));
+        if (free != null) return free;
+        if (attachedLoc == null) return null;
+        return template.findMatch(frameLoc, radius,
+                center -> template.isSolidCellAt(center, attachedLoc));
+    }
+
+    /**
+     * Refuses the assembly because the matched position already belongs to an
+     * assembled structure. The message always carries the global UI prefix and
+     * the LOCALIZED structure display name (config {@code structures.names.*}),
+     * never a hardcoded structure word.
+     */
+    private static void denyAssembly(Player player, StructureTemplate template, Location center,
+                                     List<StructureOccupancy.Conflict> conflicts) {
+        StructureOccupancy.Conflict samePlace = null;
+        for (StructureOccupancy.Conflict conflict : conflicts) {
+            if (conflict.at(center)) {
+                samePlace = conflict;
+                break;
+            }
+        }
+        if (samePlace != null) {
+            player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX + msg("structure_already_assembled",
+                            "<yellow>Structure <white>%structure%</white> <yellow>is already assembled at this place! <dark_gray>(%coords%)")
+                    .replace("%structure%", samePlace.displayName())
+                    .replace("%coords%", coords(samePlace.anchor()))));
+            return;
+        }
+        StructureOccupancy.Conflict existing = conflicts.get(0);
+        player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX + msg("structure_overlap",
+                        "<dark_red>❌ <red>Cannot assemble <white>%structure%</white><red> here: <white>%existing%</white> <red>already occupies this place! <dark_gray>(%coords%)")
+                .replace("%structure%", template.getDisplayName())
+                .replace("%existing%", existing.displayName())
+                .replace("%coords%", coords(existing.anchor()))));
+    }
+
+    // =========================
+    // LOCALIZED MESSAGE + COORDS HELPERS
+    // =========================
+    /** Localized {@code structures.*} message with a hardcoded fallback. */
+    private static String msg(String key, String def) {
+        return StructuresMessages.get(key, def);
+    }
+
+    /** "x y z" string of a location (for %coords% placeholders). */
+    private static String coords(Location loc) {
+        return loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ();
+    }
+
+    // =========================
+    // IS REACTOR BLOCK
+    // =========================
+    private boolean isReactorBlock(Material material) {
+
+        for (Material m : KEY_BLOCKS) {
+            if (m == material) return true;
+        }
+
+        return false;
+    }
+
+    // =========================
+    // IS WITHIN STRUCTURE
+    // =========================
+    private boolean isWithinStructure(Location reactorLoc, Location checkLoc) {
+
+        if (!reactorLoc.getWorld().equals(checkLoc.getWorld())) {
+            return false;
+        }
+
+        int dx = Math.abs(reactorLoc.getBlockX() - checkLoc.getBlockX());
+        int dy = Math.abs(reactorLoc.getBlockY() - checkLoc.getBlockY());
+        int dz = Math.abs(reactorLoc.getBlockZ() - checkLoc.getBlockZ());
+
+        // DFC is 10×11×9: X −5..4, Y −9..0, Z −4..4 relative to the anchor
+        // (the frame cell above the central top bulb)
+        return dx <= 5 && dy <= 9 && dz <= 4;
+    }
+
+    // =========================
+    // SIGN CLICK → STATS (multimeter required)
+    // =========================
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onSignClick(PlayerInteractEvent e) {
+
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (e.getHand() != EquipmentSlot.HAND) return; // once per click
+
+        Block block = e.getClickedBlock();
+        if (block == null) return;
+
+        Material type = block.getType();
+        if (!isAnyWallSign(type)) return;
+
+        Player player = e.getPlayer();
+
+        // The data panel belongs to the Multimeter. With the Structure
+        // Indicator in hand the click is left to StructureIndicatorListener,
+        // which reports the reactor's structure instead (and cancels the
+        // event itself, so the sign editor never opens).
+        if (StructureIndicatorApi.holdsStructureIndicator(player)) return;
+
+        // The multimeter is a SHIFT+RMB tool: a plain right-click keeps the
+        // vanilla sign editor.
+        if (!player.isSneaking()) return;
+
+        // Only the registered control-panel DATA signs demand the multimeter
+        // (registered at assembly, cleared at disassembly). Lamp label signs
+        // and any other signs of the structure keep their normal behavior —
+        // no intercept, no multimeter demand.
+        Location signLoc = block.getLocation();
+        if (!ReactorManager.isPanelSign(signLoc)) return;
+
+        // Multi-reactor: find the reactor whose structure contains this sign
+        ReactorManager reactor = ReactorManager.getReactorForBlock(signLoc);
+        if (reactor == null || !reactor.isValid()) return;
+        Location reactorLoc = reactor.getReactorLocation();
+        if (reactorLoc == null) return;
+
+        // Only the hand that performed the click decides what happens: a
+        // multimeter reads the panel, an empty hand asks for one, any other
+        // item keeps its normal sign interaction (no swallowed click).
+        MultimeterApi.ClickAction action = MultimeterApi.resolveClick(player);
+        if (action == MultimeterApi.ClickAction.PASS) return;
+
+        // Prevent sign editor from opening
+        e.setCancelled(true);
+
+        if (action == MultimeterApi.ClickAction.REQUIRE_MULTIMETER) {
+            player.sendMessage(MessageUtil.parse(dfcPrefix() + msg("sign_multimeter_required",
+                    "<red>A multimeter is required to read the data!")));
+            return;
+        }
+
+        // Sensors are down: the meter receives no data at all
+        if (reactor.isSensorsDead()) {
+            player.sendMessage(MessageUtil.parse(dfcPrefix() + msg("sensor_no_signal",
+                    "<red>Cannot receive any data from sensors: <gray>No signal")));
+            return;
+        }
+
+        // Open reactor stats
+        ReactorStatsDisplay.sendStats(player);
+
+        // Tell the shared API that this click got its parameters, so the
+        // generic MultimeterListener does not append its "can't measure" error.
+        MultimeterApi.markMeasured(player);
+    }
+
+    /** Same [UI][DFC] prefix the reactor broadcasts use. */
+    private static String dfcPrefix() {
+        return MessageUtil.PREFIX + "<dark_gray>[<yellow>DFC<dark_gray>] ";
+    }
+
+    // =========================
+    // GLASS PLACED INSIDE THE STRUCTURE → CASE REPAIR PROGRESS
+    // The player repairs the case pane by pane: every placed pane raises the
+    // case integrity by one point (the integrity mirrors the live glass
+    // count); the last pane restores the case fully.
+    // =========================
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onGlassPlace(org.bukkit.event.block.BlockPlaceEvent e) {
+        if (!e.getBlockPlaced().getType().isSolid() || !e.getBlockPlaced().getType().name().endsWith("GLASS")) {
+            return;
+        }
+        ReactorManager reactor = ReactorManager.getReactorForBlock(e.getBlockPlaced().getLocation());
+        if (reactor == null || !reactor.isValid()) return;
+
+        // Failing pane (too hot / no iron): not a repair yet — the gate's
+        // verdict persists the progress if the grace window is won
+        Location reactorLoc = reactor.getReactorLocation();
+        if (reactorLoc != null) {
+            int dx = e.getBlockPlaced().getX() - reactorLoc.getBlockX();
+            int dy = e.getBlockPlaced().getY() - reactorLoc.getBlockY();
+            int dz = e.getBlockPlaced().getZ() - reactorLoc.getBlockZ();
+            if (ReactorDamageTracker.isCellIgnored(reactorLoc, dx, dy, dz)) return;
+        }
+
+        // Persist the pane-by-pane repair progress
+        reactor.getCase().onGlassPlaced();
+    }
+
+    // =========================
+    // CRITICAL PANE FIX — right-click a pane running its maintenance window
+    // with an iron ingot to save it (1 ingot, the pane does not snap)
+    // =========================
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onCritPaneFix(PlayerInteractEvent e) {
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (e.getHand() != EquipmentSlot.HAND) return;
+
+        Block block = e.getClickedBlock();
+        if (block == null || block.getType() != Material.GLASS) return;
+
+        Player player = e.getPlayer();
+        ItemStack hand = player.getInventory().getItemInMainHand();
+        if (hand == null || hand.getType() != Material.IRON_INGOT) return;
+
+        ReactorManager reactor = ReactorManager.getReactorForBlock(block.getLocation());
+        if (reactor == null || !reactor.isValid()) return;
+        Location reactorLoc = reactor.getReactorLocation();
+        if (reactorLoc == null) return;
+
+        int dx = block.getX() - reactorLoc.getBlockX();
+        int dy = block.getY() - reactorLoc.getBlockY();
+        int dz = block.getZ() - reactorLoc.getBlockZ();
+        if (ReactorDamageTracker.categoryOf(dx, dy, dz) != ReactorDamageTracker.Category.GLASS) return;
+
+        // Saved: consume the click (no block place/break side effects)
+        if (reactor.getCase().tryFixCriticalPane(player, reactorLoc, dx, dy, dz)) {
+            e.setCancelled(true);
+        }
+    }
+
+    // =========================
+    // IS ANY WALL SIGN
+    // =========================
+    private boolean isAnyWallSign(Material mat) {
+        return mat == Material.OAK_WALL_SIGN
+            || mat == Material.DARK_OAK_WALL_SIGN
+            || mat == Material.BIRCH_WALL_SIGN
+            || mat == Material.SPRUCE_WALL_SIGN
+            || mat == Material.JUNGLE_WALL_SIGN
+            || mat == Material.ACACIA_WALL_SIGN
+            || mat == Material.CHERRY_WALL_SIGN
+            || mat == Material.MANGROVE_WALL_SIGN
+            || mat == Material.CRIMSON_WALL_SIGN
+            || mat == Material.WARPED_WALL_SIGN
+            || mat == Material.PALE_OAK_WALL_SIGN;
+    }
+}

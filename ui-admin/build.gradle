@@ -29,7 +29,7 @@ tasks {
         archiveVersion.set(project.version.toString())
         configurations = [project.configurations.runtimeClasspath]
         dependencies {
-            exclude(dependency('com.ultimateimprovments:.*:.*'))
+            exclude(dependency('com.ultimateimprovements:.*:.*'))
         }
         exclude 'config.yml'
     }

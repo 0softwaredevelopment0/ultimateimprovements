@@ -1,4 +1,4 @@
-# UltimateImprovments — UI-Core configuration.
+# UltimateImprovements — UI-Core configuration.
 # This single file holds the addon's settings AND its messages (RU + EN).
 # Language: the global switch is messages.lang in UI-Core.toml ("en" or "ru").
 # Every value can be edited; the file is re-read by /ui reload.
@@ -65,7 +65,7 @@ interval_ticks = 2000
 # Default: true
 notify_console = true
 
-# One-shot "UltimateImprovments loaded successfully!" chat alert: after a
+# One-shot "UltimateImprovements loaded successfully!" chat alert: after a
 # server start, every alerts holder (ui.alerts / OP) receives it ONCE per
 # server session — the first time they are present after startup (already
 # online at enable, or on their first join). Later joins stay silent;
@@ -180,8 +180,8 @@ no_permission_install = "<red>❌ У вас нет прав для устано�
 checking = "<yellow>⟳</yellow> <gray>Проверка обновлений на GitHub...</gray>"
 # Default: <yellow>⟳</yellow> <gray>Загрузка обновления с GitHub...</gray>
 downloading = "<yellow>⟳</yellow> <gray>Загрузка обновления с GitHub...</gray>"
-# Default: <gold>=== <white>UltimateImprovments — Проверка обновлений</white> ===</gold>
-header = "<gold>=== <white>UltimateImprovments — Проверка обновлений</white> ===</gold>"
+# Default: <gold>=== <white>UltimateImprovements — Проверка обновлений</white> ===</gold>
+header = "<gold>=== <white>UltimateImprovements — Проверка обновлений</white> ===</gold>"
 # Default: <gray>Версия плагина:</gray> <white>%version%</white>
 plugin_version = "<gray>Версия плагина:</gray> <white>%version%</white>"
 # Default: <gray>Последний коммит:</gray> <white>%sha%</white>
@@ -267,13 +267,13 @@ check_error = "<red>❌ Ошибка проверки обновлений!</red
 # Default: <red>❌ Только игроки могут использовать эту команду!</red>
 player_only = "<red>❌ Только игроки могут использовать эту команду!</red>"
 # Permission node.
-# Default: <red>❌ У вас нет прав для использования команд UltimateImprovments!</red>
-no_permission = "<red>❌ У вас нет прав для использования команд UltimateImprovments!</red>"
+# Default: <red>❌ У вас нет прав для использования команд UltimateImprovements!</red>
+no_permission = "<red>❌ У вас нет прав для использования команд UltimateImprovements!</red>"
 # Command.
 # Default: <red>❌ Неизвестная команда! </red><gray>Используйте </gray><white>/ui help</white><gray> для списка команд.</gray>
 unknown_command = "<red>❌ Неизвестная команда! </red><gray>Используйте </gray><white>/ui help</white><gray> для списка команд.</gray>"
-# Default: <white>Запущен <yellow>UltimateImprovments <gray>v<white>%version%</white>\n<white>Введите <yellow>/ui help <white>для списка команд.</white>
-no_args = "<white>Запущен <yellow>UltimateImprovments <gray>v<white>%version%</white>\n<white>Введите <yellow>/ui help <white>для списка команд.</white>"
+# Default: <white>Запущен <yellow>UltimateImprovements <gray>v<white>%version%</white>\n<white>Введите <yellow>/ui help <white>для списка команд.</white>
+no_args = "<white>Запущен <yellow>UltimateImprovements <gray>v<white>%version%</white>\n<white>Введите <yellow>/ui help <white>для списка команд.</white>"
 # Default: <red>❌ Ошибка: </red><gray>Только игроки могут использовать эту команду.</gray>
 structure_player_only = "<red>❌ Ошибка: </red><gray>Только игроки могут использовать эту команду.</gray>"
 # Permission node.
@@ -947,8 +947,8 @@ no_permission_install = "<red>❌ You don't have permission to install updates!<
 checking = "<yellow>⟳</yellow> <gray>Checking for updates on GitHub...</gray>"
 # Default: <yellow>⟳</yellow> <gray>Downloading update from GitHub...</gray>
 downloading = "<yellow>⟳</yellow> <gray>Downloading update from GitHub...</gray>"
-# Default: <gold>=== <white>UltimateImprovments — Update Check</white> ===</gold>
-header = "<gold>=== <white>UltimateImprovments — Update Check</white> ===</gold>"
+# Default: <gold>=== <white>UltimateImprovements — Update Check</white> ===</gold>
+header = "<gold>=== <white>UltimateImprovements — Update Check</white> ===</gold>"
 # Default: <gray>Plugin version:</gray> <white>%version%</white>
 plugin_version = "<gray>Plugin version:</gray> <white>%version%</white>"
 # Default: <gray>Latest commit:</gray> <white>%sha%</white>
@@ -1035,13 +1035,13 @@ check_error = "<red>❌ Error checking for updates!</red>"
 # Default: <red>❌ Only players can use this command!</red>
 player_only = "<red>❌ Only players can use this command!</red>"
 # Permission node.
-# Default: <red>❌ You don't have permission to use UltimateImprovments commands!</red>
-no_permission = "<red>❌ You don't have permission to use UltimateImprovments commands!</red>"
+# Default: <red>❌ You don't have permission to use UltimateImprovements commands!</red>
+no_permission = "<red>❌ You don't have permission to use UltimateImprovements commands!</red>"
 # Command.
 # Default: <red>❌ Unknown command! </red><gray>Use </gray><white>/ui help</white><gray> for the command list.</gray>
 unknown_command = "<red>❌ Unknown command! </red><gray>Use </gray><white>/ui help</white><gray> for the command list.</gray>"
-# Default: <white>Running <yellow>UltimateImprovments <gray>v<white>%version%</white>\n<white>Type <yellow>/ui help <whi…
-no_args = "<white>Running <yellow>UltimateImprovments <gray>v<white>%version%</white>\n<white>Type <yellow>/ui help <white>to view commands list.</white>"
+# Default: <white>Running <yellow>UltimateImprovements <gray>v<white>%version%</white>\n<white>Type <yellow>/ui help <whi…
+no_args = "<white>Running <yellow>UltimateImprovements <gray>v<white>%version%</white>\n<white>Type <yellow>/ui help <white>to view commands list.</white>"
 # Default: <red>❌ Error: </red><gray>Only players can use this command.</gray>
 structure_player_only = "<red>❌ Error: </red><gray>Only players can use this command.</gray>"
 # Permission node.

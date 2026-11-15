@@ -1,0 +1,95 @@
+package com.ultimateimprovements.core;
+
+import com.ultimateimprovements.module.ModuleManager;
+import com.ultimateimprovements.util.ConsoleLogger;
+import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Set;
+
+/**
+ * UIDisplay — the UI (tab list / scoreboard / boss bar) addon.
+ * Modules are declared in {@link DisplayModules}. Vanish state is read through
+ * {@code CoreHooks.isVanished}, so this addon does not depend on the player addon.
+ */
+public class UIDisplay extends JavaPlugin {
+
+    private static final Set<String> OWNED_MODULES = Set.of("Tab", "Scoreboard", "BossBar");
+
+    private static UIDisplay instance;
+
+    public static UIDisplay getInstance() { return instance; }
+
+    @Override
+    public void onEnable() {
+        runStartup();
+    }
+
+    @Override
+    public void onDisable() {
+        ConsoleLogger.info("[UI-Display] Disabling...");
+        HandlerList.unregisterAll(this);
+        ModuleManager mm = ModuleManager.getInstance();
+        if (mm != null) {
+            mm.shutdownAll();
+        }
+        instance = null;
+        ConsoleLogger.success("[UI-Display] Disabled!");
+    }
+
+    /**
+     * In-place reload (soft /ui reload): private cleanup + the same startup
+     * path as onEnable. Never disables the plugin — on Paper that would close
+     * the JAR and re-enabling does not reopen it ("zip file closed" zombie).
+     * Re-registering this addon's modules REPLACES the old instances in the
+     * shared ModuleManager (see ModuleManager.register).
+     */
+        public void softReload() {
+        ConsoleLogger.info("[UI-Display] Soft reload (in place)...");
+        HandlerList.unregisterAll(this);
+        runStartup();
+    }
+
+    private void runStartup() {
+        instance = this;
+
+        ConsoleLogger.info("");
+        ConsoleLogger.info("===========================================");
+        ConsoleLogger.info("  UI-Display v" + getPluginMeta().getVersion());
+        ConsoleLogger.info("===========================================");
+
+        ModuleManager mm = ModuleManager.getInstance();
+        if (mm == null) {
+            ConsoleLogger.error("[UI-Display] UI-Core not loaded! Disabling...");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        DisplayModules.registerAll(mm);
+        mm.initAll();
+        reportModuleStats(mm);
+
+        ConsoleLogger.success("[UI-Display] Tab / scoreboard / boss bar enabled!");
+    }
+
+    /** Feeds only this addon's module counters/failures into AddonRegistry. */
+    private void reportModuleStats(ModuleManager mm) {
+        try {
+            int total = 0;
+            int loaded = 0;
+            for (var m : mm.getModules()) {
+                if (!OWNED_MODULES.contains(m.getName())) continue;
+                total++;
+                if (m.isEnabled()) {
+                    loaded++;
+                } else {
+                    com.ultimateimprovements.addon.AddonRegistry.reportError(getName(),
+                            "module " + m.getName() + " failed: " + m.getDisableReason());
+                }
+            }
+            com.ultimateimprovements.addon.AddonRegistry.reportModules(getName(), loaded, total);
+        } catch (Throwable t) {
+            ConsoleLogger.warn("[UI-Display] Module stats report failed: " + t.getMessage());
+        }
+    }
+}

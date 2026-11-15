@@ -1,0 +1,54 @@
+package com.ultimateimprovements.command.subcommands;
+
+import com.ultimateimprovements.command.CommandErrors;
+
+import com.ultimateimprovements.config.MessagesManager;
+import com.ultimateimprovements.report.ReportManager;
+import com.ultimateimprovements.report.ReportManager.ReportData;
+import com.ultimateimprovements.util.MessageUtil;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+/**
+ * Handles /ui repstatus — checks the status of your own report.
+ */
+public final class RepStatusSubcommand {
+
+    private RepStatusSubcommand() {}
+
+    public static boolean execute(CommandSender sender) {
+        if (sender instanceof Player p && !p.hasPermission("ui.command.repstatus")) {
+            CommandErrors.noPermission(sender, "ui.command.repstatus");
+            return true;
+        }
+        if (!(sender instanceof Player player)) {
+            CommandErrors.playerOnly(sender);
+            return true;
+        }
+
+        ReportData report = ReportManager.getActiveReport(player.getUniqueId().toString());
+        if (report == null) {
+            player.sendMessage(MessageUtil.parse(
+                    MessagesManager.getString("report.no_active_report",
+                            "<yellow>✦</yellow> <white>You have no active reports.</white>")));
+            return true;
+        }
+
+        String timeLeft = ReportManager.formatTimeLeft(report.expiresAt);
+
+        player.sendMessage(MessageUtil.parse(
+                "<gray>═══ <white>Report Status</white> ═══</gray>"));
+        player.sendMessage(MessageUtil.parse(
+                "<gray>Reported: </gray><white>" + report.reportedName + "</white>"));
+        player.sendMessage(MessageUtil.parse(
+                "<gray>Reason: </gray><white>" + report.reason + "</white>"));
+        if (report.status.equals("pending")) {
+            player.sendMessage(MessageUtil.parse(
+                    "<gray>Status: </gray><yellow>Pending</yellow>"));
+            player.sendMessage(MessageUtil.parse(
+                    "<gray>Expires: </gray><white>" + timeLeft + "</white>"));
+        }
+
+        return true;
+    }
+}

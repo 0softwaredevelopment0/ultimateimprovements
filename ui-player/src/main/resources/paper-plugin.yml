@@ -1,7 +1,7 @@
 name: UI-Player
 version: '${project.version}'
-description: UltimateImprovments — player features add-on (armor/trim effects, attributes, vanish, elytra wear, leash)
-main: com.ultimateimprovments.core.UIPlayer
+description: UltimateImprovements — player features add-on (armor/trim effects, attributes, vanish, elytra wear, leash)
+main: com.ultimateimprovements.core.UIPlayer
 api-version: '26.3'
 author: rizer001
 dependencies:

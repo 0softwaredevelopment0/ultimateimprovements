@@ -7,7 +7,7 @@
 ## Done
 
 - `ui-core/.../command/PaperCommands.java`: registers the root `ui` (alias
-  `ultimateimprovments`) through `getLifecycleManager().registerEventHandler(
+  `ultimateimprovements`) through `getLifecycleManager().registerEventHandler(
   LifecycleEvents.COMMANDS, ...)`. The tree is now a **real Brigadier tree**:
   `literal("ui") [executes → help] .then(argument("sub", word())
   .suggests(<names/aliases>).then(argument("args", greedyString())
@@ -21,7 +21,7 @@
   subcommand set is unknown at registration, so typing stays at the registry level.
 - Registered from `Main.onEnable()` (UI-Core), guarded against re-registration across
   `/ui reload`.
-- Removed the legacy `/ui` + `/ultimateimprovments` registration from
+- Removed the legacy `/ui` + `/ultimateimprovements` registration from
   `ui-other core/CommandRegistrar`.
 
 ## Still on the legacy CommandMap (deliberate)

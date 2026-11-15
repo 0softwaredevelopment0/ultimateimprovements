@@ -1,7 +1,7 @@
 name: UI-Other
 version: '${project.version}'
-description: UltimateImprovments — All features add-on
-main: com.ultimateimprovments.core.UIOther
+description: UltimateImprovements — All features add-on
+main: com.ultimateimprovements.core.UIOther
 api-version: '26.3'
 author: rizer001
 dependencies:

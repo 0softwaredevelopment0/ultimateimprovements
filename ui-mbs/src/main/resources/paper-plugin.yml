@@ -1,7 +1,7 @@
 name: UI-MBS
 version: '${project.version}'
-description: UltimateImprovments — multi-block structures (NBT templates, markers, lightning, magnet, reactor/generator)
-main: com.ultimateimprovments.mbs.UIMBS
+description: UltimateImprovements — multi-block structures (NBT templates, markers, lightning, magnet, reactor/generator)
+main: com.ultimateimprovements.mbs.UIMBS
 api-version: '26.3'
 author: rizer001
 dependencies:

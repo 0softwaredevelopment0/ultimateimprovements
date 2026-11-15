@@ -1,6 +1,6 @@
 # Paper Plugin Loader Migration Plan
 
-> Migrate the whole UltimateImprovments family from the legacy Bukkit/Spigot
+> Migrate the whole UltimateImprovements family from the legacy Bukkit/Spigot
 > `plugin.yml` to Paper's plugin loader (`paper-plugin.yml`). One family version.
 > Status: **IMPLEMENTED** (`a63dd9d3`); runtime needs in-game verification.
 > Delete when confirmed.
@@ -89,7 +89,7 @@ graph is acyclic.
   at runtime; the graph above was derived from compiled import scans.
 - `PlaceholderAPI`/`Vault`/`LuckPerms` are legacy plugins — Paper allows Paper↔Bukkit
   dependencies, so load order + join should work; verify PAPI expansion + Vault economy.
-- The root `src/main/resources/plugin.yml` (old monolithic "UltimateImprovments") is
+- The root `src/main/resources/plugin.yml` (old monolithic "UltimateImprovements") is
   not built by `settings.gradle`; leave it untouched.
 - `load: STARTUP` (UI-Core/UI-Datapack/UI-MBS) was dropped — `paper-plugin.yml` has no
   such key; load order is expressed via dependencies. If UI-Datapack must install the

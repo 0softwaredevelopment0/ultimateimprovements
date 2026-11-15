@@ -1,0 +1,223 @@
+package com.ultimateimprovements.command.subcommands;
+
+import com.ultimateimprovements.chat.ChatChannel;
+import com.ultimateimprovements.chat.ChatManager;
+import com.ultimateimprovements.chat.PlayerChannelManager;
+import com.ultimateimprovements.command.CommandErrors;
+import com.ultimateimprovements.command.SubCommand;
+import com.ultimateimprovements.core.api.CheckBridge;
+import com.ultimateimprovements.util.MessageUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * /ui chatchnl &lt;channel&gt; [player] — switch active chat channel.
+ * <p>
+ * Channels: local, global, world, private, admin, check, console, terminal.
+ * For private channel a target player name is required.
+ * <p>
+ * Permissions (per-channel):
+ * <ul>
+ *   <li>{@code ui.chat.channel.local}</li>
+ *   <li>{@code ui.chat.channel.global}</li>
+ *   <li>{@code ui.chat.channel.world}</li>
+ *   <li>{@code ui.chat.channel.private}</li>
+ *   <li>{@code ui.chat.channel.admin}</li>
+ * </ul>
+ * Base command permission: {@code ui.command.chatchnl}
+ */
+public final class ChatChannelSubcommand implements SubCommand {
+
+    @Override
+    public String getName() { return "chatchnl"; }
+
+    @Override
+    public boolean execute(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(MessageUtil.parse("<red>This command can only be used by players.</red>"));
+            return true;
+        }
+
+        if (!player.hasPermission("ui.command.chatchnl")) {
+            CommandErrors.noPermission(player, "ui.command.chatchnl");
+            return true;
+        }
+
+        if (args.length < 2) {
+            sendUsage(player);
+            return true;
+        }
+
+        String channelName = args[1].toLowerCase();
+        ChatChannel channel = ChatChannel.fromConfigKey(channelName);
+
+        if (channel == null) {
+            player.sendMessage(MessageUtil.parse(
+                    "<red>\u274c Unknown channel: </red><yellow>" + channelName + "</yellow>"
+                    + "<gray>. Available: </gray><white>local, global, world, private, admin, check, console, terminal</white>"));
+            return true;
+        }
+
+        // Console channel — chat input is executed as console commands. Requires
+        // the channel permission AND a nickname in the config whitelist, and the
+        // channel must be enabled in the config.
+        if (channel == ChatChannel.CONSOLE) {
+            if (!ChatManager.isConsoleEnabled()) {
+                CommandErrors.moduleDisabled(player, "chat.channels.console.enabled");
+                return true;
+            }
+            if (!player.hasPermission(channel.getPermission())) {
+                player.sendMessage(MessageUtil.parse(
+                        "<red>\u274c You don't have permission to use the console channel.</red>"));
+                return true;
+            }
+            if (!ChatManager.isConsoleWhitelisted(player)) {
+                player.sendMessage(MessageUtil.parse(
+                        "<red>\u274c You are not whitelisted for the console channel.</red>"));
+                return true;
+            }
+            if (PlayerChannelManager.getChannel(player) == ChatChannel.CONSOLE) {
+                PlayerChannelManager.setChannel(player, ChatChannel.GLOBAL);
+                player.sendMessage(MessageUtil.parse(
+                        "<green>\u2714</green> <white>Console channel <red>off</red> — chat restored.</white>"));
+            } else {
+                PlayerChannelManager.setChannel(player, ChatChannel.CONSOLE);
+                player.sendMessage(MessageUtil.parse(
+                        "<green>\u2714</green> <white>Console channel <red>on</red> — chat input is executed as console commands.</white>"));
+            }
+            return true;
+        }
+
+        // Terminal channel — chat input is executed on the host shell
+        // (PowerShell on Windows, /bin/sh elsewhere) and the output is returned
+        // to the player. Requires the channel permission AND a nickname in the
+        // config whitelist, and the channel must be enabled in the config.
+        if (channel == ChatChannel.TERMINAL) {
+            if (!ChatManager.isTerminalEnabled()) {
+                CommandErrors.moduleDisabled(player, "chat.channels.terminal.enabled");
+                return true;
+            }
+            if (!player.hasPermission(channel.getPermission())) {
+                player.sendMessage(MessageUtil.parse(
+                        "<red>\u274c You don't have permission to use the terminal channel.</red>"));
+                return true;
+            }
+            if (!ChatManager.isTerminalWhitelisted(player)) {
+                player.sendMessage(MessageUtil.parse(
+                        "<red>\u274c You are not whitelisted for the terminal channel.</red>"));
+                return true;
+            }
+            if (PlayerChannelManager.getChannel(player) == ChatChannel.TERMINAL) {
+                PlayerChannelManager.setChannel(player, ChatChannel.GLOBAL);
+                player.sendMessage(MessageUtil.parse(
+                        "<green>\u2714</green> <white>Terminal channel <red>off</red> — chat restored.</white>"));
+            } else {
+                PlayerChannelManager.setChannel(player, ChatChannel.TERMINAL);
+                player.sendMessage(MessageUtil.parse(
+                        "<green>\u2714</green> <white>Terminal channel <red>on</red> — chat input runs on the host terminal.</white>"));
+            }
+            return true;
+        }
+
+        // Check channel — for a player under an anti-cheat check: toggle it so their
+        // messages go ONLY to the inspector. Requires the base command permission and
+        // being actually checked (a normal player or moderator off-check can't enable it).
+        if (channel == ChatChannel.CHECK) {
+            CheckBridge bridge = CheckBridge.get();
+            if (bridge == null || !bridge.isBeingChecked(player)) {
+                player.sendMessage(MessageUtil.parse(
+                        "<red>\u274c You are not under a check — you can't use the check channel.</red>"));
+                return true;
+            }
+            if (PlayerChannelManager.getChannel(player) == ChatChannel.CHECK) {
+                PlayerChannelManager.setChannel(player, ChatChannel.GLOBAL);
+                player.sendMessage(MessageUtil.parse(
+                        "<green>\u2714</green> <white>Check channel <red>off</red> — chat restored.</white>"));
+            } else {
+                PlayerChannelManager.setChannel(player, ChatChannel.CHECK);
+                player.sendMessage(MessageUtil.parse(
+                        "<green>\u2714</green> <white>Check channel <red>on</red> — messages go only to the inspector.</white>"));
+            }
+            return true;
+        }
+
+        // Check permission for this channel
+        if (!player.hasPermission(channel.getPermission()) && !player.isOp()) {
+            player.sendMessage(MessageUtil.parse(
+                    "<red>\u274c You don't have permission to use the </red><yellow>" + channel.getConfigKey() + "</yellow><red> channel.</red>"));
+            return true;
+        }
+
+        // Private channel requires a target
+        if (channel == ChatChannel.PRIVATE) {
+            if (args.length < 3) {
+                player.sendMessage(MessageUtil.parse(
+                        "<red>\u274c Usage: </red><white>/ui chatchnl private <player></white>"));
+                return true;
+            }
+            String targetName = args[2];
+            Player target = Bukkit.getPlayerExact(targetName);
+            if (target == null) {
+                player.sendMessage(MessageUtil.parse(
+                        "<red>\u274c Player </red><yellow>" + targetName + "</yellow><red> is not online!</red>"));
+                return true;
+            }
+            PlayerChannelManager.setPrivateTarget(player, target.getName());
+        }
+
+        PlayerChannelManager.setChannel(player, channel);
+
+        // Build success message
+        String channelLabel = channel.getConfigKey().substring(0, 1).toUpperCase() + channel.getConfigKey().substring(1);
+        String extra = "";
+        if (channel == ChatChannel.PRIVATE) {
+            extra = " <gray>\u2192 </gray><yellow>" + args[2] + "</yellow>";
+        } else if (channel == ChatChannel.LOCAL) {
+            extra = " <gray>(radius: " + ChatManager.getLocalRadius() + " blocks)</gray>";
+        }
+
+        player.sendMessage(MessageUtil.parse(
+                "<green>\u2714</green> <white>Chat channel set to </white><yellow>" + channelLabel + "</yellow>" + extra));
+        return true;
+    }
+
+    private void sendUsage(Player player) {
+        player.sendMessage(MessageUtil.parse(
+                "<yellow>Usage: </yellow><white>/ui chatchnl <channel> [player]</white>"));
+        player.sendMessage(MessageUtil.parse(
+                "<gray>Channels: </gray><white>local, global, world, private, admin, check, console, terminal</white>"));
+    }
+
+    @Override
+    public List<String> tabComplete(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) return List.of();
+        if (!player.hasPermission("ui.command.chatchnl")) return List.of();
+
+        if (args.length == 2) {
+            String partial = args[1].toLowerCase();
+            return Arrays.stream(ChatChannel.values())
+                    .map(ChatChannel::getConfigKey)
+                    .filter(k -> k.startsWith(partial))
+                    .collect(Collectors.toList());
+        }
+
+        if (args.length == 3 && args[1].equalsIgnoreCase("private")) {
+            String partial = args[2].toLowerCase();
+            List<String> result = new ArrayList<>();
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (p.getName().toLowerCase().startsWith(partial)) {
+                    result.add(p.getName());
+                }
+            }
+            return result;
+        }
+
+        return List.of();
+    }
+}

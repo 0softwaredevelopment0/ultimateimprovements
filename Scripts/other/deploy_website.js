@@ -2,7 +2,7 @@
 /**
  * Deploys the OrganizationWebsite (rizer001-site) to the host via SSH.
  *
- * Usage (from the UltimateImprovments repo root):
+ * Usage (from the UltimateImprovements repo root):
  *   SSH_PASS='...' node Scripts/other/deploy_website.js
  *
  * Auth: SSH key (~/.ssh/id_ed25519, override with SSH_KEY) for login;

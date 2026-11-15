@@ -1,4 +1,4 @@
-# UltimateImprovments — UI-Advancements configuration.
+# UltimateImprovements — UI-Advancements configuration.
 # Custom achievements of the bundled datapack (ui:datapack/*).
 #
 # Advancements are data-driven in Minecraft: they are JSON files, not a registry,
@@ -21,7 +21,7 @@
 [advancements]
 enabled = true
 
-# Root of the tree ("UltimateImprovments"). Disabling it makes every other
+# Root of the tree ("UltimateImprovements"). Disabling it makes every other
 # achievement a root tab of its own.
 [advancements.start]
 # Default: true

@@ -83,4 +83,4 @@ const notes = selected.join('\n').trim();
 const intro = baseline === version
   ? 'Release ' + version + '.'
   : 'Changes from ' + baseline + ' through ' + version + '.';
-process.stdout.write('# UltimateImprovments ' + version + '\n\n' + intro + '\n\n' + notes + '\n');
+process.stdout.write('# UltimateImprovements ' + version + '\n\n' + intro + '\n\n' + notes + '\n');

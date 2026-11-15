@@ -1,0 +1,361 @@
+package com.ultimateimprovements.energy.generation.reactor;
+
+import com.ultimateimprovements.core.Main;
+import com.ultimateimprovements.database.DatabaseManager;
+import com.ultimateimprovements.util.LocationUtil;
+import com.ultimateimprovements.util.ConsoleLogger;
+import org.bukkit.Location;
+import org.bukkit.World;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+/**
+ * Handles saving and loading the reactor from SQLite.
+ */
+public class ReactorPersistence {
+
+    /**
+     * Saves the current reactor state to the DB.
+     */
+    public static void saveToDb(ReactorState state) {
+        Location loc = state.getReactorLocation();
+        String id = state.getReactorId();
+        if (loc == null || id == null) return;
+
+            try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement("""
+                INSERT OR REPLACE INTO reactors
+                (reactor_id, world, x, y, z,
+                 core_temp, shield_press, spin,
+                 energy_generated,
+                 laser_started, laser_p1, laser_p2, laser_stab, laser_absorber,
+                 fusion_particles, fusion_collected,
+                 case_broken, case_temp, case_press, case_int,
+                 structure_damaged,
+                 shield_state, shield_integrity, shield_fail_countdown,
+                 selfdestruct_phase, selfdestruct_ticks, selfdestruct_done, selfdestruct_cancelled,
+                 core_emergency_stopped,
+                 meltdown_phase, meltdown_ticks, restab_chance,
+                 stall_phase, stall_ticks, stall_trigger, core_offline,
+                 startup_phase, startup_ticks, temp_min, energy_buffer,
+                 natural_cool_mult)
+                 VALUES (?, ?, ?, ?, ?,
+                         ?, ?, ?,
+                         ?,
+                         ?, ?, ?, ?, ?,
+                         ?, ?,
+                         ?, ?, ?, ?,
+                         ?,
+                         ?, ?, ?,
+                         ?, ?, ?, ?,
+                         ?,
+                         ?, ?, ?,
+                         ?, ?, ?, ?,
+                         ?, ?, ?, ?,
+                         ?)
+            """)) {
+
+            // The legacy core_case_temp/press/int columns (old inner-case stats)
+            // are no longer written — the live case lives in case_broken/temp/press/int.
+            ps.setString(1, id);
+            ps.setString(2, loc.getWorld().getName());
+            ps.setInt(3, loc.getBlockX());
+            ps.setInt(4, loc.getBlockY());
+            ps.setInt(5, loc.getBlockZ());
+            ps.setInt(6, state.getCoreTemp());
+            ps.setDouble(7, state.getShieldPress());
+            ps.setDouble(8, state.getSpin());
+            ps.setLong(9, state.getEnergyGenerated());
+            ps.setInt(10, state.isLaserStarted() ? 1 : 0);
+            double[] lp = state.getLaserPowers();
+            ps.setDouble(11, lp.length > 0 ? lp[0] : 0);
+            ps.setDouble(12, lp.length > 1 ? lp[1] : 0);
+            ps.setDouble(13, lp.length > 2 ? lp[2] : 0);
+            ps.setDouble(14, lp.length > 3 ? lp[3] : 0);
+            ps.setDouble(15, state.getFusionParticles());
+            ps.setDouble(16, state.getFusionCollected());
+            ps.setInt(17, state.isCaseBroken() ? 1 : 0);
+            ps.setInt(18, state.getCaseTemp());
+            ps.setDouble(19, state.getCasePress());
+            ps.setInt(20, state.getCaseIntegrity());
+            ps.setInt(21, state.isStructureDamaged() ? 1 : 0);
+            ps.setString(22, state.getShieldState());
+            ps.setDouble(23, state.getShieldIntegrity());
+            ps.setInt(24, state.getShieldFailCountdown());
+            ps.setString(25, state.getSelfdestructPhase());
+            ps.setInt(26, state.getSelfdestructTicks());
+            ps.setInt(27, state.isSelfdestructDone() ? 1 : 0);
+            ps.setInt(28, state.isSelfdestructCancelled() ? 1 : 0);
+            ps.setInt(29, state.isCoreEmergencyStopped() ? 1 : 0);
+            ps.setString(30, state.getMeltdownPhase());
+            ps.setInt(31, state.getMeltdownTicks());
+            ps.setDouble(32, state.getRestabChance());
+            ps.setString(33, state.getStallPhase());
+            ps.setInt(34, state.getStallTicks());
+            ps.setString(35, state.getStallTrigger());
+            ps.setInt(36, state.isCoreOffline() ? 1 : 0);
+            ps.setString(37, state.getStartupPhase());
+            ps.setInt(38, state.getStartupTicks());
+            ps.setInt(39, state.getTempMin());
+            ps.setInt(40, state.getEnergyBuffer());
+            ps.setDouble(41, state.getNaturalCoolMult());
+
+            ps.executeUpdate();
+
+            // Save log is opt-in (reactor.log_save) — saves are frequent
+            ReactorConfig cfg = ReactorConfig.getInstance();
+            if (cfg == null || cfg.isLogSaveEnabled()) {
+                ConsoleLogger.info("[Reactor] Saved reactor " + id);
+            }
+        } catch (Exception e) {
+            ConsoleLogger.error("[Reactor] Save error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Loads ALL reactors from the DB (multi-reactor support).
+     */
+    public static java.util.List<ReactorState> loadAllFromDb() {
+        java.util.List<ReactorState> out = new java.util.ArrayList<>();
+        ReactorState state = new ReactorState();
+        if (loadFromDb(state)) out.add(state);
+        return out;
+    }
+
+    /**
+     * Loads the reactor from the DB and fills the state.
+     */
+    public static boolean loadFromDb(ReactorState state) {
+        java.util.List<ReactorState> all = loadAllRowsFromDb();
+        if (all.isEmpty()) return false;
+        ReactorState first = all.get(0);
+        state.copyFrom(first);
+        return true;
+    }
+
+    /**
+     * Reads every valid reactor row from the DB into states (multi-reactor support).
+     */
+    public static java.util.List<ReactorState> loadAllRowsFromDb() {
+        java.util.List<ReactorState> out = new java.util.ArrayList<>();
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT * FROM reactors");
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                World world = Main.getInstance().getServer().getWorld(rs.getString("world"));
+                if (world == null) continue;
+
+                Location loc = LocationUtil.normalize(new Location(
+                        world,
+                        rs.getInt("x"),
+                        rs.getInt("y"),
+                        rs.getInt("z")
+                ));
+
+                if (!ReactorStructure.isValid(loc, false)) {
+                    ConsoleLogger.warn("[Reactor] Stored reactor at " + loc + " — structure invalid, skipping");
+                    continue;
+                }
+
+                ReactorState state = new ReactorState();
+                state.setReactorLocation(loc);
+                try { state.setReactorId(rs.getString("reactor_id")); } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load reactor_id: " + e.getMessage());
+                }
+                state.setCoreTemp(rs.getInt("core_temp"));
+                try { state.setShieldPress(rs.getDouble("shield_press")); } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load shield_press: " + e.getMessage());
+                }
+                try { state.setSpin(rs.getDouble("spin")); } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load spin: " + e.getMessage());
+                }
+                try {
+                    state.setFusionParticles(rs.getDouble("fusion_particles"));
+                    state.setFusionCollected(rs.getDouble("fusion_collected"));
+                } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load fusion state: " + e.getMessage());
+                }
+                try {
+                    state.setCaseBroken(rs.getInt("case_broken") == 1);
+                    state.setCaseTemp(rs.getInt("case_temp"));
+                    state.setCasePress(rs.getDouble("case_press"));
+                    state.setCaseIntegrity(rs.getInt("case_int"));
+                } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load case state: " + e.getMessage());
+                }
+
+                try { state.setEnergyGenerated(rs.getLong("energy_generated")); } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load energy_generated: " + e.getMessage());
+                }
+                try { state.setEnergyBuffer(rs.getInt("energy_buffer")); } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load energy_buffer: " + e.getMessage());
+                }
+                try { state.setLaserStarted(rs.getInt("laser_started") == 1); } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load laser_started: " + e.getMessage());
+                }
+                try { state.setStructureDamaged(rs.getInt("structure_damaged") == 1); } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load structure_damaged: " + e.getMessage());
+                }
+                try {
+                    state.setShieldState(rs.getString("shield_state"));
+                    state.setShieldIntegrity(rs.getDouble("shield_integrity"));
+                    state.setShieldFailCountdown(rs.getInt("shield_fail_countdown"));
+                } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load shield state: " + e.getMessage());
+                }
+                try {
+                    state.setSelfdestructPhase(rs.getString("selfdestruct_phase"));
+                    state.setSelfdestructTicks(rs.getInt("selfdestruct_ticks"));
+                    state.setSelfdestructDone(rs.getInt("selfdestruct_done") == 1);
+                    state.setSelfdestructCancelled(rs.getInt("selfdestruct_cancelled") == 1);
+                } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load self-destruct state: " + e.getMessage());
+                }
+                try { state.setCoreEmergencyStopped(rs.getInt("core_emergency_stopped") == 1); } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load core_emergency_stopped: " + e.getMessage());
+                }
+                try {
+                    state.setMeltdownPhase(rs.getString("meltdown_phase"));
+                    state.setMeltdownTicks(rs.getInt("meltdown_ticks"));
+                    state.setRestabChance(rs.getDouble("restab_chance"));
+                } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load meltdown state: " + e.getMessage());
+                }
+                try {
+                    state.setStallPhase(rs.getString("stall_phase"));
+                    state.setStallTicks(rs.getInt("stall_ticks"));
+                    // Legacy rows have no stall_trigger value (NULL) — the
+                    // old stall_manual flag stays as the fallback for them.
+                    String stallTrigger = rs.getString("stall_trigger");
+                    if (stallTrigger != null) state.setStallTrigger(stallTrigger);
+                    state.setStallManual(rs.getInt("stall_manual") == 1);
+                    state.setCoreOffline(rs.getInt("core_offline") == 1);
+                } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load stall state: " + e.getMessage());
+                }
+                try {
+                    state.setStartupPhase(rs.getString("startup_phase"));
+                    state.setStartupTicks(rs.getInt("startup_ticks"));
+                } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load startup state: " + e.getMessage());
+                }
+                try { state.setTempMin(rs.getInt("temp_min")); } catch (Exception e) {
+                    // Legacy rows pre-date the dynamic limit — the column
+                    // default (−273) keeps the old behaviour for them
+                    ConsoleLogger.warn("[Reactor] Failed to load temp_min: " + e.getMessage());
+                }
+                try { state.setNaturalCoolMult(rs.getDouble("natural_cool_mult")); } catch (Exception e) {
+                    // Legacy rows pre-date the humidity multiplier — the
+                    // column default (−1) keeps the plain rate for them
+                    ConsoleLogger.warn("[Reactor] Failed to load natural_cool_mult: " + e.getMessage());
+                }
+                try {
+                    state.setLaserPowers(new double[] {
+                            rs.getDouble("laser_p1"),
+                            rs.getDouble("laser_p2"),
+                            rs.getDouble("laser_stab"),
+                            rs.getDouble("laser_absorber") });
+                } catch (Exception e) {
+                    ConsoleLogger.warn("[Reactor] Failed to load laser powers: " + e.getMessage());
+                }
+
+                out.add(state);
+                ConsoleLogger.info("[Reactor] Loaded reactor " + state.getReactorId());
+            }
+
+        } catch (Exception e) {
+            ConsoleLogger.error("[Reactor] Load error: " + e.getMessage());
+        }
+        return out;
+    }
+
+    /**
+     * Removes the reactor from the DB.
+     */
+    public static void deleteFromDb(String reactorId) {
+        if (reactorId == null) return;
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement("DELETE FROM reactors WHERE reactor_id = ?")) {
+            ps.setString(1, reactorId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            ConsoleLogger.error("[Reactor] Delete error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Saves all active reactors (called from ReactorManager.saveAll()).
+     */
+    public static void saveAll(ReactorState state) {
+        if (state == null || !state.isValid() || state.getReactorLocation() == null) return;
+        saveToDb(state);
+    }
+
+    // =========================
+    // PANEL SIGNS REGISTRY (reactor_panel_signs)
+    // The 8 control-panel DATA signs of a reactor, registered at assembly
+    // and cleared at disassembly. Only registered signs demand the
+    // multimeter on click (see ReactorListener).
+    // =========================
+
+    /** Registers (idempotent rewrite) the 8 panel signs of a reactor. */
+    public static void registerPanelSigns(String reactorId, Location base) {
+        if (reactorId == null || base == null || base.getWorld() == null) return;
+        try (Connection con = DatabaseManager.getConnection()) {
+            boolean oldAutoCommit = con.getAutoCommit();
+            try {
+                con.setAutoCommit(false);
+                try (PreparedStatement del = con.prepareStatement(
+                        "DELETE FROM reactor_panel_signs WHERE reactor_id = ?")) {
+                    del.setString(1, reactorId);
+                    del.executeUpdate();
+                }
+                try (PreparedStatement ins = con.prepareStatement(
+                        "INSERT OR REPLACE INTO reactor_panel_signs (reactor_id, world, x, y, z) VALUES (?, ?, ?, ?, ?)")) {
+                    for (int[] off : ReactorDisplay.PANEL_SIGN_OFFSETS) {
+                        ins.setString(1, reactorId);
+                        ins.setString(2, base.getWorld().getUID().toString());
+                        ins.setInt(3, base.getBlockX() + off[0]);
+                        ins.setInt(4, base.getBlockY() + off[1]);
+                        ins.setInt(5, base.getBlockZ() + off[2]);
+                        ins.addBatch();
+                    }
+                    ins.executeBatch();
+                }
+                con.commit();
+            } catch (Exception e) {
+                try { con.rollback(); } catch (Exception ignored) {}
+                throw e;
+            } finally {
+                try { con.setAutoCommit(oldAutoCommit); } catch (Exception ignored) {}
+            }
+        } catch (Exception e) {
+            ConsoleLogger.warn("[Reactor] Failed to register panel signs for " + reactorId + ": " + e.getMessage());
+        }
+    }
+
+    /** Removes all panel sign rows of one reactor. */
+    public static void unregisterPanelSigns(String reactorId) {
+        if (reactorId == null) return;
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement("DELETE FROM reactor_panel_signs WHERE reactor_id = ?")) {
+            ps.setString(1, reactorId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            ConsoleLogger.warn("[Reactor] Failed to unregister panel signs for " + reactorId + ": " + e.getMessage());
+        }
+    }
+
+    /** Wipes the whole registry (startup: it is rebuilt from the live reactors). */
+    public static void clearPanelSigns() {
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement("DELETE FROM reactor_panel_signs")) {
+            ps.executeUpdate();
+        } catch (Exception e) {
+            ConsoleLogger.warn("[Reactor] Failed to clear panel signs: " + e.getMessage());
+        }
+    }
+}

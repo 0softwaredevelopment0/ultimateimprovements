@@ -1,0 +1,94 @@
+package com.ultimateimprovements.mechanics.crafting;
+
+import com.ultimateimprovements.core.Keys;
+import com.ultimateimprovements.core.Main;
+import com.ultimateimprovements.util.MessageUtil;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
+
+import java.util.List;
+
+public class MetalDetectorCraftListener implements Listener {
+
+    private static NamespacedKey RECIPE_KEY;
+
+    public static void init() {
+        RECIPE_KEY = new NamespacedKey(Main.getInstance(), "metal_detector");
+        registerRecipe();
+    }
+
+    private static void registerRecipe() {
+        Main plugin = Main.getInstance();
+
+        ItemStack result = new ItemStack(Material.STICK);
+        result.editMeta(meta -> {
+
+        meta.displayName(MessageUtil.parse("<i:false><white>Metal Detector *</white>"));
+
+        meta.lore(List.of(
+                MessageUtil.parse("<i:false><gray>RMB — scan for metal blocks, items and entities</gray>")
+        ));
+
+        meta.getPersistentDataContainer().set(
+                Keys.METAL_DETECTOR,
+                PersistentDataType.BYTE,
+                (byte) 1
+        );
+
+        });
+
+        Bukkit.removeRecipe(RECIPE_KEY);
+
+        ShapedRecipe recipe = new ShapedRecipe(RECIPE_KEY, result);
+        recipe.setGroup(RECIPE_KEY.getKey());
+        recipe.shape(
+                "IGI",
+                "IRI",
+                "S S"
+        );
+        recipe.setIngredient('I', Material.IRON_INGOT);
+        recipe.setIngredient('G', Material.GOLD_INGOT);
+        recipe.setIngredient('R', Material.REDSTONE_BLOCK);
+        recipe.setIngredient('S', Material.STICK);
+
+        plugin.getServer().addRecipe(recipe);
+        RecipeRegistry.registerRecipe(RECIPE_KEY);
+    }
+
+    @EventHandler
+    public void onCraft(PrepareItemCraftEvent e) {
+        Recipe recipe = e.getRecipe();
+        if (!(recipe instanceof ShapedRecipe sr)) return;
+        if (!sr.getKey().equals(RECIPE_KEY)) return;
+
+        CraftingInventory inv = e.getInventory();
+
+        ItemStack result = new ItemStack(Material.STICK);
+        result.editMeta(meta -> {
+
+        meta.displayName(MessageUtil.parse("<i:false><white>Metal Detector *</white>"));
+        meta.lore(List.of(
+                MessageUtil.parse("<i:false><gray>RMB — scan for metal blocks, items and entities</gray>")
+        ));
+
+        meta.getPersistentDataContainer().set(
+                Keys.METAL_DETECTOR,
+                PersistentDataType.BYTE,
+                (byte) 1
+        );
+
+        });
+        inv.setResult(result);
+    }
+}

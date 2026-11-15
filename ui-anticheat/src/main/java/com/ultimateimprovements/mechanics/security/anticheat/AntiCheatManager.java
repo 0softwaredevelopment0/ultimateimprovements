@@ -1,0 +1,199 @@
+package com.ultimateimprovements.mechanics.security.anticheat;
+
+import com.ultimateimprovements.core.Main;
+import com.ultimateimprovements.util.ConsoleLogger;
+import com.ultimateimprovements.mechanics.security.anticheat.action.ActionManager;
+import com.ultimateimprovements.mechanics.security.anticheat.core.AbstractCheck;
+import com.ultimateimprovements.mechanics.security.anticheat.core.CheckCategory;
+import com.ultimateimprovements.mechanics.security.anticheat.core.CheckResult;
+import com.ultimateimprovements.mechanics.security.anticheat.core.ExemptionManager;
+import com.ultimateimprovements.mechanics.security.anticheat.core.PlayerData;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * AntiCheatManager — central anti-cheat manager.
+ * <p>
+ * Registers all checks, manages PlayerData for each player,
+ * processes check results and triggers actions (ActionManager).
+ */
+public class AntiCheatManager {
+
+    private static AntiCheatManager instance;
+
+    // Player data
+    private final ConcurrentHashMap<UUID, PlayerData> playerDataMap = new ConcurrentHashMap<>();
+
+    // Registered checks by category
+    private final Map<CheckCategory, List<AbstractCheck>> checksByCategory = new EnumMap<>(CheckCategory.class);
+    private final Map<String, AbstractCheck> checksByName = new ConcurrentHashMap<>();
+
+    // Listener-registered checks — kept here so shutdown() can unregister them.
+    // They are registered under the CORE plugin (Main.getInstance()), so
+    // HandlerList.unregisterAll(plugin) from this addon would NOT remove them.
+    private final List<org.bukkit.event.Listener> registeredListeners = new ArrayList<>();
+
+    // Global enabled flag (runtime toggle) — OFF by default
+    private volatile boolean globalEnabled = false;
+    private static final String CONFIG_ENABLED_PATH = "anticheat.enabled";
+
+    // VL decay task
+    private int decayTaskId = -1;
+
+    private AntiCheatManager() {
+        for (CheckCategory cat : CheckCategory.values()) {
+            checksByCategory.put(cat, new ArrayList<>());
+        }
+    }
+
+    public static void init() {
+        if (instance != null) return;
+        instance = new AntiCheatManager();
+
+        ExemptionManager.init();
+        ActionManager.init();
+
+    }
+
+    public static AntiCheatManager getInstance() {
+        return instance;
+    }
+
+    // =========================
+    // CHECK REGISTRATION
+    // =========================
+
+    public void registerCheck(AbstractCheck check) {
+        checksByCategory.get(check.getCategory()).add(check);
+        checksByName.put(check.getName(), check);
+
+        // Register as listener if it implements Listener
+        if (check instanceof Listener listener) {
+            Bukkit.getPluginManager().registerEvents(listener, Main.getInstance());
+            registeredListeners.add(listener);
+        }
+
+        check.onInit();
+    }
+
+    public AbstractCheck getCheck(String name) {
+        return checksByName.get(name);
+    }
+
+    public List<AbstractCheck> getChecksByCategory(CheckCategory category) {
+        return Collections.unmodifiableList(checksByCategory.getOrDefault(category, Collections.emptyList()));
+    }
+
+    public List<AbstractCheck> getAllChecks() {
+        List<AbstractCheck> all = new ArrayList<>();
+        for (List<AbstractCheck> list : checksByCategory.values()) {
+            all.addAll(list);
+        }
+        return all;
+    }
+
+    // =========================
+    // PLAYER DATA
+    // =========================
+
+    public PlayerData getPlayerData(Player player) {
+        if (player == null) return null;
+        return playerDataMap.get(player.getUniqueId());
+    }
+
+    public PlayerData getOrCreatePlayerData(Player player) {
+        return playerDataMap.computeIfAbsent(player.getUniqueId(), id -> new PlayerData(player));
+    }
+
+    public void removePlayerData(UUID uuid) {
+        playerDataMap.remove(uuid);
+    }
+
+    // =========================
+    // VIOLATION HANDLING
+    // =========================
+
+    /**
+     * Processes a check result and executes an action if needed.
+     */
+    public void handleResult(Player player, AbstractCheck check, CheckResult result) {
+        if (!globalEnabled) return;
+        if (player == null || !player.isOnline() || result == null || !result.isFlagged()) return;
+
+        PlayerData data = getOrCreatePlayerData(player);
+        double totalVl = data.getVl(check.getName());
+
+        ActionManager.getInstance().handleViolation(
+                player, check.getName(), check.getCategory(), totalVl, result.getMessage());
+    }
+
+    // =========================
+    // VL DECAY TASK
+    // =========================
+
+    public void startDecayTask() {
+        decayTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getInstance(), () -> {
+            for (PlayerData data : playerDataMap.values()) {
+                for (AbstractCheck check : getAllChecks()) {
+                    if (check.getVlDecay() > 0) {
+                        data.decayVl(check.getName(), check.getVlDecay());
+                    }
+                }
+            }
+        }, 20L, 20L).getTaskId(); // every 1 second
+    }
+
+    public void stopDecayTask() {
+        if (decayTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(decayTaskId);
+            decayTaskId = -1;
+        }
+    }
+
+    // =========================
+    // RELOAD
+    // =========================
+
+    public boolean isGlobalEnabled() { return globalEnabled; }
+
+    public void setGlobalEnabled(boolean enabled) {
+        this.globalEnabled = enabled;
+        ConsoleLogger.info("[AntiCheat] " + (enabled ? "ENABLED" : "DISABLED"));
+    }
+
+    public void reloadAll() {
+        // Sync globalEnabled from config on reload
+        this.globalEnabled = Main.getInstance().getConfig().getBoolean(CONFIG_ENABLED_PATH, false);
+        for (AbstractCheck check : getAllChecks()) {
+            check.loadConfig();
+            check.onReload();
+        }
+        ConsoleLogger.info("[AntiCheat] All checks reloaded.");
+    }
+
+    // =========================
+    // SHUTDOWN
+    // =========================
+
+    public static void shutdown() {
+        if (instance == null) return;
+        instance.stopDecayTask();
+        // Unregister check listeners FIRST — they outlive this addon (registered
+        // under the core plugin) and would otherwise NPE on every player event
+        // once ExemptionManager/AntiCheatManager singletons are cleared below.
+        for (org.bukkit.event.Listener listener : instance.registeredListeners) {
+            org.bukkit.event.HandlerList.unregisterAll(listener);
+        }
+        instance.registeredListeners.clear();
+        instance.playerDataMap.clear();
+        instance.checksByName.clear();
+        instance.checksByCategory.clear();
+        ActionManager.shutdown();
+        ExemptionManager.shutdown();
+        instance = null;
+    }
+}

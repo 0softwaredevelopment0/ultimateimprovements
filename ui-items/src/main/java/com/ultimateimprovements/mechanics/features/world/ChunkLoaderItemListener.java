@@ -1,0 +1,151 @@
+package com.ultimateimprovements.mechanics.features.world;
+
+import com.ultimateimprovements.structure.StructureChunkTracker;
+import com.ultimateimprovements.structure.StructureMarker;
+import com.ultimateimprovements.util.ConsoleLogger;
+import com.ultimateimprovements.util.LocationUtil;
+import com.ultimateimprovements.util.MessageUtil;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
+
+import java.util.UUID;
+
+/**
+ * Listener for:
+ * <ul>
+ *   <li>Placing a chunk loader (emerald block with PDC) — creates a StructureMarker</li>
+ *   <li>Breaking a chunk loader — removes the StructureMarker</li>
+ * </ul>
+ * The exp-split bottle (/ui expsplit) is handled by
+ * {@link com.ultimateimprovements.mechanics.features.items.ExpSplitBottleListener}.
+ */
+public class ChunkLoaderItemListener implements Listener {
+
+    private static final NamespacedKey CHUNK_LOADER_KEY = new NamespacedKey("ui", "is_chunk_loader");
+
+    // =========================
+    // CHUNK LOADER PLACE
+    // =========================
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent e) {
+        Player player = e.getPlayer();
+        ItemStack item = e.getItemInHand();
+
+        if (e.getBlock().getType() != Material.EMERALD_BLOCK) return;
+
+        // Check if the placed item is a chunk loader
+        if (!isChunkLoaderItem(item)) return;
+
+        Location loc = LocationUtil.normalize(e.getBlock().getLocation());
+        if (loc == null || loc.getWorld() == null) return;
+
+        // Don't place if there's already a structure here
+        if (StructureMarker.existsAt(loc)) {
+            player.sendMessage(MessageUtil.parse("<red>❌ Здесь уже есть структура!</red>"));
+            e.setCancelled(true);
+            return;
+        }
+
+        // Create StructureMarker with type "chunkloader"
+        UUID structureId = UUID.randomUUID();
+        StructureMarker.place(loc, "chunkloader", structureId);
+
+        player.sendMessage(MessageUtil.parse(
+                "<green>✔</green> <white>Chunkloader placed! Chunk</white> <gold>("
+                        + (loc.getBlockX() >> 4) + ", " + (loc.getBlockZ() >> 4)
+                        + ")</gold> <white>now always loaded.</white>"));
+
+        ConsoleLogger.info("[ChunkLoader] Placed at " + loc.getWorld().getName()
+                + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ()
+                + " by " + player.getName());
+    }
+
+    // =========================
+    // CHUNK LOADER BREAK
+    // =========================
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockBreak(BlockBreakEvent e) {
+        Location loc = LocationUtil.normalize(e.getBlock().getLocation());
+        if (loc == null || loc.getWorld() == null) return;
+
+        // Check if this position has a chunkloader structure
+        StructureMarker.StructureData data = StructureMarker.getAt(loc);
+        if (data == null || !"chunkloader".equals(data.type())) return;
+
+        Player breaker = e.getPlayer();
+
+        // Remove the marker (this also rebuilds StructureChunkTracker)
+        StructureMarker.removeAt(loc);
+
+        // Remove plugin chunk ticket for this chunk
+        World world = loc.getWorld();
+        int cx = loc.getBlockX() >> 4;
+        int cz = loc.getBlockZ() >> 4;
+        world.removePluginChunkTicket(cx, cz, com.ultimateimprovements.core.Main.getInstance());
+
+        e.setDropItems(false);
+
+        // Drop the chunk loader item
+        ItemStack drop = createChunkLoaderItem();
+        world.dropItemNaturally(loc, drop);
+
+        breaker.sendMessage(MessageUtil.parse(
+                "<yellow>⚠</yellow> <white>Chunkloader broken! Chunk</white> <gold>(" + cx + ", " + cz
+                        + ")</gold> <white>no more loaded.</white>"));
+
+        ConsoleLogger.info("[ChunkLoader] Broken at " + loc.getWorld().getName()
+                + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ()
+                + " by " + breaker.getName());
+    }
+
+    // =========================
+    // UTILITY
+    // =========================
+
+    /**
+     * Checks whether the item is a chunk loader (emerald block with PDC).
+     */
+    public static boolean isChunkLoaderItem(ItemStack item) {
+        if (item == null || item.getType() != Material.EMERALD_BLOCK) return false;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return false;
+        return meta.getPersistentDataContainer().has(CHUNK_LOADER_KEY, PersistentDataType.BYTE);
+    }
+
+    /**
+     * Creates the chunk loader item.
+     */
+    public static ItemStack createChunkLoaderItem() {
+        ItemStack item = new ItemStack(Material.EMERALD_BLOCK);
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+
+        meta.displayName(MessageUtil.parse("<i:false><white>Chunkloader</white>"));
+        meta.lore(java.util.List.of(
+                MessageUtil.parse("<i:false><gray>Keeps the chunk loaded when placed</gray>"),
+                MessageUtil.parse("<i:false><gray>Break to get the item back</gray>")
+        ));
+        meta.getPersistentDataContainer().set(CHUNK_LOADER_KEY, PersistentDataType.BYTE, (byte) 1);
+        item.setItemMeta(meta);
+
+        return item;
+    }
+
+    public static NamespacedKey getChunkLoaderKey() {
+        return CHUNK_LOADER_KEY;
+    }
+}

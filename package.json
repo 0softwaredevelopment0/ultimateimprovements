@@ -1,5 +1,5 @@
 {
-  "name": "ultimateimprovments",
+  "name": "ultimateimprovements",
   "version": "1.0.0",
   "description": "**A modular, feature-packed Minecraft plugin for Paper 26.2+ (Java 26)**",
   "main": "scan_cyrillic.js",
@@ -8,16 +8,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/0softwaredevelopment0/UltimateImprovments.git"
+    "url": "git+https://github.com/0softwaredevelopment0/UltimateImprovements.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/0softwaredevelopment0/UltimateImprovments/issues"
+    "url": "https://github.com/0softwaredevelopment0/UltimateImprovements/issues"
   },
-  "homepage": "https://github.com/0softwaredevelopment0/UltimateImprovments#readme",
+  "homepage": "https://github.com/0softwaredevelopment0/UltimateImprovements#readme",
   "dependencies": {
     "ssh2": "^1.17.0"
   }

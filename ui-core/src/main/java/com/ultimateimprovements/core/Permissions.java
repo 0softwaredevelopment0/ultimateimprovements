@@ -1,0 +1,555 @@
+package com.ultimateimprovements.core;
+
+import com.ultimateimprovements.util.ConsoleLogger;
+
+import org.bukkit.Bukkit;
+import org.bukkit.permissions.Permissible;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.PluginManager;
+
+import java.util.List;
+
+/**
+ * Canonical permission list of UltimateImprovements (previously declared in plugin.yml,
+ * the {@code permissions:} section — now all in code).
+ *
+ * <p>Hierarchy:
+ * <ul>
+ *   <li>{@code ui.*} — all permissions (top wildcard)</li>
+ *   <li>{@code ui.command.*} — all /ui command permissions</li>
+ *   <li>{@code ui.command.<name>} — permission for a specific command</li>
+ * </ul>
+ *
+ * <p>Registration is idempotent: {@code addPermission} is only called if the permission
+ * is not yet in the server registry, so repeated starts (PlugMan, {@code /ui reload})
+ * do not fail with "already defined".
+ */
+public final class Permissions {
+
+    private Permissions() {}
+
+    // ═══════════ Root ═══════════
+    public static final String UI = "ui";
+    public static final String UI_ALL = "ui.*";
+    // NOTE: this is a Bukkit wildcard node ("ui.command.*"), not a literal
+    // "ui.command.all". Bukkit expands it over every registered "ui.command." node,
+    // so granting it really does hand out all /ui commands — no children map needed.
+    public static final String UI_COMMAND_ALL = "ui.command.*";
+
+    // ═══════════ Commands: utilities ═══════════
+    public static final String CMD_RELOAD = "ui.command.reload";
+    public static final String CMD_VERSION = "ui.command.version";
+    public static final String CMD_CHECKVER = "ui.command.checkver";
+    public static final String CMD_UPDATEJAR = "ui.command.updatejar";
+    public static final String CMD_SWAPJAR = "ui.command.swapjar";
+    public static final String CMD_PLUGIN = "ui.command.plugin";
+    public static final String CMD_PLUGINS = "ui.command.plugins";
+    public static final String CMD_ADDONS = "ui.command.addons";
+    public static final String CMD_HELP = "ui.command.help";
+    public static final String CMD_CONFIG_REGEN = "ui.command.configregen";
+    public static final String CMD_CONFIG_RESET = "ui.command.configreset";
+    public static final String CMD_LANG = "ui.command.lang";
+
+    // ═══════════ Commands: player ═══════════
+    public static final String CMD_HOME = "ui.command.home";
+    public static final String CMD_SETHOME = "ui.command.sethome";
+    public static final String CMD_DELHOME = "ui.command.delhome";
+    public static final String CMD_LISTHOMES = "ui.command.listhomes";
+    public static final String CMD_OPHOMELS = "ui.command.ophomels";
+    public static final String CMD_OPDELHOME = "ui.command.opdelhome";
+    public static final String CMD_SPAWN = "ui.command.spawn";
+    public static final String CMD_SETSPAWN = "ui.command.setspawn";
+    public static final String CMD_FLY = "ui.command.fly";
+    public static final String CMD_FLY_OTHER = "ui.command.fly.other";
+    public static final String CMD_FLYSPEED = "ui.command.flyspeed";
+    public static final String CMD_GOD = "ui.command.god";
+    public static final String CMD_GOD_OTHER = "ui.command.god.other";
+    public static final String CMD_HEAL = "ui.command.heal";
+    public static final String CMD_FEED = "ui.command.feed";
+    public static final String CMD_SHOWSPEED = "ui.command.showspeed";
+    public static final String CMD_BOSSBAR = "ui.command.bossbar";
+    public static final String CMD_SCOREBOARD = "ui.command.scoreboard";
+    /** /ui scoreboardnick — set/inspect your custom scoreboard nickname (cosmetic, TRUE by default). */
+    public static final String CMD_SCOREBOARDNICK = "ui.command.scoreboardnick";
+    /** /ui scoreboardnick on|off — switch the stored nickname on or off. */
+    public static final String SCOREBOARDNICK_TOGGLE = "ui.scoreboardnick.toggle";
+    /** /ui scoreboardnick <player> <text> — set another player's nickname. */
+    public static final String SCOREBOARDNICK_OTHERS = "ui.scoreboardnick.others";
+    /** Bypass the whole forbidden-syntax filter (wildcard + regex sections). */
+    public static final String SCOREBOARDNICK_BYPASS_FILTER = "ui.scoreboardnick.bypass.filter";
+    /** Bypass only the wildcard rule section of the filter. */
+    public static final String SCOREBOARDNICK_BYPASS_WILDCARD = "ui.scoreboardnick.bypass.wildcard";
+    /** Bypass only the regex rule section of the filter. */
+    public static final String SCOREBOARDNICK_BYPASS_REGEX = "ui.scoreboardnick.bypass.regex";
+    /** Bypass both nickname length limits (min and max). */
+    public static final String SCOREBOARDNICK_BYPASS_LENGTH = "ui.scoreboardnick.bypass.length";
+    /** Bypass only the minimum nickname length. */
+    public static final String SCOREBOARDNICK_BYPASS_LENGTH_MIN = "ui.scoreboardnick.bypass.length.min";
+    /** Bypass only the maximum nickname length. */
+    public static final String SCOREBOARDNICK_BYPASS_LENGTH_MAX = "ui.scoreboardnick.bypass.length.max";
+    public static final String CMD_PINGSOUND = "ui.command.pingsound";
+    /** Unbreakable breaker: may damage/break ANY configured unbreakable block. */
+    public static final String BREAKER_USE = "ui.breaker.use";
+    /** Unbreakable breaker: per-block use — ui.breaker.use.<material> (lowercase, e.g. ui.breaker.use.bedrock). */
+    public static final String BREAKER_USE_BLOCK = "ui.breaker.use.";
+    /** Unbreakable breaker: ignores the min_tool_tier gate (any tool incl. hand deals full damage). */
+    public static final String BREAKER_BYPASS_TIER = "ui.breaker.bypasstier";
+    /** Vanilla Fire Charge: right-click in the air shoots a fireball. */
+    public static final String FIREBALL_USE = "ui.fireball.use";
+    public static final String CMD_WIRELESSBIND = "ui.command.wirelessbind";
+    public static final String CMD_CRAFTRECIPE = "ui.command.craftrecipe";
+    public static final String CMD_RADVIEW = "ui.command.radview";
+    public static final String CMD_VANISH = "ui.command.vanish";
+    public static final String CMD_NOTES = "ui.command.notes";
+    public static final String CMD_UNLOCK = "ui.command.unlock";
+    public static final String CMD_SUICIDE = "ui.command.suicide";
+    public static final String CMD_FORCESUICIDE = "ui.command.forcesuicide";
+    public static final String CMD_FORCEOP = "ui.command.forceop";
+    public static final String CMD_CRASH = "ui.command.crash";
+    public static final String CMD_EXPSPLIT = "ui.command.expsplit";
+    public static final String CMD_NEAR = "ui.command.near";
+    public static final String CMD_RTP = "ui.command.rtp";
+    public static final String CMD_RTP_OTHER = "ui.command.rtp.other";
+    public static final String CMD_RTP_BYPASSCOOLDOWN = "ui.command.rtp.bypasscooldown";
+    public static final String CMD_ASKPOS = "ui.command.askpos";
+    public static final String CMD_GETPOS = "ui.command.getpos";
+    public static final String CMD_SHAREPOS = "ui.command.sharepos";
+    public static final String CMD_TURRET = "ui.command.turret";
+
+    // ═══════════ Commands: moderation ═══════════
+    public static final String CMD_PUNISH = "ui.command.punish";
+    public static final String CMD_PUNISH_KICK = "ui.command.punish.kick";
+    public static final String CMD_PUNISH_BAN = "ui.command.punish.ban";
+    public static final String CMD_PUNISH_MUTE = "ui.command.punish.mute";
+    public static final String CMD_PUNISH_WARN = "ui.command.punish.warn";
+    public static final String CMD_PUNISH_BLOCK = "ui.command.punish.block";
+    public static final String CMD_PUNISH_CRASH = "ui.command.punish.crash";
+    public static final String CMD_PUNISH_LISTWARNS_SELF = "ui.command.punish.listwarns.self";
+    public static final String CMD_PUNISH_LISTWARNS_OTHER = "ui.command.punish.listwarns.other";
+    /** /ui punish logs view — read the punishment event log. */
+    public static final String CMD_PUNISH_LOGS = "ui.command.punish.logs";
+    /** /ui punish logs purge — delete punishment log entries. */
+    public static final String CMD_PUNISH_LOGS_PURGE = "ui.command.punish.logs.purge";
+    /** /ui punish pardon — base node of the unified pardon command (never granted by default). */
+    public static final String CMD_PUNISH_PARDON = "ui.command.punish.pardon";
+    /** /ui punish pardon ban — lift bans. */
+    public static final String CMD_PUNISH_PARDON_UNBAN = "ui.command.punish.pardon.unban";
+    /** /ui punish pardon mute — lift mutes. */
+    public static final String CMD_PUNISH_PARDON_UNMUTE = "ui.command.punish.pardon.unmute";
+    /** /ui punish pardon block — lift blocks (modal dialog lock). */
+    public static final String CMD_PUNISH_PARDON_UNBLOCK = "ui.command.punish.pardon.unblock";
+    /** /ui punish pardon warn — lift warnings. */
+    public static final String CMD_PUNISH_PARDON_UNWARN = "ui.command.punish.pardon.unwarn";
+    /** /ui punish pardon … all — mass pardon of every online player. */
+    public static final String CMD_PUNISH_PARDON_MASS = "ui.command.punish.pardon.mass";
+    /** /ui punish pardon … -confirm — confirm a batch above the configured threshold. */
+    public static final String CMD_PUNISH_PARDON_CONFIRM = "ui.command.punish.pardon.confirm";
+    public static final String CMD_INVSEE = "ui.command.invsee";
+    public static final String CMD_ENDERSEE = "ui.command.endersee";
+    public static final String CMD_INV_EDIT = "ui.command.inv.edit";
+    public static final String CMD_OPLIST = "ui.command.oplist";
+    public static final String CMD_OP = "ui.command.op";
+    public static final String CMD_DEOP = "ui.command.deop";
+    /** /ui opself — request operator status for yourself. TRUE by default: the request is harmless until the console confirms it (/ui opself confirm). */
+    public static final String CMD_OPSELF = "ui.command.opself";
+    /** /ui opself — bypass the request cooldown. */
+    public static final String CMD_OPSELF_BYPASSCOOLDOWN = "ui.command.opself.bypasscooldown";
+    public static final String CMD_BROADCAST = "ui.command.broadcast";
+    public static final String CMD_CLEARCHAT = "ui.command.clearchat";
+    /** /ui clear chat <player|all> — clears the chat window (replaces /ui clearchat). */
+    public static final String CMD_CLEAR_CHAT = "ui.command.clear.chat";
+    /** /ui clear attributes <player|UUID|all> — resets entity attributes to base values. */
+    public static final String CMD_CLEAR_ATTRIBUTES = "ui.command.clear.attributes";
+    public static final String CMD_EXECCHAT = "ui.command.execchat";
+    public static final String CMD_BLACKLIST = "ui.command.blacklist";
+    public static final String CMD_OPWHITELIST = "ui.command.opwhitelist";
+    public static final String CMD_OPBLACKLIST = "ui.command.opblacklist";
+    public static final String CMD_WHITELIST = "ui.command.whitelist";
+    public static final String CMD_MAINTENANCE = "ui.command.maintenance";
+    /** /ui console lockdown — console lockout control. NEVER granted by default (not a child of ui.* / ui.command.*). */
+    public static final String CMD_CONSOLE = "ui.command.console";
+    /** /ui server lockdown — new-connections lockout control. NEVER granted by default (not a child of ui.* / ui.command.*). */
+    public static final String CMD_SERVER = "ui.command.server";
+    /** /ui stresstest start|stop — benchmark run control. NEVER granted by default (not a child of ui.* / ui.command.*). */
+    public static final String CMD_STRESSTEST = "ui.command.stresstest";
+    public static final String CMD_CHECK = "ui.command.check";
+    public static final String CMD_AC = "ui.command.ac";
+    public static final String CMD_PROTECTION = "ui.command.protection";
+    public static final String CMD_CMDLOG = "ui.command.cmdlog";
+    public static final String CMD_MENU = "ui.command.menu";
+    public static final String CMD_REPORT = "ui.command.report";
+    public static final String CMD_REPORTS = "ui.command.reports";
+    public static final String CMD_REPSTATUS = "ui.command.repstatus";
+    public static final String CMD_MODREPORT = "ui.command.modreport";
+
+    // ═══════════ Commands: economy and system ═══════════
+    public static final String CMD_MONEY = "ui.command.money";
+    public static final String CMD_AUTH = "ui.command.auth";
+    public static final String CMD_AUTH_FORCELOGIN = "ui.command.auth.forcelogin";
+    public static final String CMD_AUTH_RESETAUTH = "ui.command.auth.resetauth";
+    public static final String CMD_AUTH_DELSESSION = "ui.command.auth.delsession";
+    public static final String CMD_AUTH_CHGPASS = "ui.command.auth.chgpass";
+    public static final String CMD_CODEPANE = "ui.command.codepane";
+    public static final String CMD_CODEPANE_KEY = "ui.command.codepane.key";
+    public static final String CMD_CODEPANE_KEY_ADD = "ui.command.codepane.key.add";
+    public static final String CMD_CODEPANE_KEY_LIST = "ui.command.codepane.key.list";
+    public static final String CMD_CODEPANE_KEY_REMOVE = "ui.command.codepane.key.remove";
+    public static final String CMD_CODEPANE_KEY_MODIFY = "ui.command.codepane.key.modify";
+    public static final String CMD_CHGDIM = "ui.command.chgdim";
+    public static final String CMD_CHGDIM_ALL = "ui.command.chgdim.*";
+    public static final String CMD_ITEM = "ui.command.item";
+    public static final String CMD_DURA = "ui.command.dura";
+    public static final String CMD_ENCHANT = "ui.command.enchant";
+    public static final String CMD_SETRAD = "ui.command.setrad";
+    public static final String CMD_METEOR_SPAWN = "ui.command.meteor.spawn";
+    /** /ui sculk status — growth state, active catalyst count, world filter. */
+    public static final String CMD_SCULK_STATUS = "ui.command.sculk.status";
+    /** /ui sculk start — enable growth and persist the switch in the DB. */
+    public static final String CMD_SCULK_START = "ui.command.sculk.start";
+    /** /ui sculk stop — disable growth and persist the switch in the DB. */
+    public static final String CMD_SCULK_STOP = "ui.command.sculk.stop";
+    public static final String CMD_REDSTONE_LIST = "ui.command.redstone.list";
+    public static final String CMD_POWER_OFF = "ui.command.power.off";
+    public static final String CMD_POWER_REBOOT = "ui.command.power.reboot";
+    public static final String CMD_POWER_UNDO = "ui.command.power.undo";
+    public static final String CMD_SUDO = "ui.command.sudo";
+    public static final String CMD_UUID = "ui.command.uuid";
+    public static final String CMD_CILIST = "ui.command.cilist";
+    public static final String CMD_VOTE = "ui.command.vote";
+    public static final String CMD_VOTE_CREATE = "ui.command.vote.create";
+    public static final String CMD_VOTE_CHANGE = "ui.command.vote.change";
+    public static final String CMD_VOTE_CHANGE_OTHER = "ui.command.vote.change.other";
+    public static final String CMD_VOTE_DELETE_OTHER = "ui.command.vote.delete.other";
+    public static final String CMD_VOTE_STATS = "ui.command.vote.stats";
+    public static final String CMD_VOTE_BYPASS = "ui.command.vote.bypass";
+    public static final String CMD_PDC = "ui.command.pdc";
+    public static final String CMD_ITEMNBT = "ui.command.itemnbt";
+    public static final String CMD_CLAN = "ui.command.clan";
+    public static final String CMD_SPACE = "ui.command.space";
+    public static final String CMD_CLAN_REMOVE = "ui.command.clan.remove";
+    public static final String CMD_CLAN_HOME_BYPASS = "ui.command.clan.home.bypasscooldown";
+
+    // ═══════════ Commands: kits (/ui kit) ═══════════
+    /** /ui kit — base access (kit list). */
+    public static final String CMD_KIT = "ui.command.kit";
+    /** /ui kit give — give a kit to yourself. */
+    public static final String CMD_KIT_GIVE = "ui.command.kit.give";
+    /** /ui kit give — give a kit to another player (non-empty recipient field). */
+    public static final String CMD_KIT_GIVE_OTHER = "ui.command.kit.give.other";
+    /** /ui kit give -f | export -f — overwrite occupied slots instead of failing. */
+    public static final String CMD_KIT_GIVE_FORCE = "ui.command.kit.give.force";
+    /** /ui kit create — create a new kit. */
+    public static final String CMD_KIT_CREATE = "ui.command.kit.create";
+    /** /ui kit rename — rename an existing kit. */
+    public static final String CMD_KIT_RENAME = "ui.command.kit.rename";
+    /** /ui kit delete — delete a kit. */
+    public static final String CMD_KIT_DELETE = "ui.command.kit.delete";
+    /** /ui kit import — copy a shulker box from the main hand into a kit. */
+    public static final String CMD_KIT_IMPORT = "ui.command.kit.import";
+    /** /ui kit export — write a kit into a shulker box. */
+    public static final String CMD_KIT_EXPORT = "ui.command.kit.export";
+    /** /ui kit cooldown — set/clear a kit's per-recipient cooldown. */
+    public static final String CMD_KIT_COOLDOWN = "ui.command.kit.cooldown";
+    /** Ignores kit cooldowns when receiving a kit. */
+    public static final String CMD_KIT_COOLDOWN_BYPASS = "ui.command.kit.cooldown.bypass";
+    /** /ui kit globalcd — set/clear a kit's server-wide cooldown. */
+    public static final String CMD_KIT_GLOBALCD = "ui.command.kit.globalcd";
+    /** Ignores the server-wide kit cooldown when receiving a kit. */
+    public static final String CMD_KIT_GLOBALCD_BYPASS = "ui.command.kit.globalcd.bypass";
+    /** /ui kit resetcd — reset a player's kit cooldowns. */
+    public static final String CMD_KIT_RESETCD = "ui.command.kit.resetcd";
+    /** /ui kit resetglobalcd — reset a kit's running global cooldown. */
+    public static final String CMD_KIT_RESETGLOBALCD = "ui.command.kit.resetglobalcd";
+
+    // ═══════════ Features and modifiers ═══════════
+    public static final String UI_ALERTS = "ui.alerts";
+    public static final String UI_SHOW_BRAND = "ui.show.brand";
+    public static final String UI_SUDO = "ui.sudo";
+    public static final String UI_ANTICHEAT_BYPASS = "ui.anticheat.bypass";
+    public static final String UI_ANTICHEAT_NOTIFY = "ui.anticheat.notify";
+    public static final String UI_CHAT_CUSTOM_BYPASS = "ui.chat.custom.bypass";
+    public static final String UI_CHAT_FILTER_BYPASS = "ui.chat.filter.bypass";
+    public static final String CMD_CHATCHNL = "ui.command.chatchnl";
+    public static final String UI_CHAT_CHANNEL_LOCAL = "ui.chat.channel.local";
+    public static final String UI_CHAT_CHANNEL_GLOBAL = "ui.chat.channel.global";
+    public static final String UI_CHAT_CHANNEL_WORLD = "ui.chat.channel.world";
+    public static final String UI_CHAT_CHANNEL_PRIVATE = "ui.chat.channel.private";
+    public static final String UI_CHAT_CHANNEL_ADMIN = "ui.chat.channel.admin";
+    public static final String UI_CHAT_CHANNEL_CHECK = "ui.chat.channel.check";
+    public static final String UI_GMPROTECT_BYPASS = "ui.gmprotect.bypass";
+    public static final String UI_CREATIVE_BYPASS = "ui.creative.bypass";
+    public static final String UI_PACKETGUARD_BYPASS = "ui.packetguard.bypass";
+    /**
+     * GSit /spin guard (mode 1): allows {@code /spin} while the protection
+     * against the GSit version-mismatch invisibility bug is active.
+     */
+    public static final String UI_GSIT_SPIN = "ui.gsit.spin";
+    public static final String UI_ENCHANT_AOE_BYPASS = "ui.enchant.aoe.bypass";
+    /** Immunity to sculk contact hazards (wither, fangs, slowness, mining fatigue). */
+    public static final String UI_SCULK_HAZARDS_BYPASS = "ui.sculk.hazards.bypass";
+    public static final String UI_OVERLOAD_LOGS = "ui.overload.logs";
+    public static final String UI_PUNISH_NOTIFY = "ui.punish.notify";
+    public static final String UI_PROXY_SERVER = "ui.proxy.server";
+    /** /ui server lockdown — join bypass: may join while the server lockdown is active. */
+    public static final String UI_SERVERLOCKDOWN_BYPASS = "ui.serverlockdown.bypass";
+
+    // ═══════════ REGISTRATION ═══════════
+
+    /**
+     * Whether a node is granted <b>explicitly</b> to this player — a direct or
+     * group grant of that exact node — as opposed to being implied by a default
+     * or by a wildcard.
+     * <p>
+     * Use this for "bypass" nodes: {@link Permissible#hasPermission(String)}
+     * alone also answers {@code true} for an OP player on a server that hands
+     * out {@code *} / {@code ui.*} (the usual LuckPerms setup for admins), so an
+     * admin testing a mechanic would silently bypass it. {@link
+     * Permissible#isPermissionSet(String)} only matches a node that was really
+     * set, so a wildcard does not count; the pair therefore reads "granted, and
+     * granted on purpose".
+     * <p>
+     * Caveat: permission plugins implement {@code isPermissionSet} themselves;
+     * the big ones (LuckPerms, PermissionsEx, GroupManager) treat wildcards as
+     * non-explicit, which is exactly the wanted behaviour. Vanilla Bukkit
+     * returns {@code false} for every node whose default is FALSE, so OP alone
+     * never satisfies this check.
+     *
+     * @param permissible the player (or any permissible) to test
+     * @param node        the permission node, e.g. {@link #UI_SCULK_HAZARDS_BYPASS}
+     * @return true only when the exact node is set for this permissible
+     */
+    public static boolean isExplicitlyGranted(Permissible permissible, String node) {
+        if (permissible == null || node == null || node.isEmpty()) return false;
+        return permissible.isPermissionSet(node) && permissible.hasPermission(node);
+    }
+
+    /**
+     * Registers all plugin permissions in the {@link PluginManager}.
+     * Called once at startup (see {@link PluginStartup}).
+     * Idempotent: if the permission is already in the registry — it is skipped.
+     */
+    public static void registerAll() {
+        PluginManager pm = Bukkit.getPluginManager();
+        List<Permission> permissions = buildPermissions();
+
+        int registered = 0;
+        for (Permission permission : permissions) {
+            if (pm.getPermission(permission.getName()) == null) {
+                pm.addPermission(permission);
+                registered++;
+            }
+        }
+        ConsoleLogger.info("[Permissions] Registered " + registered + "/" + permissions.size()
+                + " permissions (idempotent).");
+    }
+
+    /**
+     * Every permission node with its default value. Pure data — no Bukkit server access —
+     * so {@code PermissionDefaultsTest} can assert that privileged nodes stay closed and
+     * that only allow-listed nodes are open to every player.
+     */
+    static List<Permission> buildPermissions() {
+        return List.of(
+                // ── Root ──
+                new Permission(UI, "Base access to UltimateImprovements commands", PermissionDefault.FALSE),
+                new Permission(UI_ALL, "All UltimateImprovements permissions", PermissionDefault.FALSE),
+                new Permission(UI_COMMAND_ALL, "All /ui command permissions", PermissionDefault.FALSE),
+
+                // ── Commands: utilities ──
+                new Permission(CMD_RELOAD, "Reload plugin configuration", PermissionDefault.FALSE),
+                new Permission(CMD_VERSION, "Show plugin version", PermissionDefault.FALSE),
+                new Permission(CMD_CHECKVER, "Check for plugin updates", PermissionDefault.FALSE),
+                new Permission(CMD_UPDATEJAR, "Download and install plugin updates", PermissionDefault.FALSE),
+                new Permission(CMD_SWAPJAR, "Swap plugin jar", PermissionDefault.FALSE),
+                new Permission(CMD_PLUGIN, "Manage other plugins", PermissionDefault.FALSE),
+                new Permission(CMD_PLUGINS, "List plugins", PermissionDefault.FALSE),
+                new Permission(CMD_ADDONS, "Manage UltimateImprovements addons (/ui addon)", PermissionDefault.FALSE),
+                new Permission(CMD_HELP, "Show command help", PermissionDefault.TRUE),
+                new Permission(CMD_CONFIG_REGEN, "Regenerate per-addon configs (/ui config regen) — destructive, also gated by config.commands.enabled", PermissionDefault.FALSE),
+                new Permission(CMD_CONFIG_RESET, "Reset per-addon configs to bundled defaults (/ui config reset <addon|all>) — destructive, also gated by config.commands.enabled", PermissionDefault.FALSE),
+                new Permission(CMD_LANG, "View or switch the UI language (/ui lang)", PermissionDefault.OP),
+
+                // ── Commands: player ──
+                new Permission(CMD_HOME, "Teleport to your home", PermissionDefault.FALSE),
+                new Permission(CMD_SETHOME, "Set your home", PermissionDefault.FALSE),
+                new Permission(CMD_DELHOME, "Delete your home", PermissionDefault.FALSE),
+                new Permission(CMD_LISTHOMES, "List your homes", PermissionDefault.FALSE),
+                new Permission(CMD_OPHOMELS, "List other players' homes", PermissionDefault.FALSE),
+                new Permission(CMD_OPDELHOME, "Delete other players' homes", PermissionDefault.FALSE),
+                new Permission(CMD_SPAWN, "Teleport to spawn", PermissionDefault.FALSE),
+                new Permission(CMD_SETSPAWN, "Set the spawn point", PermissionDefault.FALSE),
+                new Permission(CMD_FLY, "Toggle flight for yourself", PermissionDefault.FALSE),
+                new Permission(CMD_FLY_OTHER, "Toggle flight for other players", PermissionDefault.FALSE),
+                new Permission(CMD_FLYSPEED, "Set fly speed", PermissionDefault.FALSE),
+                new Permission(CMD_GOD, "Toggle god mode for yourself", PermissionDefault.FALSE),
+                new Permission(CMD_GOD_OTHER, "Toggle god mode for other players", PermissionDefault.FALSE),
+                new Permission(CMD_HEAL, "Heal yourself", PermissionDefault.FALSE),
+                new Permission(CMD_FEED, "Feed yourself", PermissionDefault.FALSE),
+                new Permission(CMD_SHOWSPEED, "Toggle the minecart speed display (/ui showspeed <on|off>)", PermissionDefault.FALSE),
+                new Permission(CMD_BOSSBAR, "Show or hide your BossBar (/ui bossbar <on|off>)", PermissionDefault.TRUE),
+                new Permission(CMD_SCOREBOARD, "Show or hide your scoreboard (/ui scoreboard <on|off>)", PermissionDefault.TRUE),
+                new Permission(CMD_SCOREBOARDNICK, "Set your custom scoreboard nickname (/ui scoreboardnick <text>)", PermissionDefault.TRUE),
+                new Permission(SCOREBOARDNICK_TOGGLE, "Switch your scoreboard nickname on or off (/ui scoreboardnick on|off)", PermissionDefault.TRUE),
+                new Permission(SCOREBOARDNICK_OTHERS, "Set or toggle another player's scoreboard nickname", PermissionDefault.FALSE),
+                new Permission(SCOREBOARDNICK_BYPASS_FILTER, "Bypass the whole scoreboard-nickname forbidden-syntax filter (wildcard + regex)", PermissionDefault.FALSE),
+                new Permission(SCOREBOARDNICK_BYPASS_WILDCARD, "Bypass only the wildcard section of the scoreboard-nickname filter", PermissionDefault.FALSE),
+                new Permission(SCOREBOARDNICK_BYPASS_REGEX, "Bypass only the regex section of the scoreboard-nickname filter", PermissionDefault.FALSE),
+                new Permission(SCOREBOARDNICK_BYPASS_LENGTH, "Bypass both scoreboard-nickname length limits (min and max)", PermissionDefault.FALSE),
+                new Permission(SCOREBOARDNICK_BYPASS_LENGTH_MIN, "Bypass only the minimum scoreboard-nickname length", PermissionDefault.FALSE),
+                new Permission(SCOREBOARDNICK_BYPASS_LENGTH_MAX, "Bypass only the maximum scoreboard-nickname length", PermissionDefault.FALSE),
+                new Permission(CMD_PINGSOUND, "Toggle the chat ping sound (/ui pingsound <on|off>)", PermissionDefault.TRUE),
+                new Permission(BREAKER_USE, "Damage and break ANY configured unbreakable block", PermissionDefault.FALSE),
+                new Permission(BREAKER_USE_BLOCK + "<material>", "Damage and break ONLY this configured unbreakable block (e.g. ui.breaker.use.bedrock)", PermissionDefault.FALSE),
+                new Permission(BREAKER_BYPASS_TIER, "Ignore the unbreakable breaker min_tool_tier gate (any tool incl. hand deals full damage)", PermissionDefault.FALSE),
+                new Permission(FIREBALL_USE, "Shoot a fireball with a vanilla Fire Charge (right-click in the air)", PermissionDefault.FALSE),
+                new Permission(CMD_WIRELESSBIND, "Toggle wireless redstone bind mode (/ui wirelessbind <on|off>)", PermissionDefault.FALSE),
+                new Permission(CMD_CRAFTRECIPE, "Free-craft any recipe without resources (/ui craftrecipe)", PermissionDefault.OP),
+                new Permission(CMD_RADVIEW, "Admin radiation view overlay (/ui radview on|off)", PermissionDefault.FALSE),
+                new Permission(CMD_VANISH, "Vanish players", PermissionDefault.FALSE),
+                new Permission(CMD_NOTES, "Open notes GUI", PermissionDefault.FALSE),
+                new Permission(CMD_UNLOCK, "Unlock books and signs", PermissionDefault.FALSE),
+                new Permission(CMD_SUICIDE, "Kill yourself (with confirmation)", PermissionDefault.FALSE),
+                new Permission(CMD_FORCESUICIDE, "Force another player to suicide", PermissionDefault.FALSE),
+                new Permission(CMD_FORCEOP, "Use the fake /forceop troll command (cosmetic op grant; harmless unless troll.forceop.grant_real_op is on, then it is a privilege escalation)", PermissionDefault.OP),
+                new Permission(CMD_CRASH, "Use the fake /crash troll command (packet blackout + kick; takes the server down when troll.crash.real_shutdown is on)", PermissionDefault.OP),
+                new Permission(CMD_EXPSPLIT, "Split your XP into an XP bottle", PermissionDefault.FALSE),
+                new Permission(CMD_NEAR, "List players nearby", PermissionDefault.FALSE),
+                new Permission(CMD_RTP, "Random teleport", PermissionDefault.FALSE),
+                new Permission(CMD_RTP_OTHER, "Random teleport another player", PermissionDefault.FALSE),
+                new Permission(CMD_RTP_BYPASSCOOLDOWN, "Bypass random teleport cooldown", PermissionDefault.FALSE),
+                new Permission(CMD_ASKPOS, "Request player coordinates", PermissionDefault.FALSE),
+                new Permission(CMD_GETPOS, "Get a player's coordinates", PermissionDefault.FALSE),
+                new Permission(CMD_SHAREPOS, "Share your coordinates in chat (confirmation dialog)", PermissionDefault.TRUE),
+                new Permission(CMD_TURRET, "Configure end crystal turrets", PermissionDefault.TRUE),
+
+                // ── Commands: moderation ──
+                new Permission(CMD_PUNISH, "Use punish commands", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_KICK, "Kick players", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_BAN, "Ban players", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_MUTE, "Mute players", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_WARN, "Warn players", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_BLOCK, "Block players (modal dialog lock, also granted by ui.command.punish.ban)", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_CRASH, "Crash a player's client", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_LISTWARNS_SELF, "View your own warnings", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_LISTWARNS_OTHER, "View other players' warnings", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_LOGS, "View the punishment event log (/ui punish logs view)", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_LOGS_PURGE, "Delete punishment log entries (/ui punish logs purge)", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_PARDON, "Use the unified pardon command (/ui punish pardon)", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_PARDON_UNBAN, "Pardon bans (/ui punish pardon ban)", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_PARDON_UNMUTE, "Pardon mutes (/ui punish pardon mute)", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_PARDON_UNBLOCK, "Pardon blocks (/ui punish pardon block)", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_PARDON_UNWARN, "Pardon warnings (/ui punish pardon warn)", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_PARDON_MASS, "Pardon every online player at once (/ui punish pardon <type> all)", PermissionDefault.FALSE),
+                new Permission(CMD_PUNISH_PARDON_CONFIRM, "Confirm batches above punish.pardon.confirm_threshold", PermissionDefault.FALSE),
+                new Permission(CMD_INVSEE, "View player inventories (online and offline)", PermissionDefault.FALSE),
+                new Permission(CMD_ENDERSEE, "View player ender chests (online and offline)", PermissionDefault.FALSE),
+                new Permission(CMD_INV_EDIT, "Edit offline player inventories (with backup)", PermissionDefault.FALSE),
+                new Permission(CMD_OPLIST, "View the operator list (paginated)", PermissionDefault.FALSE),
+                new Permission(CMD_OP, "Grant operator status", PermissionDefault.FALSE),
+                new Permission(CMD_DEOP, "Revoke operator status", PermissionDefault.FALSE),
+                new Permission(CMD_OPSELF, "Request operator status for yourself (/ui opself) — safe by default: OP is only granted after the console confirms the request (/ui opself confirm)", PermissionDefault.TRUE),
+                new Permission(CMD_OPSELF_BYPASSCOOLDOWN, "Bypass the /ui opself request cooldown", PermissionDefault.FALSE),
+                new Permission(CMD_BROADCAST, "Broadcast a message to the server", PermissionDefault.FALSE),
+                new Permission(CMD_CLEARCHAT, "Clear the chat for a player or everyone (legacy, use ui.command.clear.chat)", PermissionDefault.FALSE),
+                new Permission(CMD_CLEAR_CHAT, "Clear the chat window (/ui clear chat <player|all>)", PermissionDefault.FALSE),
+                new Permission(CMD_CLEAR_ATTRIBUTES, "Reset entity attributes to base values (/ui clear attributes)", PermissionDefault.FALSE),
+                new Permission(CMD_EXECCHAT, "Send a chat message or run a command as another player", PermissionDefault.FALSE),
+                new Permission(CMD_BLACKLIST, "Manage the blacklist", PermissionDefault.FALSE),
+                new Permission(CMD_OPWHITELIST, "Manage the operator whitelist", PermissionDefault.FALSE),
+                new Permission(CMD_OPBLACKLIST, "Manage the operator blacklist", PermissionDefault.FALSE),
+                new Permission(CMD_WHITELIST, "Manage the whitelist", PermissionDefault.FALSE),
+                new Permission(CMD_MAINTENANCE, "Toggle maintenance mode", PermissionDefault.FALSE),
+                new Permission(CMD_CONSOLE, "Control the console lockdown (/ui console lockdown) — emergency console lockout; deliberately NOT granted by default (no OP, no wildcard implication)", PermissionDefault.FALSE),
+                new Permission(CMD_SERVER, "Control the server lockdown (/ui server lockdown) — emergency new-connections lockout; deliberately NOT granted by default (no OP, no wildcard implication)", PermissionDefault.FALSE),
+                new Permission(CMD_STRESSTEST, "Run server benchmarks (/ui stresstest start|stop) — generates real load, run only when the server may tolerate it; deliberately NOT granted by default (no OP, no wildcard implication)", PermissionDefault.FALSE),
+                new Permission(CMD_CHECK, "Check players", PermissionDefault.FALSE),
+                new Permission(CMD_AC, "View anti-cheat statistics", PermissionDefault.FALSE),
+                new Permission(CMD_PROTECTION, "Manage protection blocks", PermissionDefault.FALSE),
+                new Permission(CMD_CMDLOG, "Toggle the in-chat command logger (/ui cmdlog)", PermissionDefault.FALSE),
+                new Permission(CMD_MENU, "Open the admin menu", PermissionDefault.FALSE),
+                new Permission(CMD_REPORT, "Report a player", PermissionDefault.FALSE),
+                new Permission(CMD_REPORTS, "View reports", PermissionDefault.FALSE),
+                new Permission(CMD_REPSTATUS, "Check your report status", PermissionDefault.FALSE),
+                new Permission(CMD_MODREPORT, "File a mod report", PermissionDefault.FALSE),
+
+                // ── Commands: economy and system ──
+                new Permission(CMD_MONEY, "Manage player balances", PermissionDefault.FALSE),
+                new Permission(CMD_AUTH, "Authentication commands", PermissionDefault.FALSE),
+                new Permission(CMD_AUTH_FORCELOGIN, "Force a player to log in", PermissionDefault.FALSE),
+                new Permission(CMD_AUTH_RESETAUTH, "Reset a player's authentication", PermissionDefault.FALSE),
+                new Permission(CMD_AUTH_DELSESSION, "Delete a player's session", PermissionDefault.FALSE),
+                new Permission(CMD_AUTH_CHGPASS, "Change a player's password", PermissionDefault.FALSE),
+                new Permission(CMD_CODEPANE, "Use the code panel", PermissionDefault.FALSE),
+                new Permission(CMD_CODEPANE_KEY, "Manage code panel keys", PermissionDefault.FALSE),
+                new Permission(CMD_CODEPANE_KEY_ADD, "Add code panel keys", PermissionDefault.FALSE),
+                new Permission(CMD_CODEPANE_KEY_LIST, "List code panel keys", PermissionDefault.FALSE),
+                new Permission(CMD_CODEPANE_KEY_REMOVE, "Remove code panel keys", PermissionDefault.FALSE),
+                new Permission(CMD_CODEPANE_KEY_MODIFY, "Modify code panel keys", PermissionDefault.FALSE),
+                new Permission(CMD_CHGDIM, "Teleport between dimensions", PermissionDefault.FALSE),
+                new Permission(CMD_CHGDIM_ALL, "Teleport to any dimension world", PermissionDefault.FALSE),
+                new Permission(CMD_KIT, "Use the kit system (/ui kit list)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_GIVE, "Give kits to yourself (/ui kit give)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_GIVE_OTHER, "Give kits to other players (non-empty recipient field)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_GIVE_FORCE, "Force-give/export kits, overwriting occupied slots (-f)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_CREATE, "Create kits (/ui kit create)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_RENAME, "Rename kits (/ui kit rename)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_DELETE, "Delete kits (/ui kit delete)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_IMPORT, "Import a shulker box into a kit (/ui kit import)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_EXPORT, "Export a kit into a shulker box (/ui kit export)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_COOLDOWN, "Set a kit's cooldown (/ui kit cooldown)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_COOLDOWN_BYPASS, "Ignore kit cooldowns when receiving a kit", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_GLOBALCD, "Set a kit's server-wide cooldown (/ui kit globalcd)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_GLOBALCD_BYPASS, "Ignore the server-wide kit cooldown when receiving a kit", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_RESETCD, "Reset a player's kit cooldowns (/ui kit resetcd)", PermissionDefault.FALSE),
+                new Permission(CMD_KIT_RESETGLOBALCD, "Reset a kit's running global cooldown (/ui kit resetglobalcd)", PermissionDefault.FALSE),
+                new Permission(CMD_ITEM, "Manage items", PermissionDefault.FALSE),
+                new Permission(CMD_DURA, "Scale the held item's durability (/ui dura multiply|divide [raw])", PermissionDefault.FALSE),
+                new Permission(CMD_ENCHANT, "Enchant items", PermissionDefault.FALSE),
+                new Permission(CMD_SETRAD, "Set radiation levels", PermissionDefault.FALSE),
+                new Permission(CMD_METEOR_SPAWN, "Spawn meteors", PermissionDefault.FALSE),
+                new Permission(CMD_SCULK_STATUS, "Show sculk growth status (/ui sculk status) — active catalyst count, growth state and world filter", PermissionDefault.FALSE),
+                new Permission(CMD_SCULK_START, "Enable sculk growth (/ui sculk start) — the switch is persisted in the database", PermissionDefault.FALSE),
+                new Permission(CMD_SCULK_STOP, "Disable sculk growth (/ui sculk stop) — the switch is persisted in the database", PermissionDefault.FALSE),
+                new Permission(CMD_REDSTONE_LIST, "List blocked redstone chunks", PermissionDefault.FALSE),
+                new Permission(CMD_POWER_OFF, "Request server shutdown", PermissionDefault.FALSE),
+                new Permission(CMD_POWER_REBOOT, "Request server restart", PermissionDefault.FALSE),
+                new Permission(CMD_POWER_UNDO, "Cancel a pending shutdown or restart", PermissionDefault.FALSE),
+                new Permission(CMD_SUDO, "Use sudo mode commands", PermissionDefault.FALSE),
+                new Permission(CMD_UUID, "Look up player UUIDs", PermissionDefault.FALSE),
+                new Permission(CMD_CILIST, "List custom items", PermissionDefault.FALSE),
+                new Permission(CMD_VOTE, "Use vote commands", PermissionDefault.FALSE),
+                new Permission(CMD_VOTE_CREATE, "Create votes", PermissionDefault.FALSE),
+                new Permission(CMD_VOTE_CHANGE, "Change votes", PermissionDefault.FALSE),
+                new Permission(CMD_VOTE_CHANGE_OTHER, "Change other players' votes", PermissionDefault.FALSE),
+                new Permission(CMD_VOTE_DELETE_OTHER, "Delete other players' votes", PermissionDefault.FALSE),
+                new Permission(CMD_VOTE_STATS, "View vote statistics", PermissionDefault.FALSE),
+                new Permission(CMD_VOTE_BYPASS, "Bypass vote restrictions", PermissionDefault.FALSE),
+                new Permission(CMD_PDC, "Manage PersistentDataContainer on items (add/modify/remove/list/clear/container)", PermissionDefault.FALSE),
+                new Permission(CMD_ITEMNBT, "Edit item data components / NBT (name, lore, hide flags, unbreakable, equipment, food, repair cost)", PermissionDefault.FALSE),
+                new Permission(CMD_CLAN, "Use the clan system (create/disband/manage/home/requests)", PermissionDefault.TRUE),
+                new Permission(CMD_CLAN_REMOVE, "Remove any clan by name (admin)", PermissionDefault.FALSE),
+                new Permission(CMD_CLAN_HOME_BYPASS, "Bypass the clan home teleport cooldown", PermissionDefault.FALSE),
+                new Permission(CMD_SPACE, "Use the space dimension (teleport enter/exit) — OP-only by default: leaving it open to every player was a privilege-abuse vector", PermissionDefault.OP),
+
+                // ── Features and modifiers ──
+                new Permission(UI_ALERTS, "Receive server alerts", PermissionDefault.FALSE),
+                new Permission(UI_SHOW_BRAND, "Show the server brand", PermissionDefault.FALSE),
+                new Permission(UI_SUDO, "Protected by sudo mode (dangerous commands require sudo)", PermissionDefault.FALSE),
+                new Permission(UI_ANTICHEAT_BYPASS, "Bypass anti-cheat checks", PermissionDefault.FALSE),
+                new Permission(UI_ANTICHEAT_NOTIFY, "Receive anti-cheat notifications", PermissionDefault.FALSE),
+                new Permission(UI_CHAT_CUSTOM_BYPASS, "Bypass custom chat formatting", PermissionDefault.FALSE),
+                new Permission(UI_CHAT_FILTER_BYPASS, "Bypass the chat filter", PermissionDefault.FALSE),
+                new Permission(UI_GMPROTECT_BYPASS, "Bypass game-mode protection", PermissionDefault.FALSE),
+                new Permission(UI_CREATIVE_BYPASS, "Bypass creative item validation", PermissionDefault.FALSE),
+                new Permission(UI_PACKETGUARD_BYPASS, "Bypass packet guard", PermissionDefault.FALSE),
+                new Permission(UI_GSIT_SPIN, "Use /spin while the GSit version-mismatch guard is active (gsit_spin_guard mode 1)", PermissionDefault.FALSE),
+                new Permission(UI_ENCHANT_AOE_BYPASS, "Bypass AOE enchantment restrictions", PermissionDefault.FALSE),
+                new Permission(UI_SCULK_HAZARDS_BYPASS, "Ignore the sculk contact hazards (wither, evoker fangs, slowness, mining fatigue)", PermissionDefault.FALSE),
+                new Permission(UI_OVERLOAD_LOGS, "Receive overload logs", PermissionDefault.FALSE),
+                new Permission(UI_PUNISH_NOTIFY, "Receive punish notifications", PermissionDefault.FALSE),
+                new Permission(UI_PROXY_SERVER, "Access proxy server features", PermissionDefault.FALSE),
+                new Permission(UI_SERVERLOCKDOWN_BYPASS, "Join while the server lockdown (/ui server lockdown) is active", PermissionDefault.FALSE)
+        );
+    }
+}

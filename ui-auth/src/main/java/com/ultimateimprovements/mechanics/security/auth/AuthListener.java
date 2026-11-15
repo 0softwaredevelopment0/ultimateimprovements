@@ -1,0 +1,298 @@
+package com.ultimateimprovements.mechanics.security.auth;
+
+import com.ultimateimprovements.core.Main;
+import com.ultimateimprovements.config.MessagesManager;
+import com.ultimateimprovements.util.MessageUtil;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.*;
+
+import java.util.UUID;
+
+/**
+ * Event listener for the authentication system.
+ * <p>
+ * Blocks actions of unauthenticated players. Login and registration happen
+ * exclusively through the auth dialog (Custom Screen) with a password field;
+ * before login only {@code /ui auth 2fa} and {@code /ui auth logout} are allowed.
+ */
+public class AuthListener implements Listener {
+
+    // =========================
+    // 🔒 PRE-LOGIN — duplicate name check BEFORE Minecraft kicks the original player
+    // AsyncPlayerPreLoginEvent fires EARLIER than the server decides to kick players
+    // Critical for offline-mode servers where same name = same UUID
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerPreLogin(AsyncPlayerPreLoginEvent event) {
+        if (!AuthConfig.isEnabled()) return;
+        if (!AuthConfig.isDupNameCheckEnabled()) return;
+
+        String newPlayerName = event.getName();
+        @SuppressWarnings("unused")
+        UUID newPlayerUuid = event.getUniqueId();
+
+        for (Player online : org.bukkit.Bukkit.getOnlinePlayers()) {
+            if (online.getName().equalsIgnoreCase(newPlayerName)) {
+                String dupMessage = AuthConfig.getMessage("duplicate_name_kick",
+                        "<yellow>❌ A player with this name is already on the server!</yellow>\n<white>Please join with a different name.</white>");
+                event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+                        MessageUtil.parse("<gold>✦ UltimateImprovements\n" +
+                                "<gray>━━━━━━━━━━━━━━━━━━━━━\n\n" +
+                                dupMessage + "\n\n" +
+                                "<gray>━━━━━━━━━━━━━━━━━━━━━")
+                );
+                return;
+            }
+        }
+    }
+
+    // =========================
+    // JOIN → start chat-based auth flow
+    // =========================
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (!AuthConfig.isEnabled()) return;
+        Player player = event.getPlayer();
+        AuthManager manager = AuthManager.getInstance();
+        if (manager != null) {
+            manager.handleJoin(player);
+        }
+    }
+
+    // =========================
+    // QUIT → cleanup
+    // =========================
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        UUID uuid = event.getPlayer().getUniqueId();
+        AuthManager manager = AuthManager.getInstance();
+        if (manager != null) {
+            manager.removePlayer(uuid);
+        }
+        // Restore pre-freeze state and clear savedStates to prevent stuck-frozen on
+        // reconnect (see AuthAuthenticator.handleQuit javadoc for the full bug chain).
+        AuthAuthenticator auth = AuthAuthenticator.getInstance();
+        if (auth != null) {
+            auth.handleQuit(event.getPlayer());
+        }
+        // Drop the dialog-prompt bookkeeping (throttle timestamps) for a clean rejoin.
+        AuthPrompt.removePlayer(uuid);
+        // Drop a pending GitHub 2FA challenge: the one-time state token would
+        // otherwise sit in stateToUuid until the 5-minute expiry.
+        Auth2FA twofa = Auth2FA.getInstance();
+        if (twofa != null) {
+            twofa.clearPending(uuid);
+        }
+    }
+
+    // =========================
+    // CHECK IF PLAYER NEEDS AUTH
+    // =========================
+    private boolean needsAuth(Player player) {
+        return AuthPlayerState.getInstance() != null && AuthPlayerState.getInstance().needsAuth(player);
+    }
+
+    /**
+     * Blocks an action of a not-yet-authorized player and re-sends the auth screen.
+     * The client owns the dialog: it closes it on submit and never reports the close,
+     * so without this the player can end up frozen with no window and no way to log in.
+     */
+    private void blockAndPrompt(org.bukkit.event.Cancellable event, Player player) {
+        event.setCancelled(true);
+        AuthPrompt.onBlockedAction(player);
+    }
+
+    // =========================
+    // BLOCK DAMAGE TO ENTITIES if not authed
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onEntityDamageByEntity(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player player)) return;
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    // =========================
+    // BLOCK BUCKET USE if not authed
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
+        Player player = event.getPlayer();
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlayerBucketFill(PlayerBucketFillEvent event) {
+        Player player = event.getPlayer();
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    // =========================
+    // BLOCK MOVEMENT if not authed
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        if (!needsAuth(player)) return;
+        if (event.getFrom().getBlockX() != event.getTo().getBlockX()
+                || event.getFrom().getBlockY() != event.getTo().getBlockY()
+                || event.getFrom().getBlockZ() != event.getTo().getBlockZ()) {
+            blockAndPrompt(event, player);
+        }
+    }
+
+    // =========================
+    // BLOCK INTERACT if not authed
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    // =========================
+    // BLOCK BREAK if not authed
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onBlockBreak(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    // =========================
+    // BLOCK PLACE if not authed
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onBlockPlace(BlockPlaceEvent event) {
+        Player player = event.getPlayer();
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    // =========================
+    // BLOCK CHAT / COMMANDS if not authed
+    // Before login only /ui auth 2fa and /ui auth logout are allowed: the password
+    // itself is entered in the auth dialog (Custom Screen), never in chat.
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
+        Player player = event.getPlayer();
+        if (!needsAuth(player)) return;
+
+        String msg = event.getMessage().toLowerCase(java.util.Locale.ROOT).trim();
+
+        // Before login exactly one auth command is allowed: {@code /ui auth} and
+        // {@code /ui auth login}. Both only re-open the auth dialog — passwords and
+        // every other action stay behind it.
+        if (msg.equals("/ui auth") || msg.equals("/ui auth login") || msg.startsWith("/ui auth login ")) {
+            return;
+        }
+
+        event.setCancelled(true);
+        // Not authorized → re-send the auth screen (throttled) and remind the player
+        // that a reconnect is the way out when the window never appears.
+        AuthPrompt.onBlockedAction(player);
+    }
+
+    // =========================
+    // BLOCK ITEM DROP if not authed
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        Player player = event.getPlayer();
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    // =========================
+    // BLOCK CHAT if not authed
+    //
+    // Chat is asynchronous, so the prompt (which talks to the client and may
+    // re-open the auth screen) is scheduled on the main thread.
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlayerChat(AsyncChatEvent event) {
+        Player player = event.getPlayer();
+        if (!needsAuth(player)) return;
+
+        event.setCancelled(true);
+        org.bukkit.Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+            if (player.isOnline()) {
+                AuthPrompt.onBlockedAction(player);
+            }
+        });
+    }
+
+    // =========================
+    // BLOCK ENTITY INTERACTION if not authed (item frames, villagers, boats, ...)
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onInteractEntity(PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    // =========================
+    // BLOCK ITEM PICKUP if not authed
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onItemPickup(EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    // =========================
+    // BLOCK CONSUMING ITEMS if not authed
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onItemConsume(PlayerItemConsumeEvent event) {
+        Player player = event.getPlayer();
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    // =========================
+    // BLOCK INVENTORY CLICKS if not authed
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    // =========================
+    // BLOCK INVENTORY OPENING if not authed
+    //
+    // Entity containers (chests in minecarts, entity-opened GUIs) do not necessarily
+    // go through PlayerInteractEvent; opening one before login would at least leak
+    // its contents even though clicks are already blocked.
+    // =========================
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onInventoryOpen(InventoryOpenEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) return;
+        if (!needsAuth(player)) return;
+        blockAndPrompt(event, player);
+    }
+
+    // =========================
+    // ⚠ DEPRECATED GUI HANDLERS REMOVED:
+    // The actual GUI auth logic is gone (chat-based auth).
+    // Players requiring auth are frozen, and ALL actions are blocked for them.
+    // =========================
+}

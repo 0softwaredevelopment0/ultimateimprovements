@@ -1,7 +1,7 @@
 name: UI-Shared
 version: '${project.version}'
 description: 'Shared utilities: structures, recipes, magnet, radiation, lightning'
-main: com.ultimateimprovments.shared.UIShared
+main: com.ultimateimprovements.shared.UIShared
 api-version: '26.3'
 author: rizer001
 dependencies:

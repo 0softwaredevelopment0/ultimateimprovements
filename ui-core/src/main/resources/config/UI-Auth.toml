@@ -196,8 +196,8 @@ not_initialized = "<red>❌ Система авторизации не иниц�
 [messages.auth.admin]
 # Default: <red>❌ Использование: </red><white>/ui auth login|2fa|logout|changepassword|forcelogin|resetauth|chgpass|delsession</white>
 usage = "<red>❌ Использование: </red><white>/ui auth login|2fa|logout|changepassword|forcelogin|resetauth|chgpass|delsession</white>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Сессия сброшена.</red>\n<gray>Вы вышли из аккаунта — при следующем входе введите пароль заново.</gray>
-kick_logout = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Сессия сброшена.</red>\n<gray>Вы вышли из аккаунта — при следующем входе введите пароль заново.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Сессия сброшена.</red>\n<gray>Вы вышли из аккаунта — при следующем входе введите пароль заново.</gray>
+kick_logout = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Сессия сброшена.</red>\n<gray>Вы вышли из аккаунта — при следующем входе введите пароль заново.</gray>"
 # Default: <red>❌ Ник игрока и новый пароль обязательны.</red>
 chgpass_dialog_fields = "<red>❌ Ник игрока и новый пароль обязательны.</red>"
 # Default: <red>❌ Игрок </red><yellow>%player%</yellow><red> не зарегистрирован!</red>
@@ -268,18 +268,18 @@ chgpass_success = "<green>✔</green> <white>Пароль игрока</white> <
 chgpass_session_reset = "<gray>Сессия сброшена — игроку нужно войти заново.</gray>"
 # Default: <red>❌ Не удалось сменить пароль игрока</red> <yellow>%player%</yellow>
 chgpass_fail = "<red>❌ Не удалось сменить пароль игрока</red> <yellow>%player%</yellow>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Ваша регистрация удалена администратором!</red>\n<gray>При следующем входе нужно зарегистрироваться заново.</gray>
-kick_resetauth = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Ваша регистрация удалена администратором!</red>\n<gray>При следующем входе нужно зарегистрироваться заново.</gray>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Ваша сессия сброшена администратором!</red>\n<gray>При следующем входе нужно снова ввести пароль.</gray>
-kick_delsession = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Ваша сессия сброшена администратором!</red>\n<gray>При следующем входе нужно снова ввести пароль.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Ваша регистрация удалена администратором!</red>\n<gray>При следующем входе нужно зарегистрироваться заново.</gray>
+kick_resetauth = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Ваша регистрация удалена администратором!</red>\n<gray>При следующем входе нужно зарегистрироваться заново.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Ваша сессия сброшена администратором!</red>\n<gray>При следующем входе нужно снова ввести пароль.</gray>
+kick_delsession = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Ваша сессия сброшена администратором!</red>\n<gray>При следующем входе нужно снова ввести пароль.</gray>"
 # Default: <red>⏱ Время входа истекло!</red>\n<gray>Вы не вошли за %seconds% секунд.</gray>
 kick_timeout = "<red>⏱ Время входа истекло!</red>\n<gray>Вы не вошли за %seconds% секунд.</gray>"
 # Default: <red>❌ Слишком много неверных попыток!</red>\n<gray>Вы ввели неверный пароль %attempts% раз.</gray>
 kick_too_many_attempts = "<red>❌ Слишком много неверных попыток!</red>\n<gray>Вы ввели неверный пароль %attempts% раз.</gray>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Авторизация временно недоступна.</red>\n<gray>База аккаунтов недоступна. Попробуйте позже или обратитесь к администратору.</gray>
-kick_storage_unavailable = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Авторизация временно недоступна.</red>\n<gray>База аккаунтов недоступна. Попробуйте позже или обратитесь к администратору.</gray>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n%details%\n\n
-kick_duplicate_name = "<yellow>✦</yellow> UltimateImprovments\n\n%details%\n\n"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Авторизация временно недоступна.</red>\n<gray>База аккаунтов недоступна. Попробуйте позже или обратитесь к администратору.</gray>
+kick_storage_unavailable = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Авторизация временно недоступна.</red>\n<gray>База аккаунтов недоступна. Попробуйте позже или обратитесь к администратору.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n%details%\n\n
+kick_duplicate_name = "<yellow>✦</yellow> UltimateImprovements\n\n%details%\n\n"
 
 # dialog section.
 # Placeholders: %account%, %url%
@@ -338,10 +338,10 @@ login_2fa_disabled = "<green>✅</green> <white>Вход выполнен (GitHu
 login_2fa_reset = "<green>✅</green> <white>Вход выполнен (2FA сброшена — GitHub не привязан).</white>"
 # Default: <red>❌ GitHub 2FA не настроена! Обратитесь к администратору.</red>
 not_configured = "<red>❌ GitHub 2FA не настроена! Обратитесь к администратору.</red>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Проверка 2FA временно недоступна.</red>\n<gray>База аккаунтов недоступна. Попробуйте позже.</gray>
-storage_error = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Проверка 2FA временно недоступна.</red>\n<gray>База аккаунтов недоступна. Попробуйте позже.</gray>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ 2FA включена, но GitHub-аккаунт не привязан.</red>\n<gray>Обратитесь к администратору, чтобы восстановить привязку.</gray>
-binding_missing = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ 2FA включена, но GitHub-аккаунт не привязан.</red>\n<gray>Обратитесь к администратору, чтобы восстановить привязку.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Проверка 2FA временно недоступна.</red>\n<gray>База аккаунтов недоступна. Попробуйте позже.</gray>
+storage_error = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Проверка 2FA временно недоступна.</red>\n<gray>База аккаунтов недоступна. Попробуйте позже.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ 2FA включена, но GitHub-аккаунт не привязан.</red>\n<gray>Обратитесь к администратору, чтобы восстановить привязку.</gray>
+binding_missing = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ 2FA включена, но GitHub-аккаунт не привязан.</red>\n<gray>Обратитесь к администратору, чтобы восстановить привязку.</gray>"
 # Default: <red>❌ Время 2FA истекло! Перезайдите, чтобы получить новое окно входа.</red>
 timeout = "<red>❌ Время 2FA истекло! Перезайдите, чтобы получить новое окно входа.</red>"
 # Default: <red>❌ Ошибка 2FA! Перезайдите, чтобы получить новое окно входа.</red>
@@ -560,7 +560,7 @@ not_initialized = "<red>❌ Authorization system is not initialized!</red>"
 # Default: <red>❌ Usage: </red><white>/ui auth 2fa|logout|forcelogin|resetauth|chgpass|delsession</white>
 usage = "<red>❌ Usage: </red><white>/ui auth 2fa|logout|forcelogin|resetauth|chgpass|delsession</white>"
 # Default: <green>✔</green> You have successfully logged out!\n<gray>On next login you will need to enter your password …
-kick_logout = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Session reset.</red>\n<gray>You logged out — enter your password again on the next login.</gray>"
+kick_logout = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Session reset.</red>\n<gray>You logged out — enter your password again on the next login.</gray>"
 # Default: <red>❌ Player nickname and new password are required.</red>
 chgpass_dialog_fields = "<red>❌ Player nickname and new password are required.</red>"
 # Default: <red>❌ Player </red><yellow>%player%</yellow><red> is not registered!</red>
@@ -636,20 +636,20 @@ chgpass_success = "<green>✔</green> <white>Password of player</white> <yellow>
 chgpass_session_reset = "<gray>Session reset — player must log in again.</gray>"
 # Default: <red>❌ Failed to change password of player</red> <yellow>%player%</yellow>
 chgpass_fail = "<red>❌ Failed to change password of player</red> <yellow>%player%</yellow>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Your registration has been deleted by an administrator!</red…
-kick_resetauth = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Your registration has been deleted by an administrator!</red>\n<gray>On next login you will need to register again.</gray>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Your session has been reset by an administrator!</red>\n<gra…
-kick_delsession = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Your session has been reset by an administrator!</red>\n<gray>On next login you will need to enter your password again.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Your registration has been deleted by an administrator!</red…
+kick_resetauth = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Your registration has been deleted by an administrator!</red>\n<gray>On next login you will need to register again.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Your session has been reset by an administrator!</red>\n<gra…
+kick_delsession = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Your session has been reset by an administrator!</red>\n<gray>On next login you will need to enter your password again.</gray>"
 # Timeout.
 # Default: <red>⏱ Login timeout!</red>\n<gray>You did not log in within %seconds% seconds.</gray>
 kick_timeout = "<red>⏱ Login timeout!</red>\n<gray>You did not log in within %seconds% seconds.</gray>"
 # Default: <red>❌ Too many incorrect attempts!</red>\n<gray>You entered the wrong password %attempts% times.</gray>
 kick_too_many_attempts = "<red>❌ Too many incorrect attempts!</red>\n<gray>You entered the wrong password %attempts% times.</gray>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Authorization is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later or contact an administrator.</gray>
-kick_storage_unavailable = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ Authorization is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later or contact an administrator.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Authorization is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later or contact an administrator.</gray>
+kick_storage_unavailable = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Authorization is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later or contact an administrator.</gray>"
 # Display name (MiniMessage).
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n%details%\n\n
-kick_duplicate_name = "<yellow>✦</yellow> UltimateImprovments\n\n%details%\n\n"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n%details%\n\n
+kick_duplicate_name = "<yellow>✦</yellow> UltimateImprovements\n\n%details%\n\n"
 
 # dialog section.
 # Placeholders: %account%, %url%
@@ -708,10 +708,10 @@ login_2fa_disabled = "<green>✅</green> <white>Logged in (GitHub 2FA is disable
 login_2fa_reset = "<green>✅</green> <white>Logged in (2FA reset — no GitHub account linked).</white>"
 # Default: <red>❌ GitHub 2FA is not configured! Contact an administrator.</red>
 not_configured = "<red>❌ GitHub 2FA is not configured! Contact an administrator.</red>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ 2FA verification is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later.</gray>
-storage_error = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ 2FA verification is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later.</gray>"
-# Default: <yellow>✦</yellow> UltimateImprovments\n\n<red>❌ 2FA is enabled but no GitHub account is linked.</red>\n<gray>Contact an administrator to restore the binding.</gray>
-binding_missing = "<yellow>✦</yellow> UltimateImprovments\n\n<red>❌ 2FA is enabled but no GitHub account is linked.</red>\n<gray>Contact an administrator to restore the binding.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ 2FA verification is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later.</gray>
+storage_error = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ 2FA verification is temporarily unavailable.</red>\n<gray>The account database is unreachable. Try again later.</gray>"
+# Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ 2FA is enabled but no GitHub account is linked.</red>\n<gray>Contact an administrator to restore the binding.</gray>
+binding_missing = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ 2FA is enabled but no GitHub account is linked.</red>\n<gray>Contact an administrator to restore the binding.</gray>"
 # Default: <red>❌ 2FA timeout! Reconnect to get a new login window.</red>
 timeout = "<red>❌ 2FA timeout! Reconnect to get a new login window.</red>"
 # Default: <red>❌ 2FA error! Reconnect to get a new login window.</red>

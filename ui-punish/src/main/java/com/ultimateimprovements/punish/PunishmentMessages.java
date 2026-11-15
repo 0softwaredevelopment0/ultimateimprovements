@@ -1,0 +1,317 @@
+package com.ultimateimprovements.punish;
+
+import com.ultimateimprovements.core.Main;
+import com.ultimateimprovements.util.MessageUtil;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.configuration.file.FileConfiguration;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * PunishmentMessages — configurable default punishment messages from config.yml.
+ * <p>
+ * Placeholders: {@code %player%}, {@code %punisher%}, {@code %reason%},
+ * {@code %duration%}, {@code %discord_url%}
+ * <p>
+ * For chat messages (mute/warn) the Discord link is rendered as a clickable component.
+ * For kick/ban messages the link is plain text (kick screen does not support click events).
+ */
+public final class PunishmentMessages {
+
+    private PunishmentMessages() {}
+
+    // =========================
+    // PLACEHOLDER CONSTANTS
+    // =========================
+    private static final String PLAYER     = "%player%";
+    private static final String PUNISHER   = "%punisher%";
+    private static final String REASON     = "%reason%";
+    private static final String DURATION   = "%duration%";
+    private static final String DISCORD    = "%discord_url%";
+
+    // =========================
+    // CONFIG PATHS
+    // =========================
+    private static String path(String key) {
+        String lang = getConfig().getString("messages.lang", "en");
+        String root = "en".equalsIgnoreCase(lang) ? "messages_en" : "messages";
+        return root + ".punishment." + key;
+    }
+
+    private static FileConfiguration getConfig() {
+        return Main.getInstance().getConfig();
+    }
+
+    /**
+     * Reads a punishment message from the config. Messages are stored as
+     * a YAML list of lines — joined into a single multi-line string with "\n".
+     */
+    private static String raw(String key) {
+        java.util.List<String> lines = getConfig().getStringList(path(key));
+        if (lines.isEmpty()) return "";
+        return String.join("\n", lines);
+    }
+
+    // =========================
+    // BAN (kick screen — no clickable links)
+    // =========================
+
+    /**
+     * Builds the kick-screen message for a banned player.
+     * Uses legacy serialization because the kick screen only supports legacy colors.
+     */
+    public static String buildBanKickMessage(String player, String punisher,
+                                              String reason, String duration,
+                                              String discordUrl) {
+        String msg = raw("ban")
+                .replace(PLAYER,   player)
+                .replace(PUNISHER, punisher)
+                .replace(REASON,   reason)
+                .replace(DURATION, duration)
+                .replace(DISCORD,  discordUrl);
+        return msg; // MiniMessage - callers render via MessageUtil.parse (Paper kick/disallow Component)
+    }
+
+    // =========================
+    // KICK (kick screen — no clickable links)
+    // =========================
+
+    public static String buildKickMessage(String player, String punisher,
+                                           String reason, String discordUrl) {
+        // MiniMessage — callers render it via MessageUtil.parse (Paper kick(Component)).
+        return raw("kick")
+                .replace(PLAYER,   player)
+                .replace(PUNISHER, punisher)
+                .replace(REASON,   reason)
+                .replace(DISCORD,  discordUrl);
+    }
+
+    // =========================
+    // MUTE (chat — clickable Discord link)
+    // =========================
+
+    public static Component buildMuteChatMessage(String punisher, String reason,
+                                                  String duration, String discordUrl) {
+        String msg = raw("mute")
+                .replace(PUNISHER, punisher)
+                .replace(REASON,   reason)
+                .replace(DURATION, duration)
+                .replace(DISCORD,  discordUrl);
+        return withClickableLink(msg, discordUrl);
+    }
+
+    // =========================
+    // WARN (chat — clickable Discord link)
+    // =========================
+
+    public static Component buildWarnChatMessage(String punisher, String reason,
+                                                  String duration, String discordUrl) {
+        String msg = raw("warn")
+                .replace(PUNISHER, punisher)
+                .replace(REASON,   reason)
+                .replace(DURATION, duration)
+                .replace(DISCORD,  discordUrl);
+        return withClickableLink(msg, discordUrl);
+    }
+
+    // =========================
+    // WHITELIST (kick screen)
+    // =========================
+
+    public static String buildWhitelistKickMessage(String player, String discordUrl) {
+        String msg = raw("whitelist")
+                .replace(PLAYER,  player)
+                .replace(DISCORD, discordUrl);
+        return msg; // MiniMessage - callers render via MessageUtil.parse (Paper kick/disallow Component)
+    }
+
+    // =========================
+    // BLACKLIST (kick screen)
+    // =========================
+
+    public static String buildBlacklistKickMessage(String player, String discordUrl) {
+        // MiniMessage — callers render it via MessageUtil.parse (Paper kick(Component)).
+        return raw("blacklist")
+                .replace(PLAYER,  player)
+                .replace(DISCORD, discordUrl);
+    }
+
+    // =========================
+    // TIMED WHITELIST/BLACKLIST (command feedback)
+    // =========================
+
+    /**
+     * Localized display name of an access list for the {@code %list%}
+     * placeholder. Keys: "whitelist", "blacklist", "opwhitelist", "opblacklist"
+     * (ru: вайтлист / блэклист / оп-вайтлист / оп-блэклист).
+     */
+    public static String listDisplayName(String listKey) {
+        boolean ru = "ru".equalsIgnoreCase(getConfig().getString("messages.lang", "en"));
+        return switch (listKey == null ? "" : listKey) {
+            case "whitelist" -> ru ? "вайтлист" : "whitelist";
+            case "blacklist" -> ru ? "блэклист" : "blacklist";
+            case "opwhitelist" -> ru ? "оп-вайтлист" : "OP whitelist";
+            case "opblacklist" -> ru ? "оп-блэклист" : "OP blacklist";
+            default -> listKey == null ? "" : listKey;
+        };
+    }
+
+    /**
+     * Builds a timed whitelist/blacklist feedback message from
+     * {@code messages[_en].punishment.timed.<key>} (a multiline MiniMessage list).
+     * Placeholders: {@code %player%}, {@code %duration%}, {@code %list%}.
+     */
+    public static Component buildTimedListMessage(String key, String listName,
+                                                   String player, String duration) {
+        String msg = raw("timed." + key)
+                .replace(PLAYER,   player == null ? "" : player)
+                .replace(DURATION, duration == null ? "" : duration)
+                .replace("%list%", listName == null ? "" : listName);
+        return MessageUtil.parse(msg);
+    }
+
+    // =========================
+    // BLOCK (modal dialog — one config list entry per dialog body line)
+    // =========================
+
+    /**
+     * Returns the block dialog body lines with all placeholders substituted.
+     * Each entry of {@code messages[_en].punishment.block} becomes one dialog line,
+     * so the multi-line block notice stays fully configurable.
+     */
+    public static List<String> buildBlockLines(String player, String punisher, String reason,
+                                                String duration, String discordUrl) {
+        List<String> lines = new ArrayList<>(getConfig().getStringList(path("block")));
+
+        // Safety net: a config written by an older version may have no "Time remaining"
+        // line yet (the block template gained it later, and the config repair only fills
+        // MISSING keys). Insert the standard line after the reason line so the dialog
+        // always shows the time — permanent renders as the red "Permanent" label.
+        boolean hasDuration = false;
+        for (String line : lines) {
+            if (line != null && line.contains(DURATION)) {
+                hasDuration = true;
+                break;
+            }
+        }
+        if (!hasDuration) {
+            int insertAt = lines.size();
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i);
+                if (line != null && line.contains(REASON)) {
+                    insertAt = i + 1;
+                    break;
+                }
+            }
+            lines.add(insertAt, "<gray>Time remaining <dark_gray>»</dark_gray> <white>%duration%</white>");
+        }
+
+        List<String> out = new ArrayList<>(lines.size());
+        for (String line : lines) {
+            out.add(line == null ? "" : line
+                    .replace(PLAYER,   player == null ? "" : player)
+                    .replace(PUNISHER, punisher == null ? "" : punisher)
+                    .replace(REASON,   reason == null ? "" : reason)
+                    .replace(DURATION, duration == null ? "" : duration)
+                    .replace(DISCORD,  discordUrl == null ? "" : discordUrl));
+        }
+        return out;
+    }
+
+    /** Dialog title of the block screen ({@code punishment.block_title}). */
+    public static String blockTitle() {
+        return scalar("block_title", "<red>⛔ Blocked</red>");
+    }
+
+    /** Dialog header (top label) of the block screen ({@code punishment.block_header}). */
+    public static String blockHeader() {
+        return scalar("block_header", "<dark_gray>Access restricted</dark_gray>");
+    }
+
+    /** Close button label of the block screen ({@code punishment.block_close}). */
+    public static String blockCloseButton() {
+        return scalar("block_close", "<red>✖ Close</red>");
+    }
+
+    /**
+     * Chat hint sent when the player presses Close / ESC while the block is still
+     * active. Placeholder: {@code %duration%} (time remaining).
+     */
+    public static Component buildBlockStillActive(String duration) {
+        String msg = raw("block_still_active");
+        if (msg.isEmpty()) {
+            msg = "<red>Your block has not expired yet! </red><gray>Time remaining: </gray><white>%duration%</white>";
+        }
+        return MessageUtil.parse(msg.replace(DURATION, duration == null ? "" : duration));
+    }
+
+    // =========================
+    // UTILITY
+    // =========================
+
+    /**
+     * Duration marker used by every punishment message ({@code %duration%}):
+     * the formatted remaining time, or the red “Permanent” label when the
+     * punishment never expires ({@code expiresAt == 0}).
+     *
+     * @param expiresAt expiration unixMillis (0 = permanent)
+     */
+    public static String durationLabel(long expiresAt) {
+        if (expiresAt == 0) return "<red>Permanent</red>";
+        long remaining = Math.max(0, expiresAt - System.currentTimeMillis());
+        return PunishmentManager.formatRemaining(remaining);
+    }
+
+    /** Reads a single-line punishment message, falling back to {@code def}. */
+    private static String scalar(String key, String def) {
+        List<String> lines = getConfig().getStringList(path(key));
+        if (!lines.isEmpty()) return String.join("\n", lines);
+        String single = getConfig().getString(path(key));
+        return single != null && !single.isEmpty() ? single : def;
+    }
+
+    /**
+     * Converts a miniMessage string to a Component, then makes the Discord URL
+     * in the last line a clickable {@code OPEN_URL} component.
+     */
+    private static Component withClickableLink(String msg, String discordUrl) {
+        Component component = MessageUtil.parse(msg);
+        if (discordUrl == null || discordUrl.isEmpty()) return component;
+
+        try {
+            URL url = java.net.URI.create(discordUrl).toURL();
+            return component.replaceText(config -> config
+                    .matchLiteral(discordUrl)
+                    .replacement(Component.text(discordUrl)
+                            .clickEvent(ClickEvent.openUrl(url))
+                            .hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                    Component.text("Click to open")))
+                            .color(NamedTextColor.WHITE)
+                    )
+            );
+        } catch (MalformedURLException e) {
+            // Invalid URL — return as plain text
+            return component;
+        }
+    }
+
+    /**
+     * Formats a remaining time in milliseconds as a compact string.
+     */
+    public static String formatTime(long remainingMs) {
+        return PunishmentManager.formatRemaining(remainingMs);
+    }
+
+    /**
+     * Returns the Discord appeal URL from the config.
+     */
+    public static String getDiscordUrl() {
+        return getConfig().getString(path("discord_url"), "https://dsc.gg/softwaredev");
+    }
+}

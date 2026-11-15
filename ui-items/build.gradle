@@ -28,9 +28,9 @@ tasks {
         archiveBaseName.set('UI-Items')
         archiveVersion.set(project.version.toString())
         configurations = [project.configurations.runtimeClasspath]
-        // Do not bundle sibling UltimateImprovments plugin JARs (UI-Core, ...).
+        // Do not bundle sibling UltimateImprovements plugin JARs (UI-Core, ...).
         dependencies {
-            exclude(dependency('com.ultimateimprovments:.*:.*'))
+            exclude(dependency('com.ultimateimprovements:.*:.*'))
         }
         exclude 'config.yml'
     }

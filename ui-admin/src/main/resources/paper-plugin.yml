@@ -1,7 +1,7 @@
 name: UI-Admin
 version: '${project.version}'
-description: UltimateImprovments — economy, op management and updater add-on
-main: com.ultimateimprovments.core.UIAdmin
+description: UltimateImprovements — economy, op management and updater add-on
+main: com.ultimateimprovements.core.UIAdmin
 api-version: '26.3'
 author: rizer001
 dependencies:

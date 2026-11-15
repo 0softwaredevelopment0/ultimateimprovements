@@ -1,4 +1,4 @@
-# UltimateImprovments — UI-Datapack configuration.
+# UltimateImprovements — UI-Datapack configuration.
 # This single file holds the addon's settings AND its messages (RU + EN).
 # Language: the global switch is messages.lang in UI-Core.toml ("en" or "ru").
 # The bundled datapack language has its own switch: datapack.lang below.
@@ -12,7 +12,7 @@
 
 # Bundled datapack: which custom content is enabled.
 # The pack is built from the JAR as a single zip
-# (plugins/UltimateImprovments/datapack/UI-Datapack-<lang>.zip) and registered by
+# (plugins/UltimateImprovements/datapack/UI-Datapack-<lang>.zip) and registered by
 # UI-Datapack's bootstrapper (Paper DATAPACK_DISCOVERY) BEFORE the worlds load and
 # auto-enabled on every start, so installing/updating the plugin no longer needs a
 # restart or /datapack enable. The zip is only rebuilt when its content changes

@@ -1,4 +1,4 @@
-# UltimateImprovments — UI-Other configuration.
+# UltimateImprovements — UI-Other configuration.
 # This single file holds the addon's settings AND its messages (RU + EN).
 # Language: the global switch is messages.lang in UI-Core.toml ("en" or "ru").
 # Every value can be edited; the file is re-read by /ui reload.
@@ -888,8 +888,8 @@ pitch = 0.0
 # Master switch (true = feature on).
 # Default: true
 enabled = true
-# Default: "<gradient:#00AAFF:#FF55FF>UltimateImprovments</gradient> <dark_gray>•</dark_gray> <white>…"
-line1 = "<gradient:#00AAFF:#FF55FF>UltimateImprovments</gradient> <dark_gray>•</dark_gray> <white>1.21.4</white>"
+# Default: "<gradient:#00AAFF:#FF55FF>UltimateImprovements</gradient> <dark_gray>•</dark_gray> <white>…"
+line1 = "<gradient:#00AAFF:#FF55FF>UltimateImprovements</gradient> <dark_gray>•</dark_gray> <white>1.21.4</white>"
 # Default: "<gray>✧ Welcome to the server! ✧</gray>"
 line2 = "<gray>✧ Welcome to the server! ✧</gray>"
 # Master switch (true = feature on).
@@ -901,8 +901,8 @@ icon_enabled = true
 # Master switch (true = feature on).
 # Default: false
 enabled = false
-# Default: ["<gradient:#00AAFF:#FF55FF>✧ UltimateImprovments ✧</gradient>", "<dark_gray>discord.gg/ultimateimprovments</dark_gray>"]
-lines = ["<gradient:#00AAFF:#FF55FF>✧ UltimateImprovments ✧</gradient>", "<dark_gray>discord.gg/ultimateimprovments</dark_gray>"]
+# Default: ["<gradient:#00AAFF:#FF55FF>✧ UltimateImprovements ✧</gradient>", "<dark_gray>discord.gg/ultimateimprovements</dark_gray>"]
+lines = ["<gradient:#00AAFF:#FF55FF>✧ UltimateImprovements ✧</gradient>", "<dark_gray>discord.gg/ultimateimprovements</dark_gray>"]
 
 # online counter section.
 [motd.online_counter]

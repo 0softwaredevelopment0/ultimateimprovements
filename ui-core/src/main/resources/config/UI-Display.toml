@@ -10,10 +10,10 @@ enabled = true
 update_interval_ticks = 20
 # Default: true
 hide_spectators = true
-# Default: ["<gradient:#00AAFF:#FF55FF>  ✦ UltimateImprovments ✦  </gradient>", "<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>"]
-header = ["<gradient:#00AAFF:#FF55FF>  ✦ UltimateImprovments ✦  </gradient>", "<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>"]
-# Default: ["<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>", "<gray>  Online: <white>%online%</white><gray>/%max_players%  •  TPS: <white>%tps%</white></gray>", "<gray>  Discord: <aqua>discord.gg/ultimateimprovments</aqua></gray>"]
-footer = ["<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>", "<gray>  Online: <white>%online%</white><gray>/%max_players%  •  TPS: <white>%tps%</white></gray>", "<gray>  Discord: <aqua>discord.gg/ultimateimprovments</aqua></gray>"]
+# Default: ["<gradient:#00AAFF:#FF55FF>  ✦ UltimateImprovements ✦  </gradient>", "<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>"]
+header = ["<gradient:#00AAFF:#FF55FF>  ✦ UltimateImprovements ✦  </gradient>", "<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>"]
+# Default: ["<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>", "<gray>  Online: <white>%online%</white><gray>/%max_players%  •  TPS: <white>%tps%</white></gray>", "<gray>  Discord: <aqua>discord.gg/ultimateimprovements</aqua></gray>"]
+footer = ["<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>", "<gray>  Online: <white>%online%</white><gray>/%max_players%  •  TPS: <white>%tps%</white></gray>", "<gray>  Discord: <aqua>discord.gg/ultimateimprovements</aqua></gray>"]
 
 # player list section.
 
@@ -56,10 +56,10 @@ update_interval_ticks = 20
 
 [scoreboard.boards.default]
 # Title text (MiniMessage).
-# Default: "<gradient:#00AAFF:#FF55FF>UltimateImprovments</gradient>"
-title = "<gradient:#00AAFF:#FF55FF>UltimateImprovments</gradient>"
-# Default: ["", "<gray>Online: <white>%online%</white><gray>/%max_players%</gray>", "<gray>TPS: <white>%tps%</white></gray>", "", "<gray>Your ping: <white>%player_ping%ms</white></gray>", "<gray>World: <white>%world_name%</white></gray>", "", "<dark_gray>discord.gg/ultimateimprovments</dark_gray>"]
-lines = ["", "<gray>Online: <white>%online%</white><gray>/%max_players%</gray>", "<gray>TPS: <white>%tps%</white></gray>", "", "<gray>Your ping: <white>%player_ping%ms</white></gray>", "<gray>World: <white>%world_name%</white></gray>", "", "<dark_gray>discord.gg/ultimateimprovments</dark_gray>"]
+# Default: "<gradient:#00AAFF:#FF55FF>UltimateImprovements</gradient>"
+title = "<gradient:#00AAFF:#FF55FF>UltimateImprovements</gradient>"
+# Default: ["", "<gray>Online: <white>%online%</white><gray>/%max_players%</gray>", "<gray>TPS: <white>%tps%</white></gray>", "", "<gray>Your ping: <white>%player_ping%ms</white></gray>", "<gray>World: <white>%world_name%</white></gray>", "", "<dark_gray>discord.gg/ultimateimprovements</dark_gray>"]
+lines = ["", "<gray>Online: <white>%online%</white><gray>/%max_players%</gray>", "<gray>TPS: <white>%tps%</white></gray>", "", "<gray>Your ping: <white>%player_ping%ms</white></gray>", "<gray>World: <white>%world_name%</white></gray>", "", "<dark_gray>discord.gg/ultimateimprovements</dark_gray>"]
 
 # condition section.
 
@@ -125,8 +125,8 @@ regex = []
 # Default: true
 enabled = true
 # Format string (MiniMessage).
-# Default: "<gradient:#00AAFF:#FF55FF>UltimateImprovments</gradient> <dark_gray>|</dark_gray> <gray>O…"
-format = "<gradient:#00AAFF:#FF55FF>UltimateImprovments</gradient> <dark_gray>|</dark_gray> <gray>Online: <white>%online%</white></gray>"
+# Default: "<gradient:#00AAFF:#FF55FF>UltimateImprovements</gradient> <dark_gray>|</dark_gray> <gray>O…"
+format = "<gradient:#00AAFF:#FF55FF>UltimateImprovements</gradient> <dark_gray>|</dark_gray> <gray>Online: <white>%online%</white></gray>"
 # Color.
 # Default: "YELLOW"
 color = "YELLOW"

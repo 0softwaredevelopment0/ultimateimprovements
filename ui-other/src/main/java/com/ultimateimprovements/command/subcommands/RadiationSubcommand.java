@@ -1,0 +1,40 @@
+package com.ultimateimprovements.command.subcommands;
+
+import com.ultimateimprovements.command.CommandErrors;
+
+import com.ultimateimprovements.mechanics.environment.radiation.RadiationManager;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.util.Locale;
+
+public final class RadiationSubcommand {
+
+    private RadiationSubcommand() {}
+
+    public static boolean execute(CommandSender sender, String[] args) {
+        String sub = args[0].toLowerCase(Locale.ROOT);
+
+        if (sub.equals("setrad")) {
+            if (sender instanceof Player p && !p.hasPermission("ui.command.setrad")) {
+                CommandErrors.noPermission(p, "ui.command.setrad"); return true;
+            }
+            if (args.length < 3) { sender.sendMessage(com.ultimateimprovements.util.MessageUtil.parse("<dark_red>❌ <red>Usage: <white>/ui setrad <gray><player> <value>")); return true; }
+            @SuppressWarnings("deprecation")
+            Player target = Bukkit.getPlayer(args[1]);
+            if (target == null) { sender.sendMessage(com.ultimateimprovements.util.MessageUtil.parse("<dark_red>❌ <red>Player <yellow>" + args[1] + "<red> is offline or not exist!")); return true; }
+            try {
+                double value = Double.parseDouble(args[2]);
+                if (value < 0 || !Double.isFinite(value)) { sender.sendMessage(com.ultimateimprovements.util.MessageUtil.parse("<dark_red>❌ <red>Radiation value must be a positive number!")); return true; }
+                RadiationManager.setRadiation(target, value);
+                double roentgen = value / 100.0;
+                sender.sendMessage(com.ultimateimprovements.util.MessageUtil.parse("<green>✔ <white>Player radiation <yellow>" + args[1] + "<white> was set to <yellow>" + args[2] + " <gray>(<white>" + String.format(Locale.US, "%.2f", roentgen) + " r/h<gray>)"));
+            } catch (NumberFormatException e) {
+                sender.sendMessage(com.ultimateimprovements.util.MessageUtil.parse("<dark_red>❌ <red>Incorrect value: <white>" + args[2]));
+            }
+            return true;
+        }
+        return false;
+    }
+}

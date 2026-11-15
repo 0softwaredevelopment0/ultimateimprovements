@@ -1,10 +1,10 @@
 # Main plugin data
-name: UltimateImprovments
-description: UltimateImprovments
+name: UltimateImprovements
+description: UltimateImprovements
 website: https://github.com/rizer001
 version: ${project.version}
 api-version: "26.2"
-main: com.ultimateimprovments.core.Main
+main: com.ultimateimprovements.core.Main
 author: rizer001
 load: STARTUP
 softdepend: [PlaceholderAPI, LuckPerms, Vault]

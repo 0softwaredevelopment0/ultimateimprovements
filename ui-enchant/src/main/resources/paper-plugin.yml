@@ -1,7 +1,7 @@
 name: UI-Enchant
 version: '${project.version}'
-description: UltimateImprovments — custom enchantments add-on
-main: com.ultimateimprovments.core.UIEnchant
+description: UltimateImprovements — custom enchantments add-on
+main: com.ultimateimprovements.core.UIEnchant
 api-version: '26.3'
 author: rizer001
 dependencies:

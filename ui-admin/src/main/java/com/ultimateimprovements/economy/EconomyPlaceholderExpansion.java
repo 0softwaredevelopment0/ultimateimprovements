@@ -1,0 +1,108 @@
+package com.ultimateimprovements.economy;
+
+import com.ultimateimprovements.util.ConsoleLogger;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.text.DecimalFormat;
+
+/**
+ * PlaceholderAPI expansion for the currency system.
+ * <p>
+ * Placeholders:
+ * <ul>
+ *   <li>{@code %ui_money%} — balance in the main currency</li>
+ *   <li>{@code %ui_money_<currency>%} — balance in the given currency</li>
+ *   <li>{@code %ui_money_formatted%} — formatted balance (with currency name)</li>
+ *   <li>{@code %ui_money_<currency>_formatted%} — formatted balance in the given currency</li>
+ *   <li>{@code %ui_default_balance%} — default amount a player joins with</li>
+ * </ul>
+ */
+public class EconomyPlaceholderExpansion extends PlaceholderExpansion {
+
+    private static final DecimalFormat FMT = new DecimalFormat("#,##0.##");
+
+    private final EconomyManager manager;
+
+    public EconomyPlaceholderExpansion() {
+        this.manager = EconomyManager.getInstance();
+    }
+
+    @Override
+    public @NotNull String getIdentifier() {
+        return "ui";
+    }
+
+    @Override
+    public @NotNull String getAuthor() {
+        return "rizer001";
+    }
+
+    @Override
+    public @NotNull String getVersion() {
+        return "1.0.0";
+    }
+
+    @Override
+    public boolean persist() {
+        return true; // don't unload on /reload
+    }
+
+    @Override
+    public boolean canRegister() {
+        return true;
+    }
+
+    @Override
+    public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
+        if (player == null) return "0";
+
+        String lower = params.toLowerCase();
+
+        // %ui_money%
+        if (lower.equals("money")) {
+            return FMT.format(manager.getBalance(player.getUniqueId()));
+        }
+
+        // %ui_money_formatted%
+        if (lower.equals("money_formatted")) {
+            double bal = manager.getBalance(player.getUniqueId());
+            return FMT.format(bal) + " " + (bal == 1 ? manager.getPrimaryCurrency() : manager.getPrimaryCurrency() + "s");
+        }
+
+        // %ui_money_<currency>% and %ui_money_<currency>_formatted%
+        if (lower.startsWith("money_")) {
+            String rest = lower.substring(6); // after "money_"
+
+            boolean formatted = false;
+            String currency;
+
+            if (rest.endsWith("_formatted")) {
+                formatted = true;
+                currency = rest.substring(0, rest.length() - 10); // remove "_formatted"
+            } else if (rest.equals("formatted")) {
+                formatted = true;
+                currency = "";
+            } else {
+                currency = rest;
+            }
+
+            if (currency.isEmpty()) currency = manager.getPrimaryCurrency();
+            double bal = manager.getBalance(player.getUniqueId(), currency);
+
+            if (formatted) {
+                return FMT.format(bal) + " " + currency;
+            }
+            return FMT.format(bal);
+        }
+
+        // %ui_default_balance%
+        if (lower.equals("default_balance")) {
+            return FMT.format(manager.getDefaultBalance());
+        }
+
+        return null;
+    }
+}

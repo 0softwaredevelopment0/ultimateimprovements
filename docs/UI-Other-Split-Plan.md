@@ -68,7 +68,7 @@
 
 - **Addon host**: `ui-core` (`Main` / `PluginStartup`). Each addon is a Paper plugin with
   `plugin.yml` → `addon-for: UI-Core`, `depend: [UI-Core, ...]`.
-- **Module system**: `ui-core` `com.ultimateimprovments.module.ModuleManager` +
+- **Module system**: `ui-core` `com.ultimateimprovements.module.ModuleManager` +
   `PluginModule`/`SimpleModule`; an addon registers modules in its own `onEnable()`.
 - **Config**: `CompositeConfig` routes every `get/set` by first path segment to the owning
   addon's `configs/UI-<Addon>.toml`; message groups routed by `messages[._en].<group>`.
@@ -79,11 +79,11 @@
   2. `AddonCatalog.route("UI-<Addon>", <rootKeys...>)`;
   3. `AddonCatalog.routeMsg("UI-<Addon>", <msgGroups...>)`;
   4. bundled fragment `ui-core/src/main/resources/config/UI-<Addon>.toml`.
-- **Commands**: `CommandScanner.autoRegister(registry, plugin, "com.ultimateimprovments.command.subcommands")`
+- **Commands**: `CommandScanner.autoRegister(registry, plugin, "com.ultimateimprovements.command.subcommands")`
   scans **the calling plugin's own JAR**. So subcommands can live in any addon as long as
   that addon's bootstrap calls autoRegister with the same package prefix (it will only see
   its own classes). `CommandRegistrar`/`CommandScanner` base stays in core/shared.
-- **Addon discovery/status**: `com.ultimateimprovments.addon.AddonRegistry`
+- **Addon discovery/status**: `com.ultimateimprovements.addon.AddonRegistry`
   (`reportModules`, `reportError`) — keep the `reportModuleStats` call per addon bootstrap.
 
 ## 3. Target addons (9)
@@ -139,7 +139,7 @@ These are used across the target boundaries. Hoist to `ui-core`/`ui-shared` firs
   `LegacySubCommandAdapter.of("enchant", EnchantSubcommand::execute, …)`. Phase 1 must
   move that registration into the UI-Enchant bootstrap (its own adapter) and drop it
   from `PluginReloadCommand`.
-  `CommandErrors` (`com.ultimateimprovments.command.CommandErrors`) already lives in
+  `CommandErrors` (`com.ultimateimprovements.command.CommandErrors`) already lives in
   **ui-core** — fine. `CommandScanner`/`CommandRegistrar`/`ClassScanner` still live in
   `ui-other/core`; hoist them to ui-core if addons should self-scan, otherwise register
   each addon's commands manually in its bootstrap (simpler, chosen for Phase 1).
@@ -186,6 +186,6 @@ These are used across the target boundaries. Hoist to `ui-core`/`ui-shared` firs
 - **No hard cross-addon deps** except on `UI-Core` (+ `UI-Shared`, `UI-Datapack` where
   needed). Shared types live in core/shared.
 - **Load order** in `AddonCatalog.catalog()` matters (core first; datapack before enchant).
-- **Data folder / DB**: shared `plugins/UltimateImprovments`, one DB — do not duplicate.
+- **Data folder / DB**: shared `plugins/UltimateImprovements`, one DB — do not duplicate.
 - **`getArmorContents()` copies** and similar pitfalls documented in the Vault still apply.
 - Rollback: each phase is its own commit; the pre-split state is tagged by git history.

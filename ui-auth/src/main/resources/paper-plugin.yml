@@ -1,7 +1,7 @@
 name: UI-Auth
 version: '${project.version}'
-description: UltimateImprovments — player authentication add-on
-main: com.ultimateimprovments.core.UIAuth
+description: UltimateImprovements — player authentication add-on
+main: com.ultimateimprovements.core.UIAuth
 api-version: '26.3'
 author: rizer001
 dependencies:

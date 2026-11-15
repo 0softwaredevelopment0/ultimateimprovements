@@ -1,7 +1,46 @@
 # Changelog
 
-All notable changes to the UltimateImprovments plugin family are documented
+All notable changes to the UltimateImprovements plugin family are documented
 in this file.
+
+## [1.8.6-alpha.1] - 2026-11-15
+
+The family is spelled correctly now: every `UltimateImprovments` identifier in
+the code, the documentation and the runtime is `UltimateImprovements`.
+
+### Changed
+- **Java package `com.ultimateimprovments` → `com.ultimateimprovements`.**
+  Every module (21 plugins, ~680 source files) moved to the new package, and
+  the Gradle `group` plus the root project name follow it. The rename is
+  mechanical — class names, imports and the plugin id/`ui:` namespaces are
+  untouched — so configs, permissions (`ui.*`) and item/PDC keys keep working.
+- **Shared data folder `plugins/UltimateImprovments` → `plugins/UltimateImprovements`.**
+  The DB, `configs/`, `logs/` and the loose files only change their parent
+  directory, so it is a plain rename. `UltimateDirs.migrateLegacyFolderName()`
+  performs it once on the first start: the old folder is renamed, or, if the
+  new one already exists empty, merged into it. When both hold data the legacy
+  folder is left untouched and a warning asks for a manual move — nothing is
+  ever overwritten. `UltimateDirs.LEGACY_DIR_NAME` keeps the old spelling for
+  this migration only.
+- **PlaceholderAPI identifier `%ultimateimprovments_...%` → `%ultimateimprovements_...%`.**
+  The expansion name (`UIPlaceholderExpansion#getIdentifier`), the Vault
+  economy name (`UltimateImprovements Economy`) and every user-facing string —
+  command output, kick screens, prefixes, item names and the bilingual config
+  defaults in `configs/UI-*.toml` — use the corrected spelling.
+- **Repository, docs and links.** README, GUIDE, CONTRIBUTING, the plan
+  documents, `package.json` and the `[README]`/release URLs point at
+  `0softwaredevelopment0/UltimateImprovements`; the release archive and the
+  JAR prefix stay `UI-*`.
+
+### Notes
+- Existing servers keep their data thanks to the folder migration, but two
+  things are manual: placeholders written into *other* plugins' configs
+  (`%ultimateimprovments_x%`) and the old messages already stored in
+  `plugins/UltimateImprovements/configs/*.toml` (values are user-owned, so the
+  repair pass never rewrites them).
+- The changelog, the plan documents and the past release links were rewritten
+  as well; the old spelling now survives only in `UltimateDirs.LEGACY_DIR_NAME`
+  (the migration above) and in this entry, which has to name it.
 
 ## [1.8.5-release.1] — since 1.8.5-beta.22 (2026-11-15)
 
@@ -167,7 +206,7 @@ Highlights of the line:
 
 ### Changed
 - **The bundled datapack is a single zip now, not a 243-file folder.**
-  `plugins/UltimateImprovments/datapack/` holds `UI-Datapack-<lang>.zip` (Paper
+  `plugins/UltimateImprovements/datapack/` holds `UI-Datapack-<lang>.zip` (Paper
   discovers a zip exactly like a folder via `FilePackResources`) instead of
   `UI-Datapack-<lang>/` with the whole tree. The archive is assembled **in memory**
   from the addon JAR — part toggles (`datapack.modules.*`) and per-achievement
@@ -238,7 +277,7 @@ Highlights of the line:
   warning is logged when the pack is off while tag-based enchantments are on.
 
 ### Runtime
-- New `com.ultimateimprovments.enchant.Enchantments` (ui-core): master/per-id
+- New `com.ultimateimprovements.enchant.Enchantments` (ui-core): master/per-id
   checks, per-enchantment typed getters and the `active_slots` parser used by the
   bootstrap; the module gate now prunes the effect engine of a disabled
   enchantment from the same source.
@@ -1840,7 +1879,7 @@ gravity/drag needs and dropping smoothly (no artificial velocity cut). Unchanged
   the `METER` tag word as `…multimeter.prefix` in `UI-Other.toml`).
 
 ### Added
-- **`MultimeterApi` (UI-Core, `com.ultimateimprovments.util`)** — the single shared entry
+- **`MultimeterApi` (UI-Core, `com.ultimateimprovements.util`)** — the single shared entry
   point of the tool:
   - `isMultimeter(ItemStack)` / `holdsMultimeter(Player)` — the PDC check that used to be
     duplicated in four places (generic reader, generator, CER, DFC listener);
@@ -2450,7 +2489,7 @@ gravity/drag needs and dropping smoothly (no artificial velocity cut). Unchanged
   names and descriptions are translated. The new `datapack.lang` key in
   `UI-Datapack.toml` (`"en"`, `"ru"` or `"auto"` — follows `messages.lang`)
   selects which variant the bootstrapper extracts into
-  `plugins/UltimateImprovments/datapack/` and registers before the worlds load;
+  `plugins/UltimateImprovements/datapack/` and registers before the worlds load;
   stale variants are deleted, so the pack is never registered twice. Switching
   the language requires a restart (pack discovery happens at startup), and the
   active variant is visible in `/datapack list` and the startup log.
@@ -3003,7 +3042,7 @@ gravity/drag needs and dropping smoothly (no artificial velocity cut). Unchanged
 - **`/ui update [tag]` — download a release into the update folder** — fetches
   a GitHub release (latest, or an explicit tag "1.8.4"/"v1.8.4"), downloads
   its `*-jars.tar` asset and extracts the family JARs into
-  `plugins/UltimateImprovments/update/`. Nothing is applied automatically;
+  `plugins/UltimateImprovements/update/`. Nothing is applied automatically;
   permission `ui.command.swapjar` (one workflow with `/ui swapjar`).
 - **Multi-reactor support completed (D.F.C)** — assembling a second reactor at
   a different location no longer fails with "The reactor is already active at
@@ -3023,7 +3062,7 @@ gravity/drag needs and dropping smoothly (no artificial velocity cut). Unchanged
 - **`/ui swapjar` is now the apply step of the update flow** — instead of the
   dead runtime hot-swap (Paper 26.3+ blocks runtime JAR registration) it
   moves the downloaded `UI-*.jar` files from
-  `plugins/UltimateImprovments/update/` into `plugins/` (deleting the old
+  `plugins/UltimateImprovements/update/` into `plugins/` (deleting the old
   JARs of the same artifacts first — a move, not a copy) and asks for a
   server restart. Artifacts whose old JARs are locked (Windows holds the
   open JAR handles of the running JVM) are reported and left in `update/`
@@ -3033,7 +3072,7 @@ gravity/drag needs and dropping smoothly (no artificial velocity cut). Unchanged
 ### Removed
 - **The legacy updater (`/ui checkver`, `/ui updatejar`, the startup update
   check)** — it queried the old repository layout (`rizer001` owner,
-  `build/libs/` Contents API, monolithic `UltimateImprovments-<ver>.jar`
+  `build/libs/` Contents API, monolithic `UltimateImprovements-<ver>.jar`
   names) and matched nothing since the multi-module release era. Replaced by
   `/ui update` + `/ui swapjar`. The module count drops 98 → 97
   (UpdateChecker module removed).
@@ -3287,7 +3326,7 @@ gravity/drag needs and dropping smoothly (no artificial velocity cut). Unchanged
   are unaffected.
 - **"Loaded successfully" alert per session** (ui-core): after a server
   start, every alerts holder (`ui.alerts` / OP) receives
-  `prefix + "UltimateImprovments loaded successfully!"` exactly once —
+  `prefix + "UltimateImprovements loaded successfully!"` exactly once —
   the first time they are present after startup (join listener +
   sweep of already-online players at enable). Later joins in the same
   session stay silent; the in-memory flag resets on server restart.
@@ -3442,7 +3481,7 @@ gravity/drag needs and dropping smoothly (no artificial velocity cut). Unchanged
   `RegistryAccess.getRegistry(RegistryKey)` for enchantments, banner patterns,
   trim materials/patterns, jukebox songs, instruments and sounds (the legacy
   `Registry.*` statics are deprecated for removal).
-- **Distribution archive** — `UltimateImprovments-1.8.3-alpha.6-jars.tar`.
+- **Distribution archive** — `UltimateImprovements-1.8.3-alpha.6-jars.tar`.
 
 ### Changed
 - **Distribution jars slimmed 16×: 298.5 MB → 18.6 MB.** The SQLite JDBC
@@ -3522,7 +3561,7 @@ gravity/drag needs and dropping smoothly (no artificial velocity cut). Unchanged
   only addon command, the README/GUIDE point to `/ui addon list`.
 - Standalone `CHANGELOG-1.8.3-beta.3.md` removed (superseded by this file).
 
-[1.8.3-alpha.6]: https://github.com/0softwaredevelopment0/UltimateImprovments/compare/1.8.3-alpha.5...1.8.3-alpha.6
-[1.8.3-alpha.7]: https://github.com/0softwaredevelopment0/UltimateImprovments/compare/1.8.3-alpha.6...1.8.3-alpha.7
-[1.8.3-beta.4]: https://github.com/0softwaredevelopment0/UltimateImprovments/compare/1.8.3-alpha.7...1.8.3-beta.4
-[1.8.3-beta.5]: https://github.com/0softwaredevelopment0/UltimateImprovments/compare/1.8.3-beta.4...1.8.3-beta.5
+[1.8.3-alpha.6]: https://github.com/0softwaredevelopment0/UltimateImprovements/compare/1.8.3-alpha.5...1.8.3-alpha.6
+[1.8.3-alpha.7]: https://github.com/0softwaredevelopment0/UltimateImprovements/compare/1.8.3-alpha.6...1.8.3-alpha.7
+[1.8.3-beta.4]: https://github.com/0softwaredevelopment0/UltimateImprovements/compare/1.8.3-alpha.7...1.8.3-beta.4
+[1.8.3-beta.5]: https://github.com/0softwaredevelopment0/UltimateImprovements/compare/1.8.3-beta.4...1.8.3-beta.5

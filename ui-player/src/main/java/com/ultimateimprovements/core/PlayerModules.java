@@ -1,0 +1,195 @@
+package com.ultimateimprovements.core;
+
+import com.ultimateimprovements.mechanics.features.player.AttributesManager;
+import com.ultimateimprovements.mechanics.features.player.ElytraWearManager;
+import com.ultimateimprovements.mechanics.features.player.LeashManager;
+import com.ultimateimprovements.mechanics.features.player.ModeProtectManager;
+import com.ultimateimprovements.mechanics.features.player.ShieldSlownessManager;
+import com.ultimateimprovements.mechanics.features.player.VanishManager;
+import com.ultimateimprovements.module.ModuleManager;
+import com.ultimateimprovements.module.PluginModule;
+import com.ultimateimprovements.module.SimpleModule;
+import com.ultimateimprovements.util.ConsoleLogger;
+import org.bukkit.plugin.java.JavaPlugin;
+
+/**
+ * PlayerModules — registration of the player addon's modules (armor/trim effects,
+ * attributes, vanish, elytra wear, leash, mode-protect, shield slowness,
+ * join-invulnerable). Moved out of ui-other's SimpleModules.
+ */
+public final class PlayerModules {
+
+    private PlayerModules() {}
+
+    public static void registerAll(ModuleManager mm) {
+        // ArmorEffects
+        mm.register(new SimpleModule("ArmorEffects", "mechanics/features/player/armor_effects", false) {
+            private Object task;
+
+            @Override
+            protected void onInit(JavaPlugin plugin) throws Exception {
+                com.ultimateimprovements.mechanics.features.player.ArmorEffectsManager.init();
+                plugin.getServer().getPluginManager().registerEvents(
+                        com.ultimateimprovements.mechanics.features.player.ArmorEffectsManager.getInstance(), plugin);
+                task = new com.ultimateimprovements.mechanics.features.player.ArmorEffectsTask()
+                        .runTaskTimer(plugin, 20L, 20L); // 1s heartbeat, manager owns unit intervals
+                ConsoleLogger.info("[ArmorEffects] Configurable potion effects for armor sets.");
+            }
+
+            @Override
+            protected void onDisable(JavaPlugin plugin) {
+                if (task instanceof org.bukkit.scheduler.BukkitTask bt) bt.cancel();
+                task = null;
+                if (com.ultimateimprovements.mechanics.features.player.ArmorEffectsManager.getInstance() != null) {
+                    org.bukkit.event.HandlerList.unregisterAll(
+                            com.ultimateimprovements.mechanics.features.player.ArmorEffectsManager.getInstance());
+                }
+                com.ultimateimprovements.mechanics.features.player.ArmorEffectsManager.shutdown();
+            }
+
+            @Override
+            protected void onReloadConfig(JavaPlugin plugin) {
+                com.ultimateimprovements.mechanics.features.player.ArmorEffectsManager.reloadConfig();
+            }
+        });
+
+        // ArmorTrimEffects
+        mm.register(new SimpleModule("ArmorTrimEffects", "mechanics/features/player/armor_trim_effects", false) {
+            private Object task;
+
+            @Override
+            protected void onInit(JavaPlugin plugin) throws Exception {
+                com.ultimateimprovements.mechanics.features.player.TrimEffectsManager.init();
+                plugin.getServer().getPluginManager().registerEvents(
+                        com.ultimateimprovements.mechanics.features.player.TrimEffectsManager.getInstance(), plugin);
+                task = new com.ultimateimprovements.mechanics.features.player.TrimEffectsTask()
+                        .runTaskTimer(plugin, 20L, 20L); // 1s heartbeat, manager owns unit intervals
+                ConsoleLogger.info("[ArmorTrimEffects] Configurable potion effects for armor TRIM materials.");
+            }
+
+            @Override
+            protected void onDisable(JavaPlugin plugin) {
+                if (task instanceof org.bukkit.scheduler.BukkitTask bt) bt.cancel();
+                task = null;
+                if (com.ultimateimprovements.mechanics.features.player.TrimEffectsManager.getInstance() != null) {
+                    org.bukkit.event.HandlerList.unregisterAll(
+                            com.ultimateimprovements.mechanics.features.player.TrimEffectsManager.getInstance());
+                }
+                com.ultimateimprovements.mechanics.features.player.TrimEffectsManager.shutdown();
+            }
+
+            @Override
+            protected void onReloadConfig(JavaPlugin plugin) {
+                com.ultimateimprovements.mechanics.features.player.TrimEffectsManager.reloadConfig();
+            }
+        });
+
+        // Attributes (config-driven scheduled grants: features.attributes.units.*)
+        mm.register(new SimpleModule("Attributes", "mechanics/features/attributes", false) {
+            @Override
+            protected void onInit(JavaPlugin plugin) throws Exception {
+                AttributesManager.init((Main) plugin);
+                // Immediate grant on join — no waiting for the first unit interval
+                plugin.getServer().getPluginManager().registerEvents(
+                        AttributesManager.getInstance(), plugin);
+            }
+
+            @Override
+            protected void onDisable(JavaPlugin plugin) {
+                AttributesManager manager = AttributesManager.getInstance();
+                if (manager != null) {
+                    org.bukkit.event.HandlerList.unregisterAll(manager);
+                }
+                AttributesManager.shutdown();
+            }
+
+            @Override
+            protected void onReloadConfig(JavaPlugin plugin) {
+                AttributesManager.reloadConfig();
+            }
+        });
+
+        // Join Invulnerable Reset (defensive immortal-player fix; disabled by default)
+        mm.register(new SimpleModule("JoinInvulnerableReset", "mechanics/features/join_invulnerable_reset", false) {
+            @Override
+            protected void onInit(JavaPlugin plugin) throws Exception {
+                com.ultimateimprovements.mechanics.features.player.JoinInvulnerableReset.init((Main) plugin);
+            }
+
+            @Override
+            protected void onReloadConfig(JavaPlugin plugin) {
+                com.ultimateimprovements.mechanics.features.player.JoinInvulnerableReset.reloadConfig();
+            }
+        });
+
+        // ModeProtect
+        mm.register(new SimpleModule("ModeProtect", "mechanics/features/mode_protect", false) {
+            @Override
+            protected void onInit(JavaPlugin plugin) throws Exception {
+                ModeProtectManager.init((Main) plugin);
+            }
+
+            @Override
+            protected void onReloadConfig(JavaPlugin plugin) {
+                ModeProtectManager.reloadConfig();
+            }
+        });
+
+        // ShieldSlowness
+        mm.register(new SimpleModule("ShieldSlowness", "mechanics/features/shield_slowness", false) {
+            @Override
+            protected void onInit(JavaPlugin plugin) throws Exception {
+                ShieldSlownessManager.init((Main) plugin);
+            }
+
+            @Override
+            protected void onReloadConfig(JavaPlugin plugin) {
+                ShieldSlownessManager.reloadConfig();
+            }
+        });
+
+        // Vanish
+        mm.register(new SimpleModule("Vanish", "mechanics/features/vanish", false) {
+            @Override
+            protected void onInit(JavaPlugin plugin) throws Exception {
+                VanishManager.init();
+            }
+
+            @Override
+            protected void onReloadConfig(JavaPlugin plugin) {
+                VanishManager.reloadConfig();
+            }
+        });
+
+        // Leash
+        mm.register(new PluginModule("Leash", "mechanics/features/leash", false) {
+            @Override
+            protected void onInit(JavaPlugin plugin) throws Exception {
+                LeashManager.init((Main) plugin);
+            }
+
+            @Override
+            protected void onDisable(JavaPlugin plugin) {
+                LeashManager.shutdown();
+            }
+
+            @Override
+            protected void onReloadConfig(JavaPlugin plugin) {
+                LeashManager.reloadConfig();
+            }
+        });
+
+        // ElytraWear — the elytra may tear down to a few durability points while gliding
+        mm.register(new SimpleModule("ElytraWear", "mechanics/features/elytra_wear", false) {
+            @Override
+            protected void onInit(JavaPlugin plugin) throws Exception {
+                ElytraWearManager.init((Main) plugin);
+            }
+
+            @Override
+            protected void onDisable(JavaPlugin plugin) {
+                ElytraWearManager.shutdown();
+            }
+        });
+    }
+}

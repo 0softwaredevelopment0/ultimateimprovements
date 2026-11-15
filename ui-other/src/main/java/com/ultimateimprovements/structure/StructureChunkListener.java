@@ -1,0 +1,81 @@
+package com.ultimateimprovements.structure;
+
+import com.ultimateimprovements.core.Main;
+import com.ultimateimprovements.energy.consumption.light.LightManager;
+import com.ultimateimprovements.energy.generation.basic.GeneratorManager;
+import com.ultimateimprovements.energy.storage.battery.BatteryManager;
+import com.ultimateimprovements.energy.transfer.cable.CableNetwork;
+import com.ultimateimprovements.mechanics.environment.lightning.LightningManager;
+import com.ultimateimprovements.mechanics.environment.magnet.MagnetManager;
+import com.ultimateimprovements.core.hooks.CoreHooks;
+
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.world.WorldLoadEvent;
+
+/**
+ * World-load listener — rebuilds managers from the {@link StructureMarker} cache.
+ * <p>
+ * Structure data lives in SQLite ({@link StructureMarker#loadFromDatabase()} at
+ * startup), so the cache is always complete and ChunkLoadEvent is not needed:
+ * manager rebuilds happen from the cache.
+ */
+public class StructureChunkListener implements Listener {
+
+    // ════════════════════════════════════════
+    // WORLD LOAD — when a new world loads, rebuild the managers
+    // ════════════════════════════════════════
+    @EventHandler
+    public void onWorldLoad(WorldLoadEvent e) {
+        rebuildAllManagers();
+
+        // A late world (Multiverse and friends) may finish loading its chunks
+        // after this event, and the managers deliberately skip structures whose
+        // chunks they cannot see (a partial view is never purged). Force-load
+        // the registered structure chunks, then rebuild once more.
+        Plugin plugin = Main.getInstance();
+        if (plugin == null) return;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            StructureChunkTracker.loadTrackedChunks();
+            rebuildAllManagers();
+        }, 100L);
+        Bukkit.getScheduler().runTaskLater(plugin, StructureChunkListener::rebuildAllManagers, 600L);
+    }
+
+    // ════════════════════════════════════════
+    // SCHEDULE DELAYED REBUILDS
+    // At server startup only the spawn chunks are loaded. Managers are rebuilt
+    // from the cache (already loaded from the DB), but the delayed passes cover
+    // late worlds (Multiverse etc.):
+    //    5 sec — most worlds
+    //   30 sec — chunks farther from spawn, multi-worlds
+    //  120 sec — very late worlds (Multiverse etc.)
+    // ════════════════════════════════════════
+    public static void scheduleDelayedRebuild(Plugin plugin) {
+        // 5 seconds
+        Bukkit.getScheduler().runTaskLater(plugin, () -> rebuildAllManagers(), 100L);
+
+        // 30 seconds
+        Bukkit.getScheduler().runTaskLater(plugin, () -> rebuildAllManagers(), 600L);
+
+        // 120 seconds
+        Bukkit.getScheduler().runTaskLater(plugin, () -> rebuildAllManagers(), 2400L);
+    }
+
+    // ════════════════════════════════════════
+    // REBUILD ALL MANAGERS
+    // Rebuilds all managers from the StructureMarker cache (populated from the DB).
+    // ════════════════════════════════════════
+    private static void rebuildAllManagers() {
+        CableNetwork.rebuildFromMarkers();
+        BatteryManager.rebuildFromMarkers();
+        LightManager.rebuildFromMarkers();
+        LightningManager.rebuildFromMarkers();
+        GeneratorManager.scanExistingGenerators();
+        CoreHooks.scanParticleAccelerators();
+        MagnetManager.rebuildFromMarkers();
+    }
+}

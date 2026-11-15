@@ -1,4 +1,4 @@
-# Contributing to Ultimate Improvments
+# Contributing to Ultimate Improvements
 
 Thanks for your interest in the project! Here's how you can get involved.
 
@@ -6,7 +6,7 @@ Thanks for your interest in the project! Here's how you can get involved.
 
 ## 💬 Questions & Support
 
-**If you have a question about configuration, commands, or how a feature works — please ask it in [Discussions](https://github.com/0softwaredevelopment0/UltimateImprovments/discussions).**
+**If you have a question about configuration, commands, or how a feature works — please ask it in [Discussions](https://github.com/0softwaredevelopment0/UltimateImprovements/discussions).**
 
 Discussions are the preferred channel for:
 
@@ -21,7 +21,7 @@ Discussions are the preferred channel for:
 
 ## 🐛 Bug Reports
 
-Found a bug? Please [open an Issue](https://github.com/0softwaredevelopment0/UltimateImprovments/issues/new) with:
+Found a bug? Please [open an Issue](https://github.com/0softwaredevelopment0/UltimateImprovements/issues/new) with:
 
 - **Server version** (e.g. `Paper 26.3`)
 - **Plugin version** (e.g. `1.8.3-beta.4`)
@@ -32,7 +32,7 @@ Found a bug? Please [open an Issue](https://github.com/0softwaredevelopment0/Ult
 
 ## ✨ Feature Requests
 
-Have an idea? Open an [Issue](https://github.com/0softwaredevelopment0/UltimateImprovments/issues/new) with the label `enhancement` and describe:
+Have an idea? Open an [Issue](https://github.com/0softwaredevelopment0/UltimateImprovements/issues/new) with the label `enhancement` and describe:
 
 - What you'd like to see
 - Why it would be useful
@@ -61,7 +61,7 @@ Improvements to `GUIDE.md` or `README.md` are always appreciated. If you notice 
 ## 📁 Project Structure
 
 ```
-UltimateImprovments/
+UltimateImprovements/
 ├── ui-core/          Core module: commands, config, database, modules
 ├── ui-shared/        Shared utilities across modules
 ├── ui-chat/          Custom chat, pings, formats

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Packages the current UltimateImprovments module JARs into one distribution archive.
+# Packages the current UltimateImprovements module JARs into one distribution archive.
 #
 # Pipeline:
 #   1. ./gradlew distributeJars (skipped with --no-build)
-#   2. tar only UI-*-<version>-all.jar -> build/distribution/UltimateImprovments-<version>-jars.tar
+#   2. tar only UI-*-<version>-all.jar -> build/distribution/UltimateImprovements-<version>-jars.tar
 #
 # JARs are already compressed ZIP files, so the archive is intentionally not gzipped.
 #
@@ -46,7 +46,7 @@ fi
 
 STAGE="build/distribution"
 mkdir -p "$STAGE"
-TAR="$STAGE/UltimateImprovments-${VERSION}-jars.tar"
+TAR="$STAGE/UltimateImprovements-${VERSION}-jars.tar"
 
 echo "[package] Packaging ${#JARS[@]} JAR(s) for version $VERSION..."
 tar -cf "$TAR" -C build/libs "${JARS[@]}"

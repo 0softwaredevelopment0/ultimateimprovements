@@ -1,7 +1,7 @@
 name: UI-Chat
 version: '${project.version}'
-description: UltimateImprovments — Chat system (channels, pings, filter)
-main: com.ultimateimprovments.chat.UIChat
+description: UltimateImprovements — Chat system (channels, pings, filter)
+main: com.ultimateimprovements.chat.UIChat
 api-version: '26.3'
 author: rizer001
 dependencies:

@@ -1,0 +1,34 @@
+package com.ultimateimprovements.energy;
+
+import com.ultimateimprovements.energy.transfer.cable.EnergyFlow;
+import com.ultimateimprovements.mbs.api.MbsEnergy;
+import org.bukkit.Location;
+
+/**
+ * UI-Energy's implementation of the {@link MbsEnergy.Consumer} bridge.
+ * <p>
+ * Registered by {@link UIEnergy} at startup so UI-MBS structure mechanics
+ * (lightning cooking) can consume energy from the cable/battery network
+ * without UI-MBS depending on UI-Energy.
+ * <p>
+ * Goes through {@link EnergyFlow}: the network behind the machine block is
+ * traversed (before the rework only a directly adjacent battery qualified,
+ * a plain cable next to the machine meant "no energy"), battery modes are
+ * respected, and the check-then-take pattern guarantees a low network never
+ * loses partial energy on a failed consume.
+ * <p>
+ * Wire losses: the raw-availability pre-check gates obviously dead networks;
+ * the pull itself delivers what the wires leave (1 ⚡ per network block) and
+ * the attempt is paid — a consume never re-rolls on a loss-shorted delivery
+ * (that would drain the sources twice for one operation).
+ */
+public class MbsEnergyBridge implements MbsEnergy.Consumer {
+
+    @Override
+    public boolean tryConsume(Location energyInputLoc, int amount) {
+        if (energyInputLoc == null || amount <= 0) return false;
+        if (!EnergyFlow.hasEnergy(energyInputLoc, amount)) return false;
+        EnergyFlow.pull(energyInputLoc, amount);
+        return true;
+    }
+}

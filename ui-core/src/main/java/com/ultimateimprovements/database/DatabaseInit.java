@@ -1,0 +1,1160 @@
+package com.ultimateimprovements.database;
+
+import com.ultimateimprovements.core.Main;
+import com.ultimateimprovements.util.ConsoleLogger;
+import java.sql.Connection;
+import java.sql.Statement;
+
+public class DatabaseInit {
+
+    public static void init() {
+
+        try (Connection con = DatabaseManager.getConnection();
+             Statement st = con.createStatement()) {
+
+            // Execute each CREATE TABLE/INDEX individually for consistency
+
+            // =========================
+            // ☢ PLAYER RADIATION
+            // =========================
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS player_radiation (
+                    uuid TEXT PRIMARY KEY,
+                    radiation REAL DEFAULT 0
+                );
+            """);
+
+            // Radiation is a smooth fractional value now — rebuild the table if
+            // the old INTEGER column is still there (data is preserved).
+            try (java.sql.Statement mig = con.createStatement();
+                 java.sql.ResultSet chk = mig.executeQuery(
+                     "SELECT type FROM pragma_table_info('player_radiation') WHERE name='radiation'")) {
+                if (chk.next() && "INTEGER".equalsIgnoreCase(chk.getString("type"))) {
+                    st.execute("CREATE TABLE player_radiation_new ("
+                        + "uuid TEXT PRIMARY KEY, radiation REAL DEFAULT 0)");
+                    st.execute("INSERT INTO player_radiation_new (uuid, radiation) "
+                        + "SELECT uuid, radiation FROM player_radiation");
+                    st.execute("DROP TABLE player_radiation");
+                    st.execute("ALTER TABLE player_radiation_new RENAME TO player_radiation");
+                }
+            } catch (Exception ignored) {
+                // Best-effort migration; type affinity tolerates both anyway
+            }
+
+            // =========================
+            // ⚛ REACTORS
+            // =========================
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS reactors (
+                    reactor_id TEXT PRIMARY KEY,
+                    world TEXT NOT NULL,
+                    x INTEGER NOT NULL,
+                    y INTEGER NOT NULL,
+                    z INTEGER NOT NULL,
+                    core_temp INTEGER DEFAULT 0,
+                    shield_press REAL DEFAULT 0,
+                    spin REAL DEFAULT 0,
+                    core_case_temp INTEGER DEFAULT 0,
+                    core_case_press INTEGER DEFAULT 0,
+                    core_case_int INTEGER DEFAULT 100,
+                    laser_started INTEGER DEFAULT 0,
+                    laser_p1 REAL DEFAULT 0,
+                    laser_p2 REAL DEFAULT 0,
+                    laser_stab REAL DEFAULT 0,
+                    laser_absorber REAL DEFAULT 0
+                );
+            """);
+
+            st.execute("""
+                CREATE INDEX IF NOT EXISTS idx_reactors_world
+                ON reactors(world);
+            """);
+
+            // =========================
+            // ⚛ REACTOR PANEL SIGNS — the control-panel DATA signs registered
+            // per reactor at assembly (cleared at disassembly). Only these
+            // signs demand the multimeter on click; every other sign of the
+            // structure (lamp labels, etc.) keeps its normal behavior.
+            // =========================
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS reactor_panel_signs (
+                    reactor_id TEXT NOT NULL,
+                    world TEXT NOT NULL,
+                    x INTEGER NOT NULL,
+                    y INTEGER NOT NULL,
+                    z INTEGER NOT NULL,
+                    PRIMARY KEY (world, x, y, z)
+                );
+            """);
+
+            st.execute("""
+                CREATE INDEX IF NOT EXISTS idx_reactor_panel_signs_reactor
+                ON reactor_panel_signs(reactor_id);
+            """);
+
+            // =========================
+            // ⚛ ENERGY GENERATED COLUMN MIGRATION (for old DBs)
+            // =========================
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN energy_generated INTEGER DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+
+            // =========================
+            // ⚡ ENERGY BUFFER COLUMN MIGRATION (for old DBs)
+            // The internal startup buffer charged through the case junctions
+            // (a startup requires the full buffer and consumes it).
+            // =========================
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN energy_buffer INTEGER DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+
+            // =========================
+            // ⚛ DFC T/P/S STATS COLUMN MIGRATIONS (for old DBs)
+            // shield_press — MPa (≈10.01 at the 10M C* working point)
+            // spin — core rotation, RPS (0.95x of the ten-million multiplier)
+            // =========================
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN shield_press REAL DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN spin REAL DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+
+            // =========================
+            // ⚛ DFC LASER COLUMNS MIGRATION (for old DBs)
+            // laser_started — startup latch (pulse on the Trigger Action lamp)
+            // laser_p1/p2 (0..100), laser_stab (0..200), laser_absorber (0..100)
+            // =========================
+            // =========================
+            // ⚛ DFC FUSION COLUMNS MIGRATION (for old DBs)
+            // fusion_particles — floating fusion particles in the core
+            // fusion_collected — collected-particles progress toward a debris
+            // =========================
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN case_broken INTEGER DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN case_temp INTEGER DEFAULT -273");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN case_press REAL DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN case_int INTEGER DEFAULT 100");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN fusion_particles REAL DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN fusion_collected REAL DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN laser_started INTEGER DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN structure_damaged INTEGER DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN laser_p1 REAL DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN laser_p2 REAL DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN laser_stab REAL DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            try {
+                st.execute("ALTER TABLE reactors ADD COLUMN laser_absorber REAL DEFAULT 0");
+            } catch (Exception ignored) {
+                // Column already exists — this is fine
+            }
+            // Shield / self-destruct / emergency latch — full state restore.
+            // Each column migrates independently: one try/catch around a batch
+            // stops on the FIRST existing column and leaves the rest missing
+            // (an old DB that already had laser_absorber threw on it, so
+            // shield_state etc. were never added -> "no column named
+            // shield_state" on every save).
+            String[][] reactorCols = {
+                {"shield_state", "TEXT DEFAULT 'OFFLINE'"},
+                {"shield_integrity", "REAL DEFAULT 0"},
+                {"shield_fail_countdown", "INTEGER DEFAULT 0"},
+                {"selfdestruct_phase", "TEXT DEFAULT 'NONE'"},
+                {"selfdestruct_ticks", "INTEGER DEFAULT 0"},
+                {"selfdestruct_done", "INTEGER DEFAULT 0"},
+                {"selfdestruct_cancelled", "INTEGER DEFAULT 0"},
+                {"core_emergency_stopped", "INTEGER DEFAULT 0"},
+                {"meltdown_phase", "TEXT DEFAULT 'NONE'"},
+                {"meltdown_ticks", "INTEGER DEFAULT 0"},
+                {"restab_chance", "REAL DEFAULT 0"},
+                {"stall_phase", "TEXT DEFAULT 'NONE'"},
+                {"stall_ticks", "INTEGER DEFAULT 0"},
+                {"stall_manual", "INTEGER DEFAULT 0"},
+                // No DEFAULT on purpose: existing rows must stay NULL so the
+                // load falls back to the legacy stall_manual flag
+                {"stall_trigger", "TEXT"},
+                {"core_offline", "INTEGER DEFAULT 0"},
+                {"startup_phase", "TEXT DEFAULT 'NONE'"},
+                {"startup_ticks", "INTEGER DEFAULT 0"},
+                // Dynamic lower temperature limit rolled from the build-site
+                // biome; -273 = legacy reactors built before the mechanic
+                {"temp_min", "INTEGER DEFAULT -273"},
+                // Natural cooling multiplier rolled from the build-site biome
+                // humidity; -1 = legacy reactors built before the mechanic
+                {"natural_cool_mult", "REAL DEFAULT -1"}
+            };
+            for (String[] col : reactorCols) {
+                try {
+                    st.execute("ALTER TABLE reactors ADD COLUMN " + col[0] + " " + col[1]);
+                } catch (Exception ignored) {
+                    // Column already exists — fine, try the next one
+                }
+            }
+
+        // =========================
+        // ⚛ NUCLEAR REACTORS — compact reactor (CER) thermal state.
+        // One row per anchor (world + block coordinates), so a world can host
+        // any number of reactors without collisions. Rows are written at
+        // assembly and flushed every 10s / on shutdown; a disassembled or
+        // detonated reactor deletes its row.
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS nuclear_reactors (
+                world TEXT NOT NULL,
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                z INTEGER NOT NULL,
+                temperature INTEGER DEFAULT 0,
+                temp_min INTEGER DEFAULT 0,
+                natural_cool_mult REAL DEFAULT -1,
+                cooling INTEGER DEFAULT 0,
+                cool_drain_seconds INTEGER DEFAULT 0,
+                cool_remainder REAL DEFAULT 0,
+                meltdown_seconds INTEGER DEFAULT 0,
+                fuel_ticks INTEGER DEFAULT 0,
+                damaged INTEGER DEFAULT 0,
+                PRIMARY KEY(world, x, y, z)
+            );
+        """);
+
+        // =========================
+        // 🌍 DIMENSION RETURNS
+            // =========================
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS dimension_returns (
+                    uuid TEXT PRIMARY KEY,
+                    world TEXT NOT NULL,
+                    x DOUBLE NOT NULL,
+                    y DOUBLE NOT NULL,
+                    z DOUBLE NOT NULL,
+                    yaw FLOAT DEFAULT 0,
+                    pitch FLOAT DEFAULT 0,
+                    has_return INTEGER DEFAULT 0
+                );
+            """);
+
+            // =========================
+            // 🔐 AUTH (register/login)
+            // =========================
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS auth (
+                    uuid TEXT PRIMARY KEY,
+                    password_hash TEXT NOT NULL,
+                    salt TEXT NOT NULL,
+                    ip_address TEXT DEFAULT ''
+                );
+            """);        // =========================
+        // ⚙ PLAYER SETTINGS (bossbar/scoreboard toggles)
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS player_settings (
+                uuid TEXT PRIMARY KEY,
+                bossbar_enabled INTEGER DEFAULT 1,
+                scoreboard_enabled INTEGER DEFAULT 1
+            );
+        """);
+
+        // =========================
+        // 📦 UI STATE — generic key/value store for in-memory user data
+        // that must survive a server restart (chat prefs, check state, etc.)
+        // Namespaced so multiple systems can share one table without collisions.
+        // =========================
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS ui_state (
+                    namespace TEXT NOT NULL,
+                    state_key TEXT NOT NULL,
+                    state_value TEXT NOT NULL,
+                    updated_at INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY(namespace, state_key)
+                );
+            """);
+
+            st.execute("""
+                CREATE INDEX IF NOT EXISTS idx_ui_state_namespace
+                ON ui_state(namespace);
+            """);
+
+        // =========================
+        // 🔎 ACTIVE CHECKS — anti-cheat checks that survive a server restart
+        // =========================
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS active_checks (
+                    inspector_uuid TEXT PRIMARY KEY,
+                    inspector_name TEXT NOT NULL DEFAULT '',
+                    suspect_uuid TEXT NOT NULL,
+                    suspect_name TEXT NOT NULL DEFAULT '',
+                    inspector_world TEXT NOT NULL DEFAULT '',
+                    inspector_x INTEGER NOT NULL DEFAULT 0,
+                    inspector_y INTEGER NOT NULL DEFAULT 0,
+                    inspector_z INTEGER NOT NULL DEFAULT 0,
+                    inspector_yaw FLOAT NOT NULL DEFAULT 0,
+                    inspector_pitch FLOAT NOT NULL DEFAULT 0,
+                    started_at INTEGER NOT NULL DEFAULT 0,
+                    suspect_state TEXT
+                );
+            """);
+
+            // Migration: suspect_state for checks created before this version.
+            try {
+                java.sql.ResultSet cols = con.createStatement().executeQuery(
+                        "PRAGMA table_info(active_checks)");
+                boolean hasState = false;
+                while (cols.next()) {
+                    if ("suspect_state".equalsIgnoreCase(cols.getString("name"))) {
+                        hasState = true;
+                        break;
+                    }
+                }
+                cols.close();
+                if (!hasState) {
+                    st.execute("ALTER TABLE active_checks ADD COLUMN suspect_state TEXT");
+                }
+            } catch (Exception e) {
+                ConsoleLogger.warn("[DB] active_checks suspect_state migration: " + e.getMessage());
+            }
+
+        // =========================
+        // 🔑 CODE PANEL KEYS
+        // =========================
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS code_panel_keys (
+                    key_name TEXT PRIMARY KEY,
+                    code TEXT NOT NULL,
+                    command TEXT NOT NULL DEFAULT '',
+                    max_attempts INTEGER DEFAULT -1,
+                    attempts_used INTEGER DEFAULT 0,
+                    expires_at INTEGER DEFAULT 0,
+                    whitelist TEXT DEFAULT '',
+                    blacklist TEXT DEFAULT ''
+                );
+            """);
+
+        // =========================
+        // 📝 NOTES
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS notes (
+                player_uuid TEXT NOT NULL,
+                slot_number INTEGER NOT NULL,
+                content TEXT NOT NULL DEFAULT '',
+                PRIMARY KEY (player_uuid, slot_number)
+            );
+        """);
+
+        // =========================
+        // 🏠 PLAYER HOMES
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS player_homes (
+                    uuid TEXT NOT NULL,
+                    home_name TEXT NOT NULL,
+                    world TEXT NOT NULL,
+                    x DOUBLE NOT NULL,
+                    y DOUBLE NOT NULL,
+                    z DOUBLE NOT NULL,
+                    yaw FLOAT DEFAULT 0,
+                    pitch FLOAT DEFAULT 0,
+                    PRIMARY KEY(uuid, home_name)
+                );
+            """);
+
+            st.execute("""
+                CREATE INDEX IF NOT EXISTS idx_player_homes_uuid
+                ON player_homes(uuid);
+            """);
+
+        // =========================
+        // 👻 VANISHED PLAYERS (table, not config.yml)
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS vanished_players (
+                uuid TEXT PRIMARY KEY
+            );
+        """);
+
+        // =========================
+        // 🛡 OP WHITELIST — operator whitelist
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS op_whitelist (
+                player_name TEXT PRIMARY KEY,
+                added_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+            );
+        """);
+
+        // Helper table for storing the enabled flag
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS op_whitelist_meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL DEFAULT ''
+            );
+        """);
+        st.execute("""
+            INSERT OR IGNORE INTO op_whitelist_meta (key, value)
+            VALUES ('enabled', 'false');
+        """);
+
+        // =========================
+        // 🗺 STRUCTURE CHUNKS — chunks containing structure Markers
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS structure_chunks (
+                world TEXT NOT NULL,
+                cx INTEGER NOT NULL,
+                cz INTEGER NOT NULL,
+                PRIMARY KEY(world, cx, cz)
+            );
+        """);
+
+        // =========================
+        // 🏷 STRUCTURE MARKERS — FULL structure data (replaced Marker entities)
+        // Source of truth: world + exact block coordinates → type + UUID of the structure.
+        // All work happens from the RAM cache, but every entry is mirrored in the DB:
+        // place/remove write immediately, plus a full re-save every 10 minutes
+        // and on server shutdown.
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS structure_markers (
+                world TEXT NOT NULL,
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                z INTEGER NOT NULL,
+                type TEXT NOT NULL,
+                structure_uuid TEXT NOT NULL,
+                PRIMARY KEY(world, x, y, z)
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_structure_markers_uuid
+            ON structure_markers(structure_uuid);
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_structure_markers_world
+            ON structure_markers(world);
+        """);
+
+        // =========================
+        // 🔴 REDSTONE BLOCKS — permanently blocked redstone chunks (persist)
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS redstone_blocks (
+                block_number INTEGER PRIMARY KEY,
+                world TEXT NOT NULL,
+                chunk_x INTEGER NOT NULL,
+                chunk_z INTEGER NOT NULL,
+                blocked_at INTEGER NOT NULL,
+                iterations INTEGER NOT NULL DEFAULT 0
+            );
+        """);
+
+        // =========================
+        // 🏗 BLOCK COLLAPSE — stickiness/weight of placed blocks (persist)
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS block_collapse (
+                world TEXT NOT NULL,
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                z INTEGER NOT NULL,
+                stickiness REAL NOT NULL DEFAULT 100,
+                PRIMARY KEY(world, x, y, z)
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_block_collapse_world
+            ON block_collapse(world);
+        """);
+
+        // =========================
+        // 🧊 CONCRETE BUCKET — poured water waiting to harden (persist)
+        // =========================
+        // original_biome — the biome the block had BEFORE the gray PALE_GARDEN
+        // tint, restored when the water hardens or disappears. start_time is the
+        // pour group's timestamp, so a restart does not reset the 60s timer.
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS concrete_bucket_water (
+                world TEXT NOT NULL,
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                z INTEGER NOT NULL,
+                original_biome TEXT NOT NULL DEFAULT '',
+                group_id TEXT NOT NULL,
+                start_time INTEGER NOT NULL,
+                PRIMARY KEY(world, x, y, z)
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_concrete_bucket_water_group
+            ON concrete_bucket_water(group_id);
+        """);
+
+        // =========================
+        // 🔄 UPDATER STATE (last commit SHA / release tag)
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS updater_state (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL DEFAULT ''
+            );
+        """);
+
+        // =========================
+        // 🛠 MAINTENANCE WHITELIST — whitelist for the maintenance mode
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS maintenance_whitelist (
+                player_name TEXT PRIMARY KEY,
+                added_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+            );
+        """);
+
+        // Helper table for storing enabled/maintenance_meta
+        // WITHOUT INSERT OR IGNORE — the migration from config.yml happens in
+        // MaintenanceManager.loadFromDb() on the first run.
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS maintenance_meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL DEFAULT ''
+            );
+        """);
+
+        // =========================
+        // =========================
+        // 📋 PLAYER VISITS — first join tracking
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS player_visits (
+                uuid TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                first_join INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+                last_join INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+            );
+        """);
+
+        // =========================
+        // 📋 REPORTS — player reports
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reporter_uuid TEXT NOT NULL,
+                reported_uuid TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+                expires_at INTEGER NOT NULL,
+                moderator_uuid TEXT DEFAULT '',
+                verdict TEXT DEFAULT '',
+                verdict_option TEXT DEFAULT '',
+                moderated_at INTEGER DEFAULT 0
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_reports_status
+            ON reports(status);
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_reports_reporter
+            ON reports(reporter_uuid);
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_reports_reported
+            ON reports(reported_uuid);
+        """);
+
+        // =========================
+        // 📋 MOD REPORTS — report list for moderation
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS mod_reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                report_id INTEGER NOT NULL,
+                name TEXT NOT NULL UNIQUE,
+                FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE
+            );
+        """);
+
+        // =========================
+        // 🛡 PUNISHMENTS — bans, mutes, kicks
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS punishments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                type TEXT NOT NULL,
+                player_uuid TEXT NOT NULL,
+                player_name TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                ip_address TEXT DEFAULT '',
+                hw_id TEXT DEFAULT '',
+                punished_by TEXT NOT NULL,
+                punished_at INTEGER NOT NULL,
+                expires_at INTEGER DEFAULT 0,
+                active INTEGER DEFAULT 1,
+                removed_at INTEGER DEFAULT 0,
+                removed_by TEXT DEFAULT '',
+                remove_reason TEXT DEFAULT ''
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_punishments_uuid
+            ON punishments(player_uuid);
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_punishments_type_active
+            ON punishments(type, active);
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_punishments_ip
+            ON punishments(ip_address);
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_punishments_hw
+            ON punishments(hw_id);
+        """);
+
+        // Schema drift on old databases: hw_id/ip_address/expires_at/active were
+        // added over time, but pre-migration punishments tables lack them. Every
+        // ban/mute INSERT then fails with SQLITE_ERROR and ALL punish commands
+        // silently break ("Failed to ban/mute"). Each column migrates in its own
+        // try/catch — a duplicate-column error on a newer DB just skips it.
+        String[][] punishmentCols = {
+            {"ip_address", "TEXT DEFAULT ''"},
+            {"hw_id", "TEXT DEFAULT ''"},
+            {"expires_at", "INTEGER DEFAULT 0"},
+            {"active", "INTEGER DEFAULT 1"},
+            {"punished_by", "TEXT DEFAULT ''"},
+            // Pardon audit: who lifted the punishment, when and why. Written by
+            // PunishmentManager#deactivatePunishments (also for automatic expiry,
+            // with removed_by = 'SYSTEM').
+            {"removed_at", "INTEGER DEFAULT 0"},
+            {"removed_by", "TEXT DEFAULT ''"},
+            {"remove_reason", "TEXT DEFAULT ''"}
+        };
+        for (String[] col : punishmentCols) {
+            try {
+                st.execute("ALTER TABLE punishments ADD COLUMN " + col[0] + " " + col[1]);
+            } catch (Exception ignored) { /* already exists */ }
+        }
+
+        // =========================
+        // ⚠ WARNS — warnings
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS warns (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                player_uuid TEXT NOT NULL,
+                player_name TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                warned_by TEXT NOT NULL,
+                warned_at INTEGER NOT NULL,
+                expires_at INTEGER DEFAULT 0,
+                ip_address TEXT DEFAULT '',
+                hw_id TEXT DEFAULT '',
+                removed_at INTEGER DEFAULT 0,
+                removed_by TEXT DEFAULT '',
+                remove_reason TEXT DEFAULT ''
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_warns_uuid
+            ON warns(player_uuid);
+        """);
+
+        // Schema drift on old databases: expires_at/ip_address/hw_id appeared over
+        // time, and the pardon audit columns are new. Each column migrates in its
+        // own try/catch — a duplicate-column error on a newer DB just skips it.
+        String[][] warnCols = {
+            {"expires_at", "INTEGER DEFAULT 0"},
+            {"ip_address", "TEXT DEFAULT ''"},
+            {"hw_id", "TEXT DEFAULT ''"},
+            {"removed_at", "INTEGER DEFAULT 0"},
+            {"removed_by", "TEXT DEFAULT ''"},
+            {"remove_reason", "TEXT DEFAULT ''"}
+        };
+        for (String[] col : warnCols) {
+            try {
+                st.execute("ALTER TABLE warns ADD COLUMN " + col[0] + " " + col[1]);
+            } catch (Exception ignored) { /* already exists */ }
+        }
+
+        // =========================
+        // 📜 PUNISHMENT LOG — append-only history of punish/pardon/expire events
+        // =========================
+        // Separate from the punishments/warns tables on purpose: the log is an
+        // EVENT stream (a punishment produces one 'punish' row, its lifting one
+        // 'pardon'/'expire' row), so /ui punish logs can show both, and a purge
+        // never touches the records that actually enforce anything.
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS punishment_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                action TEXT NOT NULL,
+                type TEXT NOT NULL,
+                player_uuid TEXT NOT NULL,
+                player_name TEXT NOT NULL,
+                actor TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                record_id INTEGER DEFAULT 0,
+                created_at INTEGER NOT NULL
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_punishment_log_created
+            ON punishment_log(created_at);
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_punishment_log_type
+            ON punishment_log(type, created_at);
+        """);
+
+        // =========================
+        // 📋 CUSTOM WHITELIST (UltimateImprovements, not vanilla)
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS whitelist (
+                player_name TEXT PRIMARY KEY,
+                added_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+            );
+        """);
+
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS whitelist_meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL DEFAULT ''
+            );
+        """);
+
+        st.execute("""
+            INSERT OR IGNORE INTO whitelist_meta (key, value)
+            VALUES ('enabled', 'false');
+        """);
+
+        // =========================
+        // 🏗 STRUCTURE INTEGRITY — stress/integrity of ender-chest data
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS structure_integrity (
+                world TEXT NOT NULL,
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                z INTEGER NOT NULL,
+                stress REAL DEFAULT 0,
+                integrity REAL DEFAULT 100,
+                degradation_ticks INTEGER DEFAULT 0,
+                PRIMARY KEY(world, x, y, z)
+            );
+        """);
+
+        // =========================
+        // 📋 BLACKLIST — blacklist
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS blacklist (
+                player_name TEXT PRIMARY KEY,
+                added_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+            );
+        """);
+
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS blacklist_meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL DEFAULT ''
+            );
+        """);
+
+        st.execute("""
+            INSERT OR IGNORE INTO blacklist_meta (key, value)
+            VALUES ('enabled', 'false');
+        """);
+
+        // =========================
+        // 🛡 OP BLACKLIST — operators listed here lose OP automatically
+        // (feature switch lives in the config: op_lists.blacklist.enabled;
+        // the runtime on/off state is stored in op_blacklist_meta)
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS op_blacklist (
+                player_name TEXT PRIMARY KEY,
+                added_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+            );
+        """);
+
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS op_blacklist_meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL DEFAULT ''
+            );
+        """);
+
+        st.execute("""
+            INSERT OR IGNORE INTO op_blacklist_meta (key, value)
+            VALUES ('enabled', 'false');
+        """);
+
+        // =========================
+        // ⏱ TIMED LIST TASKS — pending scheduled operations for the access
+        // lists (whitelist/blacklist/opwhitelist/opblacklist): delayed
+        // add/remove/on/off and *-temp auto-reverts. Mirrored by
+        // TimedAccessLists (UI-Punish); survives restarts. At most one row
+        // per (list, scope, target) — opposite effects cancel each other.
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS timed_list_tasks (
+                list_name TEXT NOT NULL,
+                scope TEXT NOT NULL,
+                target TEXT NOT NULL,
+                effect TEXT NOT NULL,
+                execute_at INTEGER NOT NULL,
+                PRIMARY KEY (list_name, scope, target)
+            );
+        """);
+
+        // =========================
+        // 🤖 BOT PROTECTION COOLDOWNS (persist across restarts)
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS bot_protection_cooldowns (
+                uuid TEXT PRIMARY KEY,
+                quit_time INTEGER NOT NULL
+            );
+        """);
+
+        // =========================
+        // 🏰 CLANS
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS clans (
+                name TEXT PRIMARY KEY,
+                display_name TEXT NOT NULL,
+                owner_uuid TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                has_home INTEGER DEFAULT 0,
+                home_world TEXT DEFAULT '',
+                home_x DOUBLE DEFAULT 0,
+                home_y DOUBLE DEFAULT 0,
+                home_z DOUBLE DEFAULT 0,
+                home_yaw FLOAT DEFAULT 0,
+                home_pitch FLOAT DEFAULT 0,
+                description TEXT DEFAULT '',
+                settings TEXT DEFAULT ''
+            );
+        """);
+
+        // Migration for existing databases: CREATE TABLE IF NOT EXISTS won't add columns.
+        try { st.execute("ALTER TABLE clans ADD COLUMN description TEXT DEFAULT ''"); } catch (Exception ignored) {}
+        try { st.execute("ALTER TABLE clans ADD COLUMN settings TEXT DEFAULT ''"); } catch (Exception ignored) {}
+
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS clan_members (
+                clan_name TEXT NOT NULL,
+                player_uuid TEXT NOT NULL,
+                player_name TEXT NOT NULL,
+                role TEXT NOT NULL,
+                joined_at INTEGER NOT NULL,
+                PRIMARY KEY (clan_name, player_uuid)
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_clan_members_uuid
+            ON clan_members(player_uuid);
+        """);
+
+        // Migration: existing clan creators (owner_uuid) become the leader role.
+        // Must run after clan_members exists — safe on fresh DBs (no rows to update).
+        st.execute("""
+            UPDATE clan_members SET role = 'leader'
+            WHERE role != 'leader'
+              AND player_uuid IN (SELECT owner_uuid FROM clans WHERE clans.name = clan_members.clan_name)
+        """);
+
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS clan_requests (
+                clan_name TEXT NOT NULL,
+                player_uuid TEXT NOT NULL,
+                player_name TEXT NOT NULL,
+                requested_at INTEGER NOT NULL,
+                PRIMARY KEY (clan_name, player_uuid)
+            );
+            """);
+
+        // Dependencies between clans
+        try { st.execute("""
+            CREATE TABLE IF NOT EXISTS clan_dependencies (
+                main_clan TEXT NOT NULL PRIMARY KEY,
+                dep_clan TEXT NOT NULL UNIQUE,
+                created_at INTEGER NOT NULL
+            );"""); } catch (Exception ignored) {}
+        try { st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_dep_clan
+            ON clan_dependencies(dep_clan);"""); } catch (Exception ignored) {}
+        try { st.execute("""
+            CREATE TABLE IF NOT EXISTS clan_dep_requests (
+                from_clan TEXT NOT NULL,
+                to_clan TEXT NOT NULL,
+                requested_at INTEGER NOT NULL,
+                PRIMARY KEY (from_clan, to_clan)
+            );"""); } catch (Exception ignored) {}
+
+            // Clan invites (add player via request system)
+            try { st.execute("""
+                CREATE TABLE IF NOT EXISTS clan_invites (
+                    clan_name TEXT NOT NULL,
+                    player_uuid TEXT NOT NULL,
+                    player_name TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT 'member',
+                    invited_by TEXT NOT NULL,
+                    requested_at INTEGER NOT NULL,
+                    PRIMARY KEY (clan_name, player_uuid)
+                );"""); } catch (Exception ignored) {}
+
+            // Dependency confirmation requests (depremove / depdisband)
+            try { st.execute("""
+                CREATE TABLE IF NOT EXISTS clan_dep_confirms (
+                    action TEXT NOT NULL,
+                    from_clan TEXT NOT NULL,
+                    to_clan TEXT NOT NULL,
+                    requested_at INTEGER NOT NULL,
+                    PRIMARY KEY (action, from_clan, to_clan)
+                );"""); } catch (Exception ignored) {}
+
+        // =========================
+        // 🗳 VOTES
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS votes (
+                name TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                question TEXT NOT NULL,
+                creator_uuid TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                expires_at INTEGER NOT NULL,
+                ended INTEGER DEFAULT 0
+            );
+        """);
+
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS vote_answers (
+                vote_name TEXT NOT NULL,
+                answer_index INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT DEFAULT '',
+                PRIMARY KEY(vote_name, answer_index),
+                FOREIGN KEY(vote_name) REFERENCES votes(name) ON DELETE CASCADE
+            );
+        """);
+
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS vote_records (
+                vote_name TEXT NOT NULL,
+                player_uuid TEXT NOT NULL,
+                answer_index INTEGER NOT NULL,
+                PRIMARY KEY(vote_name, player_uuid),
+                FOREIGN KEY(vote_name) REFERENCES votes(name) ON DELETE CASCADE
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_vote_records_name
+            ON vote_records(vote_name);
+        """);
+
+        // =========================
+        // 📡 WIRELESS REDSTONE — linked lamps
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS wireless_links (
+                world TEXT NOT NULL,
+                x1 INTEGER NOT NULL,
+                y1 INTEGER NOT NULL,
+                z1 INTEGER NOT NULL,
+                x2 INTEGER NOT NULL,
+                y2 INTEGER NOT NULL,
+                z2 INTEGER NOT NULL,
+                PRIMARY KEY(world, x1, y1, z1, x2, y2, z2)
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_wireless_links_world
+            ON wireless_links(world);
+        """);
+
+        // =========================
+        // 🛡 TURRETS — end crystal turrets
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS turrets (
+                world TEXT NOT NULL,
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                z INTEGER NOT NULL,
+                enabled INTEGER DEFAULT 0,
+                mode TEXT DEFAULT 'blacklist',
+                entries TEXT DEFAULT '',
+                owner TEXT DEFAULT '',
+                PRIMARY KEY(world, x, y, z)
+            );
+        """);
+
+        // 🛡 TURRETS — owner column migration (for old DBs)
+        try {
+            st.execute("ALTER TABLE turrets ADD COLUMN owner TEXT DEFAULT ''");
+        } catch (Exception ignored) {
+            // Column already exists — this is fine
+        }
+
+        // =========================
+        // 📋 CMD LOG — /ui cmdlog <on/off> toggle (persist across restarts)
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS cmdlog_meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL DEFAULT ''
+            );
+        """);
+
+        st.execute("""
+            INSERT OR IGNORE INTO cmdlog_meta (key, value)
+            VALUES ('enabled', 'false');
+        """);
+
+        // =========================
+        // ⭐ REPUTATION — numeric rep + Discord-style status (staff-issued)
+        // =========================
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS player_reputation (
+                player_uuid TEXT PRIMARY KEY,
+                rep INTEGER NOT NULL DEFAULT 0,
+                status TEXT NOT NULL DEFAULT 'NONE',
+                updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_player_reputation_rep
+            ON player_reputation(rep DESC);
+        """);
+
+        st.execute("""
+            CREATE TABLE IF NOT EXISTS reputation_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                target_uuid TEXT NOT NULL,
+                target_name TEXT NOT NULL DEFAULT '',
+                actor_uuid TEXT NOT NULL DEFAULT '',
+                actor_name TEXT NOT NULL DEFAULT '',
+                amount INTEGER NOT NULL DEFAULT 0,
+                source TEXT NOT NULL DEFAULT 'manual',
+                reason TEXT NOT NULL DEFAULT '',
+                created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+            );
+        """);
+
+        st.execute("""
+            CREATE INDEX IF NOT EXISTS idx_reputation_log_target
+            ON reputation_log(target_uuid);
+        """);
+
+        // Schema drift on old databases: columns were added over time; each
+        // column migrates in its own try/catch — a duplicate-column error on a
+        // newer DB just skips it (same pattern as punishments).
+        String[][] reputationCols = {
+            {"status", "TEXT NOT NULL DEFAULT 'NONE'"},
+            {"target_name", "TEXT NOT NULL DEFAULT ''"},
+            {"actor_uuid", "TEXT NOT NULL DEFAULT ''"},
+            {"actor_name", "TEXT NOT NULL DEFAULT ''"},
+            {"source", "TEXT NOT NULL DEFAULT 'manual'"},
+            {"reason", "TEXT NOT NULL DEFAULT ''"}
+        };
+        for (String[] col : reputationCols) {
+            try {
+                st.execute("ALTER TABLE reputation_log ADD COLUMN " + col[0] + " " + col[1]);
+            } catch (Exception ignored) { /* already exists */ }
+        }
+
+        // Initialize the latest_commit_sha and installed_tag rows if missing
+        st.execute("""
+            INSERT OR IGNORE INTO updater_state (key, value)
+            VALUES ('latest_commit_sha', '');
+        """);
+        st.execute("""
+            INSERT OR IGNORE INTO updater_state (key, value)
+            VALUES ('installed_tag', '');
+        """);
+
+        // Migration: if there was an old latest_tag (from previous versions) — move it to installed_tag
+        st.execute("""
+            UPDATE updater_state SET value = (
+                SELECT value FROM updater_state WHERE key = 'latest_tag' AND value != ''
+            ) WHERE key = 'installed_tag' AND value = ''
+            AND EXISTS (SELECT 1 FROM updater_state WHERE key = 'latest_tag' AND value != '');
+        """);
+
+        } catch (Exception e) {
+            Main.getInstance().getLogger().log(java.util.logging.Level.SEVERE, "[DB] Table initialization failed", e);
+        }
+    }
+}

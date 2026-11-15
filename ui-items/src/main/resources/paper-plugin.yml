@@ -1,7 +1,7 @@
 name: UI-Items
 version: '${project.version}'
-description: UltimateImprovments — custom items add-on (crafting, item tools, particle accelerator)
-main: com.ultimateimprovments.core.UIItems
+description: UltimateImprovements — custom items add-on (crafting, item tools, particle accelerator)
+main: com.ultimateimprovements.core.UIItems
 api-version: '26.3'
 author: rizer001
 dependencies:

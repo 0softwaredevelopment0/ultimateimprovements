@@ -1,0 +1,152 @@
+package com.ultimateimprovements.core;
+
+import org.bukkit.NamespacedKey;
+
+public class Keys {
+
+    public static NamespacedKey PLASMA;
+    public static NamespacedKey SHOCKER;
+    public static NamespacedKey BLAZING_SWORD;
+    public static NamespacedKey GLASS_SWORD;
+    public static NamespacedKey ELECTRIC_TRIDENT;
+
+    // Feature keys (from the datapack)
+    public static NamespacedKey ANTIMATTER;
+    public static NamespacedKey LOCATOR;
+
+    // Auth GUI items
+    public static NamespacedKey CHGDIM_GUI;
+    public static NamespacedKey DOSIMETER;
+
+    // Hazmat suit (radiation protection armor)
+    public static NamespacedKey HAZMAT_HELMET;
+    public static NamespacedKey HAZMAT_CHESTPLATE;
+    public static NamespacedKey HAZMAT_LEGGINGS;
+    public static NamespacedKey HAZMAT_BOOTS;
+
+    // Scanner items
+    public static NamespacedKey HEALTH_METER;
+    public static NamespacedKey ORE_FINDER;
+    public static NamespacedKey MOB_FINDER;
+    public static NamespacedKey RADAR;
+    // Current Portable Radar mode ("all" / "hostile" / "players"), stored on the item
+    public static NamespacedKey RADAR_MODE;
+
+    // Materials
+    public static NamespacedKey LEAD_INGOT;
+    public static NamespacedKey METAL_DETECTOR;
+    public static NamespacedKey CONCRETE_BUCKET;
+
+    // Chestplate Flight
+    public static NamespacedKey CHESTPLATE_FLIGHT;
+
+    // Netherite Upgrade
+    public static NamespacedKey NETHERITE_UPGRADE;
+
+    // Omniscanner
+    public static NamespacedKey OMNISCANNER;
+    public static NamespacedKey OMNISCANNER_BLOCKS;
+    public static NamespacedKey OMNISCANNER_ITEMS;
+    public static NamespacedKey OMNISCANNER_ENTITIES;
+    public static NamespacedKey OMNISCANNER_RADIUS;
+
+    // GUI Protection
+    public static NamespacedKey GUI_PROTECTED;
+
+    // Multimeter
+    public static NamespacedKey MULTIMETER;
+
+    // Structure Indicator (the structural counterpart of the Multimeter)
+    public static NamespacedKey STRUCTURE_INDICATOR;
+
+    // Remote Detonator (item tag + the bound TNT block, encoded "x;y;z;world")
+    public static NamespacedKey REMOTE_DETONATOR;
+    public static NamespacedKey DETONATOR_TARGET;
+
+    // Totem Charge
+    public static NamespacedKey TOTEM_CHARGE;
+
+    // Fireball shot from a vanilla Fire Charge
+    public static NamespacedKey FIREBALL;
+
+    // XP Bottle Upgrade (Experience bottle x2/x3/...)
+    public static NamespacedKey EXP_BOTTLE_MULTIPLIER;
+
+    // Portable Workbench (item tag + remaining opens)
+    public static NamespacedKey PORTABLE_WORKBENCH;
+    public static NamespacedKey PORTABLE_WORKBENCH_CHARGES;
+
+    // Block Collapse
+    public static NamespacedKey BLOCK_COLLAPSE_TAG;
+
+    // Generator
+    public static NamespacedKey GENERATOR;
+
+    // Protection Block (Protection Block)
+    // PDC tag stored on the placed block (BlockData style) and item.
+    public static NamespacedKey PROTECTION_BLOCK;
+    // PDC tag stored on the protection block's item (placeable).
+    public static NamespacedKey PROTECTION_BLOCK_ITEM;
+    // PDC tag stored on the protection block GUI items for protection against theft.
+    public static NamespacedKey PROTECTION_GUI;
+
+    public static void init(Main plugin) {
+        PLASMA = new NamespacedKey(plugin, "is_plasma_cannon");
+        SHOCKER = new NamespacedKey(plugin, "is_shocker");
+        BLAZING_SWORD = new NamespacedKey(plugin, "is_blazing_sword");
+        GLASS_SWORD = new NamespacedKey(plugin, "is_glass_sword");
+        ELECTRIC_TRIDENT = new NamespacedKey(plugin, "is_electric_trident");
+        ANTIMATTER = new NamespacedKey(plugin, "isAntimatter");
+        LOCATOR = new NamespacedKey(plugin, "isLocator");
+        HEALTH_METER = new NamespacedKey(plugin, "isHealthMeter");
+        ORE_FINDER = new NamespacedKey(plugin, "isOreFinder");
+        MOB_FINDER = new NamespacedKey(plugin, "isMobFinder");
+        RADAR = new NamespacedKey(plugin, "isRadar");
+        RADAR_MODE = new NamespacedKey(plugin, "radar_mode");
+        METAL_DETECTOR = new NamespacedKey(plugin, "isMetalDetector");
+        LEAD_INGOT = new NamespacedKey(plugin, "isLeadIngot");
+        DOSIMETER = new NamespacedKey(plugin, "isDosimeter");
+        HAZMAT_HELMET = new NamespacedKey(plugin, "isHazmatHelmet");
+        HAZMAT_CHESTPLATE = new NamespacedKey(plugin, "isHazmatChestplate");
+        HAZMAT_LEGGINGS = new NamespacedKey(plugin, "isHazmatLeggings");
+        HAZMAT_BOOTS = new NamespacedKey(plugin, "isHazmatBoots");
+        CONCRETE_BUCKET = new NamespacedKey(plugin, "is_concrete_bucket");
+        CHESTPLATE_FLIGHT = new NamespacedKey(plugin, "chestplate_flight");
+        NETHERITE_UPGRADE = new NamespacedKey(plugin, "netherite_upgrade");
+        CHGDIM_GUI = new NamespacedKey(plugin, "chgdim_gui");
+
+        OMNISCANNER = new NamespacedKey(plugin, "omniscanner");
+        OMNISCANNER_BLOCKS = new NamespacedKey(plugin, "omniscanner_blocks");
+        OMNISCANNER_ITEMS = new NamespacedKey(plugin, "omniscanner_items");
+        OMNISCANNER_ENTITIES = new NamespacedKey(plugin, "omniscanner_entities");
+        OMNISCANNER_RADIUS = new NamespacedKey(plugin, "omniscanner_radius");
+
+        GUI_PROTECTED = new NamespacedKey(plugin, "gui_protected");
+
+        MULTIMETER = new NamespacedKey(plugin, "is_multimeter");
+
+        // Kept byte-for-byte identical to the key the old Structure Integrity
+        // Indicator used, so already crafted items keep working.
+        STRUCTURE_INDICATOR = new NamespacedKey(plugin, "is_structure_integrity_indicator");
+
+        REMOTE_DETONATOR = new NamespacedKey(plugin, "is_remote_detonator");
+        DETONATOR_TARGET = new NamespacedKey(plugin, "remote_detonator_target");
+
+        TOTEM_CHARGE = new NamespacedKey(plugin, "totem_charge");
+
+        FIREBALL = new NamespacedKey(plugin, "fireball");
+
+        EXP_BOTTLE_MULTIPLIER = new NamespacedKey(plugin, "exp_bottle_multiplier");
+
+        PORTABLE_WORKBENCH = new NamespacedKey(plugin, "portable_workbench");
+        PORTABLE_WORKBENCH_CHARGES = new NamespacedKey(plugin, "portable_workbench_charges");
+
+        BLOCK_COLLAPSE_TAG = new NamespacedKey(plugin, "block_collapse_tag");
+
+        GENERATOR = new NamespacedKey(plugin, "is_generator");
+
+        PROTECTION_BLOCK = new NamespacedKey(plugin, "protection_block");
+        PROTECTION_BLOCK_ITEM = new NamespacedKey(plugin, "protection_block_item");
+        PROTECTION_GUI = new NamespacedKey(plugin, "protection_gui");
+    }
+}

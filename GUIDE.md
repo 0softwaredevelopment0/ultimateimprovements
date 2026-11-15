@@ -1,4 +1,4 @@
-# ✦ Ultimate Improvments — Full Guide
+# ✦ Ultimate Improvements — Full Guide
 
 **Version:** 1.8.5-alpha.21
 **Core:** Paper 26.3+ (or Leaf fork)
@@ -30,15 +30,15 @@ This is the complete guide: installation, every command, custom items, enchantme
 
 ## 🚀 Installation
 
-1. Download the distribution archive `UltimateImprovments-<version>-jars.tar` from
-   [Releases](https://github.com/0softwaredevelopment0/UltimateImprovments/releases)
+1. Download the distribution archive `UltimateImprovements-<version>-jars.tar` from
+   [Releases](https://github.com/0softwaredevelopment0/UltimateImprovements/releases)
    (or grab the individual `UI-*-all.jar` files).
 2. Drop **all** the jars into `plugins/` — the family ships as **21 plugins**
    (UI-Core + 20 addons). They form one system; a set of just a few of them is
    not supported.
 3. Restart the server **once**. The bundled datapack is built from the
    UI-Datapack jar as a single zip
-   (`plugins/UltimateImprovments/datapack/UI-Datapack-<lang>.zip`) and enabled
+   (`plugins/UltimateImprovements/datapack/UI-Datapack-<lang>.zip`) and enabled
    automatically **before worlds load** (Paper bootstrapper) — no
    `/datapack enable`, no double restart.
 
@@ -46,7 +46,7 @@ This is the complete guide: installation, every command, custom items, enchantme
 > language variants (`UI-Datapack-en` / `UI-Datapack-ru` — identical content,
 > translated names). Its settings (`datapack.enabled`, `datapack.lang`,
 > `datapack.position`, `datapack.modules.*`) are configured in
-> `plugins/UltimateImprovments/configs/UI-Datapack.toml`; `datapack.lang = "auto"`
+> `plugins/UltimateImprovements/configs/UI-Datapack.toml`; `datapack.lang = "auto"`
 > follows `messages.lang`, and `datapack.position` (`top`/`bottom`, default `top`)
 > puts the pack above or below the world's own datapacks when files conflict.
 > Changing them requires a restart (pack discovery happens at server startup).
@@ -71,7 +71,7 @@ This is the complete guide: installation, every command, custom items, enchantme
 
 ## 🧩 Architecture & Modules
 
-Ultimate Improvments is a **large collection of gameplay features** shipped as
+Ultimate Improvements is a **large collection of gameplay features** shipped as
 one family: **UI-Core** (the mandatory heart: database, config routing, command
 tree, shared systems) plus **20 addons**, each owning its feature domain:
 
@@ -219,7 +219,7 @@ tab-completion for all subcommands.
 /ui checkrad [nick]     — check radiation
 /ui power off|reboot|confirm|undo — server power
 /ui plugin              — plugin management
-/ui update [tag]        — download release JARs into UltimateImprovments/update (not applied)
+/ui update [tag]        — download release JARs into UltimateImprovements/update (not applied)
 /ui swapjar             — move update/ JARs into plugins/ (apply = server restart)
 /ui op <nick> / deop <nick> / chgop <nick>
 /ui meteor              — meteor module
@@ -283,7 +283,7 @@ loads), so no `data/ui/enchantment/*.json` is involved. Everything about them �
 master switch, a per-enchantment `enabled` flag, display names in both languages,
 max level, anvil cost, active equipment slots, and the shared weight /
 enchanting-table cost curve — lives in
-`plugins/UltimateImprovments/configs/UI-Enchantments.toml`. The registry is filled
+`plugins/UltimateImprovements/configs/UI-Enchantments.toml`. The registry is filled
 once per start, so changes need a restart. An item that already carries a disabled
 enchantment keeps the data but the effect stops working.
 
@@ -320,11 +320,11 @@ enchanting table can offer them. `/ui enchant` gives/takes/checks any of them.
 
 The plugin ships a **custom achievement tree** in the `ui:` namespace
 (installed via the datapack), with 5 branches all growing from one root
-(`ui:datapack/start` — "UltimateImprovments"). All custom achievements are
+(`ui:datapack/start` — "UltimateImprovements"). All custom achievements are
 granted through plugin code (progress is stored in vanilla advancement data).
 
 Every achievement can be switched off individually, and its tunables live in
-`plugins/UltimateImprovments/configs/UI-Advancements.toml`:
+`plugins/UltimateImprovements/configs/UI-Advancements.toml`:
 `[advancements] enabled` is the master switch, `[advancements.<id>] enabled` the
 per-achievement one, and ids with a threshold carry extra keys —
 `kaboom.required_damage`, `woodcutter_at_full_throttle.goal`/`duration_seconds`,
@@ -546,7 +546,7 @@ Permissions are registered **in code** and default to OP-only where it matters.
 ## ⚙️ Configuration
 
 - **Per-addon TOML** — each addon owns
-  `plugins/UltimateImprovments/configs/UI-<Addon>.toml` (UI-Core.toml,
+  `plugins/UltimateImprovements/configs/UI-<Addon>.toml` (UI-Core.toml,
   UI-Enchant.toml, UI-Guard.toml, ...): the single source of defaults, no
   monolithic config. Missing keys are auto-repaired from the bundled templates
   on startup; on a parse failure the broken file is backed up and restored.
@@ -576,7 +576,7 @@ Permissions are registered **in code** and default to OP-only where it matters.
 
 ## 🗄 Database (SQLite)
 
-One shared database for the whole family: `plugins/UltimateImprovments/database.db`
+One shared database for the whole family: `plugins/UltimateImprovements/database.db`
 (WAL mode). Main tables: `auth_users`, `auth_sessions`, `cables`,
 `cable_connections`, `code_panel_keys`, `player_homes`, `player_notes`,
 `player_radiation`, `updater_state`, `vanished_players`, `magnet_state`,
@@ -588,8 +588,8 @@ One shared database for the whole family: `plugins/UltimateImprovments/database.
 ## 🏗️ Building & Updating
 
 ```bash
-git clone https://github.com/0softwaredevelopment0/UltimateImprovments.git
-cd UltimateImprovments
+git clone https://github.com/0softwaredevelopment0/UltimateImprovements.git
+cd UltimateImprovements
 ./gradlew distributeJars   # fast: shadow-only, all 21 jars into build/libs/
 ./gradlew build            # full build with tests
 ```

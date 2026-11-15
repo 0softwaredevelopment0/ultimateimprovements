@@ -1,7 +1,7 @@
 name: UI-Display
 version: '${project.version}'
-description: UltimateImprovments — tab, scoreboard and boss bar add-on
-main: com.ultimateimprovments.core.UIDisplay
+description: UltimateImprovements — tab, scoreboard and boss bar add-on
+main: com.ultimateimprovements.core.UIDisplay
 api-version: '26.3'
 author: rizer001
 dependencies:

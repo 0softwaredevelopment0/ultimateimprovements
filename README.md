@@ -1,11 +1,11 @@
-# Ultimate Improvments
+# Ultimate Improvements
 
 **A huge collection of gameplay features for your server. For Paper 26.3+ (Java 26) — one core + 20 addon plugins**
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](LICENSE.md)
 [![Java](https://img.shields.io/badge/Java-26%2B-orange)](https://www.oracle.com/java/)
 [![Server](https://img.shields.io/badge/Paper-26.3%2B-green)](https://papermc.io/)
-[![Version](https://img.shields.io/github/v/release/0softwaredevelopment0/UltimateImprovments?include_prereleases)](https://github.com/0softwaredevelopment0/UltimateImprovments/releases)
+[![Version](https://img.shields.io/github/v/release/0softwaredevelopment0/UltimateImprovements?include_prereleases)](https://github.com/0softwaredevelopment0/UltimateImprovements/releases)
 
 **Author:** [rizer001](https://github.com/rizer001)
 **Server:** Paper 26.3+
@@ -18,7 +18,7 @@
 
 [![Full Guide](https://img.shields.io/badge/GUIDE-GUIDE.md-blueviolet)](GUIDE.md)
 
-> **Ultimate Improvments** is a big collection of everything a server needs: authentication, an energy network, a fusion reactor, radiation, custom items and enchantments, an achievement tree, turrets, protection systems — and 80+ toggleable modules on top. The collection ships as a **family of 21 plugins** (UI-Core + 20 addons) that work as one system, built on the modern Paper plugin loader.
+> **Ultimate Improvements** is a big collection of everything a server needs: authentication, an energy network, a fusion reactor, radiation, custom items and enchantments, an achievement tree, turrets, protection systems — and 80+ toggleable modules on top. The collection ships as a **family of 21 plugins** (UI-Core + 20 addons) that work as one system, built on the modern Paper plugin loader.
 
 > **Full documentation:** see [GUIDE.md](GUIDE.md) — commands, items, enchantments, achievements, configuration and more.
 
@@ -76,7 +76,7 @@ End-crystal turrets: configure via Shift+RMB, whitelist/blacklist targets, fires
 
 ## Quick Install
 
-1. **Download** the distribution archive (21 `UI-*-all.jar` files) from [Releases](https://github.com/0softwaredevelopment0/UltimateImprovments/releases)
+1. **Download** the distribution archive (21 `UI-*-all.jar` files) from [Releases](https://github.com/0softwaredevelopment0/UltimateImprovements/releases)
 2. **Drop** all of them into the `plugins/` folder
 3. **Restart** the server once — the datapack installs and enables itself before worlds load
 
@@ -136,8 +136,8 @@ All commands start with `/ui`. The full list is in the in-game help (`/ui help`,
 ## Building from Source
 
 ```bash
-git clone https://github.com/0softwaredevelopment0/UltimateImprovments.git
-cd UltimateImprovments
+git clone https://github.com/0softwaredevelopment0/UltimateImprovements.git
+cd UltimateImprovements
 ./gradlew distributeJars   # fast: shadow-only, all 21 jars into build/libs/
 ```
 
