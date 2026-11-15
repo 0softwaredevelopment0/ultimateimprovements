@@ -3,6 +3,20 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-beta.50] - 2026-11-15
+
+### Changed
+- **The structure/energy scan lines are silent by default.** `[Generator]
+  Auto-detected N generators ...`, `[ParticleAccelerator] Scanned existing
+  accelerators — N engine buffer(s) in cache.` and `[StructureChunkTracker]
+  Loaded N structure chunks.` repeated after startup (the +5 s / +30 s / +120 s
+  delayed rebuild passes) and on every world load, spamming the console with
+  the same numbers.
+- **New `[debug]` section in `UI-Core.toml`** with `startup_scans` (default
+  `false`). Turning it on prints those three lines as `[debug]` messages;
+  `ConsoleLogger.debug(...)` is the shared gate, so other diagnostics can join
+  it later. The switch is re-read on `/ui reload`.
+
 ## [1.8.5-beta.49] - 2026-11-15
 
 ### Changed

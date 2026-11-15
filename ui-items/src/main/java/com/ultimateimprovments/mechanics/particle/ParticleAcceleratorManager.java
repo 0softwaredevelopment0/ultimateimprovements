@@ -163,7 +163,9 @@ public class ParticleAcceleratorManager implements Listener {
             return false;
         });
 
-        ConsoleLogger.info("[ParticleAccelerator] Scanned existing accelerators — "
+        // Diagnostic only — repeats on every delayed rebuild pass, so it is
+        // gated behind debug.startup_scans (off by default).
+        ConsoleLogger.debug("[ParticleAccelerator] Scanned existing accelerators — "
                 + engineEnergy.size() + " engine buffer(s) in cache.");
     }
 

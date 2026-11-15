@@ -122,7 +122,9 @@ public class GeneratorManager implements Listener {
                 break;
             }
         }
-        ConsoleLogger.info(
+        // Diagnostic only — repeats on every delayed rebuild pass, so it is
+        // gated behind debug.startup_scans (off by default).
+        ConsoleLogger.debug(
                 "[Generator] Auto-detected " + count + " generators from the structure registry (SQLite)");
     }
 

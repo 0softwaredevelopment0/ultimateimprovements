@@ -81,6 +81,7 @@ public class PluginStartup {
                 UltimateDirs.configsDir(), "Configs");
 
         loadConfigFile();
+        ConsoleLogger.refreshDebugFlags();
         ConfigIntegrityValidator.validate(plugin);
         MessageUtil.reloadPrefix();
         MessagesManager.init(plugin);

@@ -1,5 +1,6 @@
 package com.ultimateimprovments.util;
 
+import com.ultimateimprovments.config.AddonConfigManager;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 
@@ -22,6 +23,12 @@ public final class ConsoleLogger {
     private static final MiniMessage MM = MiniMessage.miniMessage();
     private static boolean initialized = false;
 
+    /** Config key gating the diagnostic startup/world-load scan messages. */
+    private static final String DEBUG_STARTUP_SCANS = "debug.startup_scans";
+
+    /** Cached {@code debug.startup_scans} value, refreshed by {@link #refreshDebugFlags()}. */
+    private static volatile boolean startupScanLogs = false;
+
     private ConsoleLogger() {}
 
     /**
@@ -29,6 +36,29 @@ public final class ConsoleLogger {
      */
     public static void init() {
         initialized = true;
+    }
+
+    /**
+     * Re-reads the diagnostic switches from the config (called after the config
+     * backend has loaded, and again on every {@code /ui reload}).
+     */
+    public static void refreshDebugFlags() {
+        try {
+            Object value = AddonConfigManager.get(DEBUG_STARTUP_SCANS);
+            startupScanLogs = value instanceof Boolean b ? b : Boolean.parseBoolean(String.valueOf(value));
+        } catch (Throwable t) {
+            startupScanLogs = false;
+        }
+    }
+
+    /**
+     * {@code [debug]} — diagnostic message printed only when the matching config
+     * switch ({@code debug.startup_scans}) is enabled.
+     */
+    public static void debug(String message) {
+        if (!initialized || !startupScanLogs) return;
+        Bukkit.getConsoleSender().sendMessage(MM.deserialize(
+                MessageUtil.PREFIX + "<dark_gray>[debug]</dark_gray> <gray>" + escape(message) + "</gray>"));
     }
 
     /** <white>White</white> — informational messages (prefixed with {@link MessageUtil#PREFIX}) */

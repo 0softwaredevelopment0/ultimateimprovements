@@ -548,6 +548,12 @@ Permissions are registered **in code** and default to OP-only where it matters.
   UI-Enchant.toml, UI-Guard.toml, ...): the single source of defaults, no
   monolithic config. Missing keys are auto-repaired from the bundled templates
   on startup; on a parse failure the broken file is backed up and restored.
+- **Debug logs** — `[debug]` section in `UI-Core.toml`. `startup_scans = false`
+  by default: when enabled it prints the structure/energy scan lines
+  (`[Generator] Auto-detected ...`, `[ParticleAccelerator] Scanned existing
+  accelerators ...`, `[StructureChunkTracker] Loaded N structure chunks.`) that
+  otherwise repeat on every world load and delayed rebuild pass. Applies after
+  `/ui reload`.
 - **Language** — `messages.lang` (`en`/`ru`) in UI-Core.toml; message sections
   exist in both languages (`messages.*` RU, `messages_en.*` EN).
 - **Punishment messages** — `messages.punishment` / `messages_en.punishment`

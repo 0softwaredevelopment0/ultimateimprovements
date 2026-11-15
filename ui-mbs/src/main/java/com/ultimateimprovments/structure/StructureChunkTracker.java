@@ -148,7 +148,9 @@ public class StructureChunkTracker {
             }
         }
         if (loaded > 0) {
-            ConsoleLogger.info("[StructureChunkTracker] Loaded " + loaded + " structure chunks.");
+            // Diagnostic only — repeats on every world load / delayed rebuild
+            // pass, so it is gated behind debug.startup_scans (off by default).
+            ConsoleLogger.debug("[StructureChunkTracker] Loaded " + loaded + " structure chunks.");
         }
     }
 

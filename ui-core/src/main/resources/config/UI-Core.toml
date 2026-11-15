@@ -28,6 +28,17 @@ commands_enabled = false
 # Default: 5
 read_timeout_sec = 5
 
+# Diagnostic console logging. Everything here is OFF by default: the messages
+# are useful while debugging structures/energy rebuilds, but they repeat on
+# every world load and on every delayed rebuild pass, so they spam the startup
+# log on a normal server.
+[debug]
+# Structure/energy scan messages at startup, on world load and on the delayed
+# rebuild passes ("[Generator] Auto-detected ...", "[ParticleAccelerator] Scanned
+# existing accelerators ...", "[StructureChunkTracker] Loaded N structure chunks.").
+# Default: false
+startup_scans = false
+
 # API version compatibility check: warns in the console when the running server's
 # API version is older than the minimum required by the plugin. The check reads the
 # ACTUAL runtime server version (not the api-version from plugin.yml), so editing
