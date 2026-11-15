@@ -5,7 +5,6 @@ import com.ultimateimprovements.util.MessageUtil;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
-import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -222,8 +221,9 @@ public class AuthRateLimiter {
     }
 
     private static String ipOf(Player player) {
-        InetSocketAddress address = player.getAddress();
-        if (address == null || address.getAddress() == null) return "";
-        return address.getAddress().getHostAddress();
+        // Use the same forwarded client address as the authentication flow.
+        // Player#getAddress() may identify the backend proxy socket instead.
+        String ip = AuthClientAddress.getClientIp(player);
+        return ip != null ? ip : "";
     }
 }
