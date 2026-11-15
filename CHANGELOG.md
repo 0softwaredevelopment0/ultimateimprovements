@@ -3,6 +3,17 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-beta.53] - 2026-11-15
+
+### Changed
+- **New `nuclear_reactor.meltdown_core_check_seconds` (default `1`).** The
+  CER task already runs once per second, not per tick, but the meltdown core
+  read can now be spread over several seconds to lower the per-second cost
+  further. The countdown itself keeps ticking every second; only the center
+  block lookup is gated. The last countdown second is always checked, so a
+  removed core can never be missed on a skipped pass. Validated in
+  `ConfigRules` and documented in `UI-MBS.toml` / `GUIDE.md`.
+
 ## [1.8.5-beta.52] - 2026-11-15
 
 ### Fixed

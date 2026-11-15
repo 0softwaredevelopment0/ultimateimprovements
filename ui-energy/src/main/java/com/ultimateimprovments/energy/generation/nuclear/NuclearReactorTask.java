@@ -48,6 +48,14 @@ public class NuclearReactorTask extends BukkitRunnable {
     /** The task runs once per second; all rates below are per-second. */
     public static final int PASS_TICKS = 20;
 
+    /**
+     * Counts task passes (one per second) so the meltdown core read can be
+     * spread over several seconds. The countdown itself always runs every
+     * second; only the block lookup is gated by
+     * {@code nuclear_reactor.meltdown_core_check_seconds}.
+     */
+    private long pass;
+
     @Override
     public void run() {
         Main main = Main.getInstance();
@@ -70,6 +78,16 @@ public class NuclearReactorTask extends BukkitRunnable {
         int auditCellsPerSecond = Math.max(1,
                 cfg.getInt("nuclear_reactor.audit_cells_per_second", 9));
 
+        // The meltdown core has to be re-read only once every N seconds: the
+        // countdown decrements per second, while the center block almost never
+        // changes, so reading it every tick-second is wasted work. The final
+        // countdown second is always checked so a removed core can never
+        // explode on a skipped pass.
+        int coreCheckSeconds = Math.max(1,
+                cfg.getInt("nuclear_reactor.meltdown_core_check_seconds", 1));
+        boolean checkCore = pass % coreCheckSeconds == 0;
+        pass++;
+
         for (NuclearReactor reactor : NuclearReactorManager.getReactors()) {
             if (reactor == null || reactor.getAnchor() == null
                     || reactor.getAnchor().getWorld() == null) {
@@ -89,18 +107,21 @@ public class NuclearReactorTask extends BukkitRunnable {
             //    broken, replaced by a plugin — anything that never fires the
             //    player events), the meltdown is sealed instead of exploding.
             if (reactor.isMeltdown()) {
-                Block center = reactor.getCenterBlock();
-                Material centerType = center.getType();
-                if (centerType != Material.LAVA) {
-                    if (centerType == Material.REINFORCED_DEEPSLATE) {
-                        // The proper fix: restore the core block in time.
-                        NuclearReactorManager.preventDetonation(reactor);
-                    } else {
-                        // Removed / sealed with the wrong block: no blast,
-                        // but the reactor is dismantled.
-                        NuclearReactorManager.abandonMeltdown(reactor);
+                boolean lastSecond = reactor.getMeltdownSeconds() <= 1;
+                if (checkCore || lastSecond) {
+                    Block center = reactor.getCenterBlock();
+                    Material centerType = center.getType();
+                    if (centerType != Material.LAVA) {
+                        if (centerType == Material.REINFORCED_DEEPSLATE) {
+                            // The proper fix: restore the core block in time.
+                            NuclearReactorManager.preventDetonation(reactor);
+                        } else {
+                            // Removed / sealed with the wrong block: no blast,
+                            // but the reactor is dismantled.
+                            NuclearReactorManager.abandonMeltdown(reactor);
+                        }
+                        continue;
                     }
-                    continue;
                 }
 
                 NuclearReactorManager.spawnHeatParticles(reactor);

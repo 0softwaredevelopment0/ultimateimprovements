@@ -330,6 +330,13 @@ audit_cells_per_second = 9
 # Detonation countdown after the center block turns into lava.
 # Default: 10
 meltdown_seconds = 10
+# How often the lava core is re-read during the countdown, in seconds
+# (1 = every second / 20 ticks). The countdown itself always ticks once per
+# second; this only sets the block-lookup interval, so raising it lowers the
+# per-second cost at the price of reacting up to N-1 seconds later. The final
+# countdown second is always checked, so a removed core can never explode.
+# Default: 1
+meltdown_core_check_seconds = 1
 # Charged-creeper explosion radius used by the detonation and by breaking
 # the redstone center block.
 # Default: 5
