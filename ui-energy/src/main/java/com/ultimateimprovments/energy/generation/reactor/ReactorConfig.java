@@ -184,7 +184,7 @@ public class ReactorConfig {
         shieldDecayBase = cfg.getDouble("reactor.shield_decay_base", 0.333);
         shieldRecoveryEverySec = cfg.getInt("reactor.shield_recovery_every_sec", 5);
         shieldRecoveryRate = cfg.getDouble("reactor.shield_recovery_rate", 1.0);
-        shieldFailureCountdown = cfg.getInt("reactor.shield_failure_countdown", 10);
+        shieldFailureCountdown = cfg.getInt("reactor.shield_failure_countdown", 20);
         shieldExplosionRadius = cfg.getInt("reactor.shield_explosion_radius", 10);
         shieldParticleRodSpeed = cfg.getDouble("reactor.shield_particle_rod_speed", 0.8);
         shieldParticleRodCount = cfg.getInt("reactor.shield_particle_rod_count", 16);

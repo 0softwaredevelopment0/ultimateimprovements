@@ -17,6 +17,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Creeper;
@@ -582,13 +584,46 @@ public final class NuclearReactorManager {
             center.setType(Material.LAVA, false);
         }
 
-        int seconds = Math.max(1, cfgInt("meltdown_seconds", 10));
+        int seconds = Math.max(1, cfgInt("meltdown_seconds", 20));
         reactor.setMeltdownSeconds(seconds);
         reactor.setTemperature(Math.max(reactor.getTemperature(), maxTemp()));
         broadcast(reactor, msg("meltdown_detected",
                 "<dark_gray>[<yellow>CER<dark_gray>] <red>Danger! <white>CER meltdown detected, structure detonation will occur in T-%sec%s.")
                 .replace("%sec%", String.valueOf(seconds)));
         NuclearReactorPersistence.save(reactor);
+    }
+
+    /**
+     * Per-second meltdown presentation: the crackling-fire sound around the
+     * core (10-block radius) whose pitch falls from the normal 1.0 toward zero
+     * as the countdown runs out, plus the countdown chat alerts at T-15s,
+     * T-10s and T-5s (the initial T-<total> alert comes from
+     * {@link #startMeltdown(NuclearReactor)}).
+     */
+    public static void tickMeltdownPresentation(NuclearReactor reactor) {
+        if (reactor == null || !reactor.isMeltdown()) return;
+
+        int remaining = reactor.getMeltdownSeconds();
+        int total = Math.max(remaining, Math.max(1, cfgInt("meltdown_seconds", 20)));
+
+        if (remaining != total
+                && (remaining == 15 || remaining == 10 || remaining == 5)) {
+            broadcast(reactor, msg("meltdown_countdown",
+                    "<dark_gray>[<yellow>CER<dark_gray>] <red>Danger! <white>CER structure detonation in T-%sec%s.")
+                    .replace("%sec%", String.valueOf(remaining)));
+        }
+
+        Location center = reactor.getCenterBlockLocation().add(0.5, 0.5, 0.5);
+        World world = center.getWorld();
+        if (world == null) return;
+
+        // Normal pitch first, then a steady fall to (almost) zero: the same
+        // crackle gets deeper and slower until the blast.
+        float pitch = Math.max(0.05f, Math.min(1.0f, remaining / (float) total));
+        for (Player player : world.getNearbyPlayers(center, 10)) {
+            player.playSound(center, Sound.BLOCK_FIRE_AMBIENT,
+                    SoundCategory.MASTER, 1.0f, pitch);
+        }
     }
 
     /**

@@ -514,7 +514,7 @@ public class ReactorManager {
                             "<red>Auxiliary shield integrity critical, failure imminent."));
                 } else if (meltdownTicks == 20 * 10) {
                     broadcast(StructuresMessages.get("meltdown_fail_total",
-                            "<red>Auxiliary shield failure detected, total system failure in T-10s."));
+                            "<red>Auxiliary shield failure detected, total system failure imminent."));
                 }
                 if (meltdownTicks >= 20 * 20) {
                     beginUnavoidable(false);

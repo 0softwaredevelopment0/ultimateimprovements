@@ -3,6 +3,29 @@
 All notable changes to the UltimateImprovments plugin family are documented
 in this file.
 
+## [1.8.5-beta.55] - 2026-11-15
+
+### Changed
+- **Both reactor countdowns are 20 seconds now.** CER
+  `nuclear_reactor.meltdown_seconds` and DFC
+  `reactor.shield_failure_countdown` default to `20` (existing configs
+  still carrying the old `10` default are migrated once by
+  `AddonConfigManager`). The DFC's meltdown particle ramp and rising ambient
+  pitch were hardcoded to a 10-second window (`meltdownTimer / 200`); they now
+  scale with the configured countdown, so the whole finale stretches correctly.
+- **CER countdown presentation.** Once per second the core plays
+  `BLOCK_FIRE_AMBIENT` (crackling fire) to players within 10 blocks; the pitch
+  starts at the normal `1.0` and falls toward zero as the countdown expires.
+- **Countdown alerts at T-20 / T-15 / T-10 / T-5** for both reactors, in their
+  existing styles (`[UI][CER]` and `[UI][DFC]` prefixes):
+  - CER: initial `meltdown_detected` at T-20, then the new
+    `structures.nuclear_reactor.meltdown_countdown` at 15/10/5;
+  - DFC: initial `shield_failure` now carries `%sec%` (T-20), then the new
+    `structures.reactor.shield_countdown` at 15/10/5.
+  New keys are added to both language sections of `UI-Other.toml` and are
+  filled into existing configs by the standard repair pass. The stale
+  `meltdown_fail_total` "T-10s" text was replaced with "imminent".
+
 ## [1.8.5-beta.54] - 2026-11-15
 
 ### Changed

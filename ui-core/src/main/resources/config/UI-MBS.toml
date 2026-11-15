@@ -56,8 +56,8 @@ shield_decay_base = 0.333
 shield_recovery_every_sec = 5
 # Default: 1.0
 shield_recovery_rate = 1.0
-# Default: 10
-shield_failure_countdown = 10
+# Default: 20
+shield_failure_countdown = 20
 # Radius in blocks.
 # Default: 10
 shield_explosion_radius = 10
@@ -328,8 +328,8 @@ audit_cells_per_second = 9
 # ----------------------------------------------------------------
 
 # Detonation countdown after the center block turns into lava.
-# Default: 10
-meltdown_seconds = 10
+# Default: 20
+meltdown_seconds = 20
 # How often the lava core is re-read during the countdown, in real ticks.
 # The countdown itself always ticks once per second; this only sets the
 # block-lookup interval of a separate task, so tick-level values are honored

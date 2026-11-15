@@ -288,6 +288,7 @@ public final class AddonConfigManager {
     private static int upgradeExistingValues(String addon, YamlConfiguration view) {
         if ("UI-Chat".equals(addon)) return upgradeChatFormatColors(view);
         if ("UI-Other".equals(addon)) return upgradeAttributeUnits(view);
+        if ("UI-MBS".equals(addon)) return upgradeMeltdownCountdowns(view);
         if (!"UI-Core".equals(addon)) return 0;
         int upgraded = 0;
         for (String root : new String[]{"messages", "messages_en"}) {
@@ -319,6 +320,32 @@ public final class AddonConfigManager {
             upgraded++;
             ConsoleLogger.info("[Config/UI-Core] Upgraded " + path
                     + ": inserted the \"Time remaining\" line into the block dialog template");
+        }
+        return upgraded;
+    }
+
+    /**
+     * Old installations still carry the former 10-second defaults for both
+     * reactor countdowns. They were never changed by the user, so they are
+     * raised to the new 20-second default once; any other value is kept as-is.
+     * Idempotent: a config already at 20 is untouched.
+     *
+     * @return number of upgraded values
+     */
+    private static int upgradeMeltdownCountdowns(YamlConfiguration view) {
+        int upgraded = 0;
+        if (view.isSet("nuclear_reactor.meltdown_seconds")
+                && view.getInt("nuclear_reactor.meltdown_seconds", 0) == 10) {
+            view.set("nuclear_reactor.meltdown_seconds", 20);
+            upgraded++;
+        }
+        if (view.isSet("reactor.shield_failure_countdown")
+                && view.getInt("reactor.shield_failure_countdown", 0) == 10) {
+            view.set("reactor.shield_failure_countdown", 20);
+            upgraded++;
+        }
+        if (upgraded > 0) {
+            ConsoleLogger.info("[Config/UI-MBS] Upgraded the reactor countdown default(s) from 10s to 20s");
         }
         return upgraded;
     }

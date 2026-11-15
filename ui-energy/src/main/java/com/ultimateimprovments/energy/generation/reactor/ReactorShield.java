@@ -193,9 +193,22 @@ public class ReactorShield {
             }
 
             case FAILED -> {
-                // Silent countdown — the signs show the detonation screen and a
-                // single T-10s warning was broadcast at the moment of failure.
+                // Countdown — the signs show the detonation screen. The
+                // initial T-<total> warning was broadcast at the moment of
+                // failure; the remaining T-15s / T-10s / T-5s alerts follow
+                // once per second at those thresholds.
                 failCountdown--;
+                int total = Math.max(1, cfg.getShieldFailureCountdown());
+                if (failCountdown > 0 && failCountdown % 20 == 0) {
+                    int secondsLeft = failCountdown / 20;
+                    if (secondsLeft == total - 5
+                            || secondsLeft == total - 10
+                            || secondsLeft == total - 15) {
+                        reactor.broadcastRaw(StructuresMessages.get("shield_countdown",
+                                "<dark_red>Danger! <white>Core detonation in T-%sec%s.")
+                                .replace("%sec%", String.valueOf(secondsLeft)));
+                    }
+                }
                 if (failCountdown <= 0) {
                     detonate(base, cfg);
                 }
@@ -462,7 +475,7 @@ public class ReactorShield {
     }
 
     /**
-     * Forces the shield into the FAILED state with the T-10s detonation
+     * Forces the shield into the FAILED state with the configured detonation
      * countdown (meltdown restabilization: the aux shield expired or the
      * restabilization attempt failed). {@code announce} adds the standard
      * shield-failure broadcast — the failed restabilization attempt skips it
@@ -472,11 +485,13 @@ public class ReactorShield {
         if (state == State.FAILED) return;
         state = State.FAILED;
         degrading = false;
-        failCountdown = ReactorConfig.getInstance().getShieldFailureCountdown() * 20;
+        int seconds = Math.max(1, ReactorConfig.getInstance().getShieldFailureCountdown());
+        failCountdown = seconds * 20;
         if (announce) {
             reactor.broadcastRaw(StructuresMessages.get(
                     "shield_failure",
-                    "<dark_red>Danger! <white>Core shield has been compromised, core detonation estimated in T-10s, good luck."));
+                    "<dark_red>Danger! <white>Core shield has been compromised, core detonation estimated in T-%sec%s, good luck.")
+                    .replace("%sec%", String.valueOf(seconds)));
         }
     }
 

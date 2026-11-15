@@ -95,6 +95,7 @@ public class NuclearReactorTask extends BukkitRunnable {
                 }
 
                 NuclearReactorManager.spawnHeatParticles(reactor);
+                NuclearReactorManager.tickMeltdownPresentation(reactor);
                 int left = reactor.getMeltdownSeconds() - 1;
                 reactor.setMeltdownSeconds(left);
                 if (left <= 0) {

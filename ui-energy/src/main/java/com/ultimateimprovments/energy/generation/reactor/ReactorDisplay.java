@@ -197,7 +197,12 @@ public class ReactorDisplay {
         // MELTDOWN COUNTDOWN EFFECTS
         // =========================
         if (meltdown) {
-            float progress = 1.0f - (meltdownTimer / 200.0f);
+            // Progress is relative to the configured countdown (20s default),
+            // not the old hardcoded 10s: particles and the rising pitch ramp
+            // over the whole window.
+            int totalTicks = Math.max(20,
+                    ReactorConfig.getInstance().getShieldFailureCountdown() * 20);
+            float progress = 1.0f - (meltdownTimer / (float) totalTicks);
             if (progress < 0) progress = 0;
             if (progress > 1) progress = 1;
 

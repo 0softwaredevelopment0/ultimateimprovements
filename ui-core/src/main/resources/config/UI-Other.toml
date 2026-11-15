@@ -1205,8 +1205,12 @@ selfdestruct_final_warn = "<dark_red>Опасность! <white>Оболочка
 selfdestruct_finale = "<dark_red>☠ <red>Финал самоуничтожения: силовые лазеры работают на 1000%!"
 # Default: <dark_red>☠ <red>Протокол самоуничтожения выполнен — ядро не спасти.
 selfdestruct_complete = "<dark_red>☠ <red>Протокол самоуничтожения выполнен — ядро не спасти."
-# Default: <dark_red>Опасность! <white>Оболочка ядра скомпрометирована, детонация ядра через T-10s, удачи.
-shield_failure = "<dark_red>Опасность! <white>Оболочка ядра скомпрометирована, детонация ядра через T-10s, удачи."
+# Placeholders: %sec%
+# Default: <dark_red>Опасность! <white>Оболочка ядра скомпрометирована, детонация ядра через T-%sec%s, удачи.
+shield_failure = "<dark_red>Опасность! <white>Оболочка ядра скомпрометирована, детонация ядра через T-%sec%s, удачи."
+# Placeholders: %sec%
+# Default: <dark_red>Опасность! <white>Детонация ядра через T-%sec%s.
+shield_countdown = "<dark_red>Опасность! <white>Детонация ядра через T-%sec%s."
 # Stall — реакция потеряла тепло: предупреждения по порогам и автопоцедура шатдауна при -273 C*.
 # Default: <white>Температура ядра слишком низкая для продолжения реакции синтеза, включите все силовые лазеры.
 stall_warn_low = "<white>Температура ядра слишком низкая для продолжения реакции синтеза, включите все силовые лазеры."
@@ -1261,8 +1265,8 @@ meltdown_success = "<green>Рестабилизация реактора усп�
 meltdown_fail_timeout = "<red>Истекло время ожидания ответа систем реактора..."
 # Default: <red>Целостность вспомогательной оболочки критическая, отказ неизбежен.
 meltdown_fail_critical = "<red>Целостность вспомогательной оболочки критическая, отказ неизбежен."
-# Default: <red>Обнаружен отказ вспомогательной оболочки, полный отказ системы через T-10s.
-meltdown_fail_total = "<red>Обнаружен отказ вспомогательной оболочки, полный отказ системы через T-10s."
+# Default: <red>Обнаружен отказ вспомогательной оболочки, полный отказ системы неизбежен.
+meltdown_fail_total = "<red>Обнаружен отказ вспомогательной оболочки, полный отказ системы неизбежен."
 # Startup sequence — кинематичный запуск по пульсу лампы стартапа.
 # Default: <white>Запуск ядра по ручному триггеру, пожалуйста, подождите.
 startup_initiated = "<white>Запуск ядра по ручному триггеру, пожалуйста, подождите."
@@ -1489,6 +1493,9 @@ failure_detected = "<dark_gray>[<yellow>CER<dark_gray>] <gold>Внимание! 
 # Placeholders: %sec%
 # Default: <dark_gray>[<yellow>CER<dark_gray>] <red>Опасно! <white>Обнаружен мелтдаун CER, детонация структуры произойдёт через T-%sec% с.
 meltdown_detected = "<dark_gray>[<yellow>CER<dark_gray>] <red>Опасно! <white>Обнаружен мелтдаун CER, детонация структуры произойдёт через T-%sec% с."
+# Placeholders: %sec%
+# Default: <dark_gray>[<yellow>CER<dark_gray>] <red>Опасно! <white>Детонация структуры CER через T-%sec% с.
+meltdown_countdown = "<dark_gray>[<yellow>CER<dark_gray>] <red>Опасно! <white>Детонация структуры CER через T-%sec% с."
 # Default: <dark_gray>[<yellow>CER<dark_gray>] <gold>Внимание! <white>Детонация структуры CER предотвращена!
 detonation_prevented = "<dark_gray>[<yellow>CER<dark_gray>] <gold>Внимание! <white>Детонация структуры CER предотвращена!"
 # Placeholders: %temp%, %max%
@@ -1765,8 +1772,12 @@ selfdestruct_final_warn = "<dark_red>Danger! <white>Core shield has been comprom
 selfdestruct_finale = "<dark_red>☠ <red>Self-destruct finale: the Power Lasers are running at 1000%!"
 # Default: <dark_red>☠ <red>Self-destruct sequence complete — the core is beyond saving.
 selfdestruct_complete = "<dark_red>☠ <red>Self-destruct sequence complete — the core is beyond saving."
-# Default: <dark_red>Danger! <white>Core shield has been compromised, core detonation estimated in T-10s, good luck.
-shield_failure = "<dark_red>Danger! <white>Core shield has been compromised, core detonation estimated in T-10s, good luck."
+# Placeholders: %sec%
+# Default: <dark_red>Danger! <white>Core shield has been compromised, core detonation estimated in T-%sec%s, good luck.
+shield_failure = "<dark_red>Danger! <white>Core shield has been compromised, core detonation estimated in T-%sec%s, good luck."
+# Placeholders: %sec%
+# Default: <dark_red>Danger! <white>Core detonation in T-%sec%s.
+shield_countdown = "<dark_red>Danger! <white>Core detonation in T-%sec%s."
 # Stall — the reaction lost its heat: threshold warnings and the automatic shutdown at -273 C*.
 # Default: <white>Core temperatures are too low to continue fusion reaction, please activate all power lasers.
 stall_warn_low = "<white>Core temperatures are too low to continue fusion reaction, please activate all power lasers."
@@ -1821,8 +1832,8 @@ meltdown_success = "<green>Reactor re-stabilization successful, performing react
 meltdown_fail_timeout = "<red>Timed out waiting for reactor systems to respond..."
 # Default: <red>Auxiliary shield integrity critical, failure imminent.
 meltdown_fail_critical = "<red>Auxiliary shield integrity critical, failure imminent."
-# Default: <red>Auxiliary shield failure detected, total system failure in T-10s.
-meltdown_fail_total = "<red>Auxiliary shield failure detected, total system failure in T-10s."
+# Default: <red>Auxiliary shield failure detected, total system failure imminent.
+meltdown_fail_total = "<red>Auxiliary shield failure detected, total system failure imminent."
 # Startup sequence — cinematic startup driven by the Trigger Action lamp pulse.
 # Default: <white>Core startup initiated due to a manual trigger, please wait.
 startup_initiated = "<white>Core startup initiated due to a manual trigger, please wait."
@@ -2020,6 +2031,9 @@ failure_detected = "<dark_gray>[<yellow>CER<dark_gray>] <gold>Attention! <white>
 # Placeholders: %sec%
 # Default: <dark_gray>[<yellow>CER<dark_gray>] <red>Danger! <white>CER meltdown detected, structure detonation will occur in T-%sec%s.
 meltdown_detected = "<dark_gray>[<yellow>CER<dark_gray>] <red>Danger! <white>CER meltdown detected, structure detonation will occur in T-%sec%s."
+# Placeholders: %sec%
+# Default: <dark_gray>[<yellow>CER<dark_gray>] <red>Danger! <white>CER structure detonation in T-%sec%s.
+meltdown_countdown = "<dark_gray>[<yellow>CER<dark_gray>] <red>Danger! <white>CER structure detonation in T-%sec%s."
 # Default: <dark_gray>[<yellow>CER<dark_gray>] <gold>Attention! <white>CER structure detonation prevented!
 detonation_prevented = "<dark_gray>[<yellow>CER<dark_gray>] <gold>Attention! <white>CER structure detonation prevented!"
 # Placeholders: %temp%, %max%
