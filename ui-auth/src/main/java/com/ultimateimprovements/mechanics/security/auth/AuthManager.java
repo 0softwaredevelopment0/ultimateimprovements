@@ -166,6 +166,13 @@ public class AuthManager {
             return false;
         }
 
+        // Even privileged force-login must not bypass the required client-IP check.
+        if (!authenticator.ensureClientIpStored(player)) {
+            ConsoleLogger.warn("[Auth] forceLogin refused: no valid client IP for "
+                    + targetName + " (actor: " + actorName + ")");
+            return false;
+        }
+
         // Privileged authentication bypass — always leave a trace in the console.
         ConsoleLogger.warn("[Auth] forceLogin: " + actorName + " force-logged-in " + targetName
                 + " (" + uuid + ")");
