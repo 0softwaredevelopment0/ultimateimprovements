@@ -28,6 +28,10 @@ request_cooldown_seconds = 15
 # Maximum value.
 # Default: 3
 max_accounts_per_ip = 3
+# Reject loopback client IPs (127.0.0.0/8 and ::1).
+# Keep disabled for direct localhost testing; enable when loopback addresses must never authenticate.
+# Default: false
+reject_loopback_ips = false
 
 # Password requirements. Applies to registration, self password change and admin resets.
 [auth.password]
