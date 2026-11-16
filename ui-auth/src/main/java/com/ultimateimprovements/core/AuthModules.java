@@ -20,10 +20,16 @@ public final class AuthModules {
         mm.register(new SimpleModule("Auth", "mechanics/security/auth", true) {
             @Override
             protected void onInit(JavaPlugin plugin) throws Exception {
-                Main main = (Main) plugin;
                 AuthManager.init();
-                main.getServer().getPluginManager().registerEvents(new AuthListener(), main);
+                // Register against UI-Auth itself so soft reload/unload can unregister
+                // the listener and its temporary auth state as one lifecycle unit.
+                plugin.getServer().getPluginManager().registerEvents(new AuthListener(), plugin);
                 ConsoleLogger.info("[AuthModule] Auth system initialized.");
+            }
+
+            @Override
+            protected void onDisable(JavaPlugin plugin) {
+                AuthManager.shutdown();
             }
         });
     }
