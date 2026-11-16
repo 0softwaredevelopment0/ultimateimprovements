@@ -62,6 +62,14 @@ public class AuthListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (!AuthConfig.isEnabled()) return;
         Player player = event.getPlayer();
+
+        // A previous process may have stopped while this player was frozen.
+        // Restore and clear the durable snapshot before evaluating the new session.
+        AuthAuthenticator authenticator = AuthAuthenticator.getInstance();
+        if (authenticator != null) {
+            authenticator.recoverPersistedPlayerState(player);
+        }
+
         AuthManager manager = AuthManager.getInstance();
         if (manager != null) {
             manager.handleJoin(player);
