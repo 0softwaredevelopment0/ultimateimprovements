@@ -217,7 +217,7 @@ tab-completion for all subcommands.
 /ui clearchat <nick|all> — clear chat
 /ui setrad <nick> <n>   — set radiation
 /ui checkrad [nick]     — check radiation
-/ui power off|reboot|confirm|undo — server power
+/ui power off|reboot|schedule|confirm|undo — server power (schedule = next planned restart)
 /ui plugin              — plugin management
 /ui update [tag]        — download release JARs into UltimateImprovements/update (not applied)
 /ui swapjar             — move update/ JARs into plugins/ (apply = server restart)
@@ -234,6 +234,11 @@ tab-completion for all subcommands.
 ```
 
 > `/stop` and `/restart` are intercepted and route through `/ui power off|reboot`.
+>
+> Daily automatic restarts are configured in `configs/UI-Other.toml` under
+> `[scheduled_restart]` (`times = ["04:00"]`, `warning_minutes`,
+> `countdown_seconds`, `timezone`, `skip_if_empty`). `/ui power schedule` shows
+> the next one, `/ui power undo` cancels an active scheduled countdown.
 
 ---
 

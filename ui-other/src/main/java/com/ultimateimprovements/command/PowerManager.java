@@ -32,6 +32,13 @@ public class PowerManager {
     private String requesterName;
     private BukkitRunnable timeoutTask;
 
+    // Active countdown (manual confirmation or a scheduled restart)
+    private BukkitRunnable countdownTask;
+    private BossBar activeBossBar;
+    private boolean countdownActive;
+    private boolean countdownScheduled;
+    private long countdownEndsAtMillis;
+
     // Config: timeouts
     private int requestTimeout = 30;
     private int countdownDuration = 10;
@@ -173,13 +180,39 @@ public class PowerManager {
         requesterName = null;
         requesterUuid = null;
 
+        return startCountdown(type, countdownDuration, false);
+    }
+
+    /**
+     * Starts a restart requested by the schedule (no player, no pending request).
+     *
+     * @return false when another power action is already running
+     */
+    public boolean startScheduledRestart(int durationSeconds) {
+        if (currentRequest != null || countdownActive) return false;
+        return startCountdown(RequestType.RESTART, durationSeconds, true);
+    }
+
+    /**
+     * Runs the shared countdown (BossBar/ActionBar/chat/beeps) and performs the
+     * requested action when it reaches zero.
+     *
+     * @param scheduled true when triggered by {@code ScheduledRestartManager}
+     */
+    private boolean startCountdown(RequestType type, int durationSeconds, boolean scheduled) {
+        if (countdownActive) return false;
+
+        int duration = Math.max(1, durationSeconds);
+        countdownActive = true;
+        countdownScheduled = scheduled;
+        countdownEndsAtMillis = System.currentTimeMillis() + duration * 1000L;
+
         String actionMsg = type == RequestType.STOP
                 ? MessagesManager.getString("power.action_stop", "shutting down")
                 : MessagesManager.getString("power.action_restart", "restarting");
         String action = type == RequestType.STOP
                 ? MessagesManager.getString("power.action_stop_title", "Shutdown")
                 : MessagesManager.getString("power.action_restart_title", "Restart");
-        int duration = countdownDuration;
         int totalTicks = duration * 20;
 
         // --- BossBar ---
@@ -198,7 +231,7 @@ public class PowerManager {
         playBeepToAll(calcPitch(0.0));
 
         // --- Repeating countdown task (every tick — smooth acceleration) ---
-        new BukkitRunnable() {
+        countdownTask = new BukkitRunnable() {
             int tick = 0;                  // how many ticks passed (0..totalTicks)
             int beepCounter = 1;           // counter for the interval between beeps
             int lastDisplaySecond = -1;     // last second when the display was updated
@@ -225,9 +258,7 @@ public class PowerManager {
                             Bukkit.getServer().restart();
                         }
                     } finally {
-                        if (bossBar != null) {
-                            bossBar.removeAll();
-                        }
+                        finishCountdown();
                         cancel();
                     }
                     return;
@@ -308,8 +339,60 @@ public class PowerManager {
 
                 tick++;
             }
-        }.runTaskTimer(Main.getInstance(), 0L, 1L); // every tick!
+        };
+        countdownTask.runTaskTimer(Main.getInstance(), 0L, 1L); // every tick!
+        activeBossBar = bossBar;
 
+        return true;
+    }
+
+    /** Clears the countdown state and removes its BossBar (idempotent). */
+    private void finishCountdown() {
+        countdownActive = false;
+        countdownScheduled = false;
+        countdownEndsAtMillis = 0L;
+        countdownTask = null;
+        if (activeBossBar != null) {
+            activeBossBar.removeAll();
+            activeBossBar = null;
+        }
+    }
+
+    /** @return true while a restart/shutdown countdown (manual or scheduled) is running. */
+    public boolean hasActiveCountdown() {
+        return countdownActive;
+    }
+
+    /** @return true when the active countdown was started by the schedule. */
+    public boolean isScheduledCountdownActive() {
+        return countdownActive && countdownScheduled;
+    }
+
+    /** @return whole seconds left on the active countdown, or 0. */
+    public int getCountdownRemainingSeconds() {
+        if (!countdownActive) return 0;
+        long millis = countdownEndsAtMillis - System.currentTimeMillis();
+        return (int) Math.max(0L, (millis + 999L) / 1000L);
+    }
+
+    /**
+     * Cancels a countdown started by the schedule and tells everyone.
+     *
+     * @return true when a scheduled countdown was actually running
+     */
+    public boolean cancelScheduledCountdown(String cancelerName) {
+        if (!isScheduledCountdownActive()) return false;
+
+        if (countdownTask != null) {
+            countdownTask.cancel();
+            countdownTask = null;
+        }
+        finishCountdown();
+
+        String by = cancelerName == null || cancelerName.isBlank() ? "Console" : cancelerName;
+        Broadcast.send(MessagesManager.getString("power.scheduled_cancelled",
+                "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled restart cancelled</red> <white>%by%</white><red>.</red>")
+                .replace("%by%", by));
         return true;
     }
 
@@ -367,7 +450,15 @@ public class PowerManager {
      * Cancels the active request (by a player command or the console).
      */
     public String undoRequest(String cancelerName) {
-        if (currentRequest == null) return null;
+        if (currentRequest == null) {
+            // A scheduled countdown can be cancelled like a pending request;
+            // the slot is already consumed, so it will not fire again today.
+            if (isScheduledCountdownActive()) {
+                cancelScheduledCountdown(cancelerName);
+                return MessagesManager.getString("power.action_restart_title", "Restart");
+            }
+            return null;
+        }
 
         if (timeoutTask != null) {
             timeoutTask.cancel();

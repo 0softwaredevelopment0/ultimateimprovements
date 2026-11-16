@@ -812,6 +812,28 @@ min_per_second = 1
 # Default: 6
 max_per_second = 6
 
+# Automatic scheduled server restart (/ui power schedule).
+[scheduled_restart]
+# Master switch (true = feature on).
+# Default: false
+enabled = false
+# Daily restart times in the "HH:mm" format (server clock, see timezone below).
+# Any number of entries; duplicates are ignored and invalid entries are skipped with a warning.
+# Default: ["04:00"]
+times = ["04:00"]
+# IANA timezone for the schedule (e.g. "Europe/Moscow"). Empty = server default timezone.
+# Default: ""
+timezone = ""
+# Chat warnings, in minutes before the restart. Sorted automatically; 0 removes warnings.
+# Default: [30, 15, 10, 5, 1]
+warning_minutes = [30, 15, 10, 5, 1]
+# Countdown length in seconds between the scheduled trigger and the actual restart.
+# Default: 60
+countdown_seconds = 60
+# Skip the restart when no players are online (the slot is not retried until tomorrow).
+# Default: false
+skip_if_empty = false
+
 # /kill-style suicide command behaviour.
 [suicide]
 # Duration.
@@ -1065,6 +1087,21 @@ executing = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер
 direct_stop = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер выключается (команда консоли)...</red>"
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер перезагружается (команда консоли)...</red>
 direct_restart = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер перезагружается (команда консоли)...</red>"
+# Chat warning before a scheduled restart (%minutes%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка сервера через</red> <yellow>%minutes%</yellow> <red>мин.</red>
+scheduled_warning = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка сервера через</red> <yellow>%minutes%</yellow> <red>мин.</red>"
+# Next scheduled restart (%time%, %remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Следующая плановая перезагрузка:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>
+scheduled_next = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Следующая плановая перезагрузка:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>"
+# Scheduled restart countdown in progress (%remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка через</red> <yellow>%remaining%</yellow><red>.</red>
+scheduled_running = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка через</red> <yellow>%remaining%</yellow><red>.</red>"
+# No schedule configured.
+# Default: <dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>Плановые перезагрузки не настроены.</gray>
+scheduled_none = "<dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>Плановые перезагрузки не настроены.</gray>"
+# Scheduled restart cancelled by an operator (%by%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка отменена</red> <white>%by%</white><red>.</red>
+scheduled_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка отменена</red> <white>%by%</white><red>.</red>"
 
 # actionbar section.
 # Placeholders: %action%, %seconds%
@@ -1778,6 +1815,21 @@ executing = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %acti
 direct_stop = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server shutting down (console command)...</red>"
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server restarting (console command)...</red>
 direct_restart = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server restarting (console command)...</red>"
+# Scheduled restart warning.
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled server restart in</red> <yellow>%minutes%</yellow> <red>min.</red>
+scheduled_warning = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled server restart in</red> <yellow>%minutes%</yellow> <red>min.</red>"
+# Next scheduled restart (%time%, %remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Next scheduled restart:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>
+scheduled_next = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Next scheduled restart:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>"
+# Scheduled restart countdown in progress (%remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled restart in</red> <yellow>%remaining%</yellow><red>.</red>
+scheduled_running = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled restart in</red> <yellow>%remaining%</yellow><red>.</red>"
+# No schedule configured.
+# Default: <dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>No scheduled restarts are configured.</gray>
+scheduled_none = "<dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>No scheduled restarts are configured.</gray>"
+# Scheduled restart cancelled by an operator (%by%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled restart cancelled</red> <white>%by%</white><red>.</red>
+scheduled_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled restart cancelled</red> <white>%by%</white><red>.</red>"
 
 # actionbar section.
 # Placeholders: %action%, %seconds%

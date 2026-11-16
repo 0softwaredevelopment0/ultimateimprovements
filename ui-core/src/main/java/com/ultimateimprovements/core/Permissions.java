@@ -213,6 +213,8 @@ public final class Permissions {
     public static final String CMD_POWER_OFF = "ui.command.power.off";
     public static final String CMD_POWER_REBOOT = "ui.command.power.reboot";
     public static final String CMD_POWER_UNDO = "ui.command.power.undo";
+    /** /ui power schedule — read-only next scheduled restart. */
+    public static final String CMD_POWER_SCHEDULE = "ui.command.power.schedule";
     public static final String CMD_SUDO = "ui.command.sudo";
     public static final String CMD_UUID = "ui.command.uuid";
     public static final String CMD_CILIST = "ui.command.cilist";
@@ -515,6 +517,7 @@ public final class Permissions {
                 new Permission(CMD_POWER_OFF, "Request server shutdown", PermissionDefault.FALSE),
                 new Permission(CMD_POWER_REBOOT, "Request server restart", PermissionDefault.FALSE),
                 new Permission(CMD_POWER_UNDO, "Cancel a pending shutdown or restart", PermissionDefault.FALSE),
+                new Permission(CMD_POWER_SCHEDULE, "Show the next scheduled server restart", PermissionDefault.FALSE),
                 new Permission(CMD_SUDO, "Use sudo mode commands", PermissionDefault.FALSE),
                 new Permission(CMD_UUID, "Look up player UUIDs", PermissionDefault.FALSE),
                 new Permission(CMD_CILIST, "List custom items", PermissionDefault.FALSE),

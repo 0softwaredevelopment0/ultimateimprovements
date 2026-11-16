@@ -112,7 +112,7 @@ All commands start with `/ui`. The full list is in the in-game help (`/ui help`,
 /ui turret                — turret configuration
 /ui advancement start     — start a timed challenge
 /ui str dfc assemble      — assemble the reactor
-/ui power off|reboot      — server power management
+/ui power off|reboot      — server power management (schedule = next planned restart)
 ```
 
 ---

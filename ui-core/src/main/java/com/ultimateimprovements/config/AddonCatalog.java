@@ -79,7 +79,7 @@ public final class AddonCatalog {
         // ── UI-Other (features umbrella + mechanics) ──
         route("UI-Other",
                 "features", "brand_spoof", "sunburn",
-                "death_logger", "power", "suicide",
+                "death_logger", "power", "scheduled_restart", "suicide",
                 "changedimmension", "motd",
                 "structure_integrity", "kits");
     }

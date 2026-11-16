@@ -132,12 +132,19 @@ public final class SimpleModules {
             protected void onInit(JavaPlugin plugin) throws Exception {
                 Main main = (Main) plugin;
                 PowerManager.init();
+                com.ultimateimprovements.restart.ScheduledRestartManager.init(main);
                 main.getServer().getPluginManager().registerEvents(new PowerInterceptListener(), main);
+            }
+
+            @Override
+            protected void onDisable(JavaPlugin plugin) {
+                com.ultimateimprovements.restart.ScheduledRestartManager.shutdown();
             }
 
             @Override
             protected void onReloadConfig(JavaPlugin plugin) {
                 PowerManager.reloadConfig();
+                com.ultimateimprovements.restart.ScheduledRestartManager.reload();
             }
         });
     }

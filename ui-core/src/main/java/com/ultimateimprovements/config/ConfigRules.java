@@ -453,6 +453,13 @@ final class ConfigRules {
             integer("power.countdown_sound.beep_speedup.min_per_second", 0, 100),
             integer("power.countdown_sound.beep_speedup.max_per_second", 0, 100),
 
+            bool("scheduled_restart.enabled"),
+            stringList("scheduled_restart.times"),
+            string("scheduled_restart.timezone", false, 64),
+            intList("scheduled_restart.warning_minutes"),
+            integer("scheduled_restart.countdown_seconds", 1, 3600),
+            bool("scheduled_restart.skip_if_empty"),
+
             integer("suicide.countdown_duration", 1, 3600),
             integer("suicide.cooldown_seconds", 0, 36000),
             integer("suicide.confirm_timeout", 1, 3600),

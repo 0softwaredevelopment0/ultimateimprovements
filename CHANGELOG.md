@@ -3,6 +3,26 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.8.6-alpha.2] - 2026-11-17
+
+### Added
+- **Scheduled server restart** (`[scheduled_restart]` in `configs/UI-Other.toml`).
+  `times = ["04:00"]` restarts the server automatically every day at the given
+  local times (optional IANA `timezone`). Configurable `warning_minutes`
+  (default `[30, 15, 10, 5, 1]`) broadcast chat reminders, and
+  `countdown_seconds` (default `60`) drives the normal power countdown
+  (BossBar/ActionBar/chat/beeps) before `Bukkit.getServer().restart()` runs.
+  `skip_if_empty` skips a slot when nobody is online.
+- `/ui power schedule` (alias `/ui power next`, permission
+  `ui.command.power.schedule`) shows the next planned restart and the time left.
+  `/ui power undo` now also cancels an active scheduled countdown.
+
+### Notes
+- The executed slot is persisted in the `ui_state` table, so a restart that
+  completes within the same minute is never replayed; a server that boots after
+  the slot waits for the next one. A slot missed by more than two minutes
+  (freeze/GC) is skipped with a console warning.
+
 ## [1.8.6-alpha.1] - 2026-11-15
 
 The family is spelled correctly now: every `UltimateImprovments` identifier in
