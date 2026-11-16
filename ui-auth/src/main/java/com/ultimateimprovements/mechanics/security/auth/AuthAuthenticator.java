@@ -9,8 +9,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.NamespacedKey;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -53,7 +57,107 @@ public class AuthAuthenticator {
      */
     private final Map<UUID, SavedPlayerState> savedStates = new ConcurrentHashMap<>();
 
-    private record SavedPlayerState(GameMode gameMode, float walkSpeed, float flySpeed, boolean allowFlight, boolean flying) {}
+    /**
+     * A player.dat marker containing the complete pre-auth state. It lets the auth
+     * freeze be rolled back after an abrupt process stop, when PlayerQuitEvent and
+     * the in-memory savedStates map are unavailable.
+     */
+    private static final String PERSISTED_STATE_KEY = "auth_pending_restore";
+
+    private record SavedPlayerState(GameMode gameMode, float walkSpeed, float flySpeed,
+                                    boolean allowFlight, boolean flying, boolean invulnerable) {}
+
+    private NamespacedKey persistedStateKey() {
+        return new NamespacedKey(Main.getInstance(), PERSISTED_STATE_KEY);
+    }
+
+    private String serializeSavedState(SavedPlayerState state) {
+        String raw = "1|" + state.gameMode.name() + "|" + state.walkSpeed + "|" + state.flySpeed
+                + "|" + state.allowFlight + "|" + state.flying + "|" + state.invulnerable;
+        return Base64.getEncoder().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private SavedPlayerState deserializeSavedState(String encoded) {
+        if (encoded == null || encoded.isBlank()) return null;
+        try {
+            String raw = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
+            String[] fields = raw.split("\\|", -1);
+            if (fields.length != 7 || !"1".equals(fields[0])) return null;
+
+            float walkSpeed = Float.parseFloat(fields[2]);
+            float flySpeed = Float.parseFloat(fields[3]);
+            if (!Float.isFinite(walkSpeed) || walkSpeed < -1.0f || walkSpeed > 1.0f
+                    || !Float.isFinite(flySpeed) || flySpeed < -1.0f || flySpeed > 1.0f) {
+                return null;
+            }
+
+            return new SavedPlayerState(
+                    GameMode.valueOf(fields[1]),
+                    walkSpeed,
+                    flySpeed,
+                    Boolean.parseBoolean(fields[4]),
+                    Boolean.parseBoolean(fields[5]),
+                    Boolean.parseBoolean(fields[6]));
+        } catch (Exception e) {
+            ConsoleLogger.warn("[Auth] Could not read persisted pre-auth state: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private boolean hasPersistedSavedState(Player player) {
+        return player.getPersistentDataContainer().has(persistedStateKey(), PersistentDataType.STRING);
+    }
+
+    private SavedPlayerState readPersistedSavedState(Player player) {
+        String encoded = player.getPersistentDataContainer().get(persistedStateKey(), PersistentDataType.STRING);
+        return deserializeSavedState(encoded);
+    }
+
+    private void persistSavedState(Player player, SavedPlayerState state) {
+        player.getPersistentDataContainer().set(
+                persistedStateKey(), PersistentDataType.STRING, serializeSavedState(state));
+        // Persist the recovery marker before granting temporary flight. If the
+        // process stops unexpectedly, the next join can restore the pre-auth state.
+        try {
+            player.saveData();
+        } catch (Throwable t) {
+            ConsoleLogger.warn("[Auth] Could not persist pre-auth state for " + player.getName()
+                    + ": " + t.getMessage());
+        }
+    }
+
+    private void clearPersistedSavedState(Player player) {
+        player.getPersistentDataContainer().remove(persistedStateKey());
+    }
+
+    private void savePlayerData(Player player) {
+        try {
+            player.saveData();
+        } catch (Throwable t) {
+            ConsoleLogger.warn("[Auth] Could not save restored player data for " + player.getName()
+                    + ": " + t.getMessage());
+        }
+    }
+
+    private void restoreSavedState(Player player, SavedPlayerState saved) {
+        player.setGameMode(saved.gameMode);
+        player.setWalkSpeed(saved.walkSpeed);
+        player.setFlySpeed(saved.flySpeed);
+        player.setAllowFlight(saved.allowFlight);
+        player.setFlying(saved.flying);
+        player.setInvulnerable(saved.invulnerable);
+    }
+
+    private void restoreSafeDefaults(Player player) {
+        // A corrupt/missing recovery payload must never leave a temporary flight
+        // grant or a frozen player behind.
+        player.setGameMode(GameMode.SURVIVAL);
+        player.setWalkSpeed(0.2f);
+        player.setFlySpeed(0.1f);
+        player.setAllowFlight(false);
+        player.setFlying(false);
+        player.setInvulnerable(false);
+    }
 
     public AuthAuthenticator(AuthPlayerState playerState, AuthRateLimiter rateLimiter, AuthTimeoutManager timeoutManager) {
         this.playerState = playerState;
@@ -739,56 +843,68 @@ public class AuthAuthenticator {
     // =========================
     private void freezePlayer(Player player) {
         UUID uuid = player.getUniqueId();
-        // Defensive: discard any leaked savedStates entry from a previous session/disconnect.
-        // If a player disconnected mid-auth, the leaked entry would otherwise be RE-FROZEN on
-        // next join — and on successful auth, unfreezePlayer would restore the frozen state
-        // (GM=ADVENTURE, walkSpeed=0) instead of the real pre-freeze state, leaving the player
-        // unable to move or fly even after authentication.
+
+        // Recover any stale snapshot before taking a fresh one. This can happen
+        // after a plugin hot-reload or an interrupted previous authentication.
+        if (hasPersistedSavedState(player)) {
+            recoverPersistedPlayerState(player);
+        }
+
         SavedPlayerState leaked = savedStates.remove(uuid);
         if (leaked != null) {
             ConsoleLogger.warn("[Auth] Discarding leaked savedStates for " + player.getName()
                     + " (was " + leaked.gameMode + "/walk=" + leaked.walkSpeed + ")");
-            // Best-effort restore so the live Player object isn't visibly broken either
             try {
-                player.setGameMode(leaked.gameMode);
-                player.setWalkSpeed(leaked.walkSpeed);
-                player.setFlySpeed(leaked.flySpeed);
-                player.setAllowFlight(leaked.allowFlight);
-                player.setFlying(leaked.flying);
-                player.setInvulnerable(false);
+                restoreSavedState(player, leaked);
             } catch (Throwable ignored) {}
         }
-        // Save the state BEFORE the freeze
-        savedStates.put(uuid, new SavedPlayerState(
+
+        // Capture the real state once, before changing any movement or flight flag.
+        SavedPlayerState saved = new SavedPlayerState(
                 player.getGameMode(),
                 player.getWalkSpeed(),
                 player.getFlySpeed(),
                 player.getAllowFlight(),
-                player.isFlying()
-        ));
+                player.isFlying(),
+                player.isInvulnerable());
+        savedStates.put(uuid, saved);
+
         player.setGameMode(GameMode.ADVENTURE);
         player.setWalkSpeed(0.0f);
         player.setFlySpeed(0.0f);
         player.setAllowFlight(false);
         player.setFlying(false);
         player.setInvulnerable(true);
+
+        // Store a durable snapshot before the temporary permission is enabled.
+        persistSavedState(player, saved);
+
+        // allow-flight=false in server.properties otherwise treats the auth freeze
+        // as unauthorized flight and kicks with "Flying is not enabled". The player
+        // still cannot move/interact: AuthListener enforces pendingAuth, and fly speed
+        // remains zero. This permission exists only while this snapshot is active.
+        player.setAllowFlight(true);
+        player.setFlySpeed(0.0f);
+        player.setFlying(false);
     }
 
     private void unfreezePlayer(Player player) {
         UUID uuid = player.getUniqueId();
         SavedPlayerState saved = savedStates.remove(uuid);
-        if (saved != null) {
-            player.setGameMode(saved.gameMode);
-            player.setWalkSpeed(saved.walkSpeed);
-            player.setFlySpeed(saved.flySpeed);
-            player.setAllowFlight(saved.allowFlight);
-            player.setFlying(saved.flying);
-        } else {
-            player.setGameMode(GameMode.SURVIVAL);
-            player.setWalkSpeed(0.2f);
-            player.setFlySpeed(0.1f);
+        if (saved == null) {
+            saved = readPersistedSavedState(player);
         }
-        player.setInvulnerable(false);
+
+        if (saved != null) {
+            restoreSavedState(player, saved);
+        } else {
+            restoreSafeDefaults(player);
+        }
+
+        clearPersistedSavedState(player);
+        // The marker and restored permission are written together: a later restart
+        // cannot resurrect a temporary auth-only flight grant.
+        savePlayerData(player);
     }
 
     /**
@@ -815,19 +931,84 @@ public class AuthAuthenticator {
         if (player == null) return;
         UUID uuid = player.getUniqueId();
         SavedPlayerState saved = savedStates.remove(uuid);
-        if (saved != null) {
+        if (saved == null) {
+            saved = readPersistedSavedState(player);
+        }
+
+        if (saved != null || hasPersistedSavedState(player)) {
             try {
-                player.setGameMode(saved.gameMode);
-                player.setWalkSpeed(saved.walkSpeed);
-                player.setFlySpeed(saved.flySpeed);
-                player.setAllowFlight(saved.allowFlight);
-                player.setFlying(saved.flying);
-                player.setInvulnerable(false);
-                player.saveData(); // persist restore to player.dat for next login
+                if (saved != null) {
+                    restoreSavedState(player, saved);
+                } else {
+                    restoreSafeDefaults(player);
+                }
+                clearPersistedSavedState(player);
+                savePlayerData(player);
             } catch (Throwable t) {
                 ConsoleLogger.warn("[Auth] handleQuit restore failed for " + player.getName()
                         + ": " + t.getMessage());
             }
+        }
+    }
+
+    /**
+     * Restores a player.dat snapshot left by an interrupted authentication before
+     * the new join is evaluated. A valid auth session can then pass through normally;
+     * an expired session gets a fresh snapshot and a fresh temporary flight grant.
+     */
+    public void recoverPersistedPlayerState(Player player) {
+        if (player == null || !hasPersistedSavedState(player)) return;
+
+        UUID uuid = player.getUniqueId();
+        SavedPlayerState saved = readPersistedSavedState(player);
+        if (saved == null) {
+            saved = savedStates.remove(uuid);
+        }
+
+        try {
+            if (saved != null) {
+                restoreSavedState(player, saved);
+            } else {
+                ConsoleLogger.warn("[Auth] Invalid persisted auth snapshot for " + player.getName()
+                        + "; applying safe movement defaults.");
+                restoreSafeDefaults(player);
+            }
+            savedStates.remove(uuid);
+            clearPersistedSavedState(player);
+            savePlayerData(player);
+            ConsoleLogger.info("[Auth] Recovered interrupted auth state for " + player.getName() + ".");
+        } catch (Throwable t) {
+            ConsoleLogger.warn("[Auth] Persisted auth recovery failed for " + player.getName()
+                    + ": " + t.getMessage());
+        }
+    }
+
+    /**
+     * Called when the auth module is disabled or hot-reloaded. Online players are
+     * unfrozen and every temporary flight marker is cleared before the manager dies.
+     */
+    public void shutdown() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            UUID uuid = player.getUniqueId();
+            if (!playerState.isPendingAuth(uuid)
+                    && !savedStates.containsKey(uuid)
+                    && !hasPersistedSavedState(player)) {
+                continue;
+            }
+
+            handleQuit(player);
+            playerState.removePlayer(uuid);
+            timeoutManager.cancelLoginTimeout(uuid);
+            AuthPrompt.removePlayer(uuid);
+            Auth2FA twofa = Auth2FA.getInstance();
+            if (twofa != null) {
+                twofa.clearPending(uuid);
+            }
+        }
+
+        savedStates.clear();
+        if (instance == this) {
+            instance = null;
         }
     }
 

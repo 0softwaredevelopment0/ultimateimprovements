@@ -60,8 +60,17 @@ public class AuthListener implements Listener {
     // =========================
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!AuthConfig.isEnabled()) return;
         Player player = event.getPlayer();
+
+        // Recovery must run even when auth was disabled in config after a crash;
+        // an obsolete temporary allowFlight flag is never valid without auth.
+        AuthAuthenticator authenticator = AuthAuthenticator.getInstance();
+        if (authenticator != null) {
+            authenticator.recoverPersistedPlayerState(player);
+        }
+
+        if (!AuthConfig.isEnabled()) return;
+
         AuthManager manager = AuthManager.getInstance();
         if (manager != null) {
             manager.handleJoin(player);

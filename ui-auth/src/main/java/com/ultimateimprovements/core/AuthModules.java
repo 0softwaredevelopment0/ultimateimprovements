@@ -5,6 +5,7 @@ import com.ultimateimprovements.mechanics.security.auth.AuthManager;
 import com.ultimateimprovements.module.ModuleManager;
 import com.ultimateimprovements.module.SimpleModule;
 import com.ultimateimprovements.util.ConsoleLogger;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -18,12 +19,28 @@ public final class AuthModules {
     /** Registers the Auth module. */
     public static void registerAll(ModuleManager mm) {
         mm.register(new SimpleModule("Auth", "mechanics/security/auth", true) {
+            private AuthListener listener;
+
             @Override
             protected void onInit(JavaPlugin plugin) throws Exception {
-                Main main = (Main) plugin;
                 AuthManager.init();
-                main.getServer().getPluginManager().registerEvents(new AuthListener(), main);
+                // ModuleManager initializes modules with UI-Core's Main instance,
+                // but the listener belongs to UI-Auth so its own reload/disable can
+                // reliably unregister it.
+                JavaPlugin listenerOwner = UIAuth.getInstance() != null
+                        ? UIAuth.getInstance() : plugin;
+                listener = new AuthListener();
+                plugin.getServer().getPluginManager().registerEvents(listener, listenerOwner);
                 ConsoleLogger.info("[AuthModule] Auth system initialized.");
+            }
+
+            @Override
+            protected void onDisable(JavaPlugin plugin) {
+                if (listener != null) {
+                    HandlerList.unregisterAll(listener);
+                    listener = null;
+                }
+                AuthManager.shutdown();
             }
         });
     }

@@ -72,6 +72,17 @@ public class AuthManager {
         return instance;
     }
 
+    /**
+     * Stops the current auth runtime and restores every online pending player.
+     * Used by addon shutdown and in-place reload.
+     */
+    public static void shutdown() {
+        AuthManager current = instance;
+        if (current == null) return;
+        current.authenticator.shutdown();
+        instance = null;
+    }
+
     // =========================
     // STATE DELEGATION
     // =========================

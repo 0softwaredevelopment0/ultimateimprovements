@@ -4,7 +4,9 @@ import com.ultimateimprovements.command.SubCommandRegistry;
 import com.ultimateimprovements.command.subcommands.AuthSubcommand;
 import com.ultimateimprovements.command.subcommands.LegacySubCommandAdapter;
 import com.ultimateimprovements.mechanics.security.auth.AuthDialogHandler;
+import com.ultimateimprovements.mechanics.security.auth.AuthManager;
 import com.ultimateimprovements.module.ModuleManager;
+import org.bukkit.entity.Player;
 import com.ultimateimprovements.util.ConsoleLogger;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,6 +54,7 @@ public class UIAuth extends JavaPlugin {
      */
         public void softReload() {
         ConsoleLogger.info("[UI-Auth] Soft reload (in place)...");
+        AuthManager.shutdown();
         HandlerList.unregisterAll(this);
         runStartup();
     }
@@ -77,6 +80,16 @@ public class UIAuth extends JavaPlugin {
         // Dialog handler for the auth screen (submit/cancel buttons).
         AuthDialogHandler.register(this);
         registerAuthCommand();
+
+        // A soft reload does not produce PlayerJoinEvent for already connected
+        // players. Re-run the auth gate after the manager and listeners are ready.
+        AuthManager authManager = AuthManager.getInstance();
+        if (authManager != null) {
+            for (Player player : getServer().getOnlinePlayers()) {
+                authManager.handleJoin(player);
+            }
+        }
+
         reportModuleStats(mm);
 
         ConsoleLogger.success("[UI-Auth] Authentication enabled!");
