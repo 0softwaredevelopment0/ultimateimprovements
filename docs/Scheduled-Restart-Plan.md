@@ -101,7 +101,27 @@ Validation:
 - New root key `scheduled_restart` is routed to `UI-Other` in `AddonCatalog`,
   so existing installs receive the section through the normal repair pass.
 
-## 6. Messages
+## 6. Commands
+
+`/ui autorestart` is a normal `SubCommand` routed through the modern Paper
+Brigadier root (`PaperCommands` + `LifecycleEvents.COMMANDS`), including
+Brigadier tab-completion.
+
+| Command | Permission | Default | Behaviour |
+|---------|------------|---------|-----------|
+| `/ui autorestart on` | `ui.command.autorestart.toggle` | OP | Enable; writes `scheduled_restart.enabled = true` back to the TOML file. |
+| `/ui autorestart off` | `ui.command.autorestart.toggle` | OP | Disable; writes `false`, stops the ticker and cancels an active planned countdown. |
+| `/ui autorestart status` | `ui.command.autorestart.status` | everyone | Shows the time until the next run (or the active countdown). Plugin prefix included. |
+| `/ui autorestart skip` | `ui.command.autorestart.skip` | OP | Flags the next run to be skipped; the flag is persisted in the DB and the timer still reaches zero. |
+| `/ui autorestart undoskip` | `ui.command.autorestart.undoskip` | OP | Clears the pending skip; the next run executes normally. |
+| `/ui autorestart reset` | `ui.command.autorestart.reset` | OP | Restarts the timer from now (timer mode: full configured interval), clears the skip and cancels an active planned countdown. |
+
+Skip lifecycle: `skip` persists `skip_pending = true`; `status` still shows the
+same next time plus a "will be skipped" hint; at the deadline the manager
+broadcasts "scheduled action cancelled (skip)", clears the flag and advances the
+schedule (timer: now + interval, times: next slot).
+
+## 7. Messages
 
 Bilingual (`messages.power.*` = RU, `messages_en.power.*` = EN); the language is
 chosen by `messages.lang` (EN default). `Broadcast.send` prepends the plugin
@@ -112,7 +132,7 @@ Keys: `scheduled_warning` (`%action%`, `%minutes%`), `scheduled_next`
 `scheduled_none`, `scheduled_cancelled` (`%action%`, `%by%`),
 `scheduled_skipped_limit` (`%online%`, `%comparison%`, `%value%`).
 
-## 7. Architecture
+## 8. Architecture
 
 | Piece | Responsibility |
 |-------|----------------|
@@ -121,9 +141,10 @@ Keys: `scheduled_warning` (`%action%`, `%minutes%`), `scheduled_next`
 | `command/PowerManager` | Shared countdown UI. `startScheduledPowerAction(type, seconds)`, `cancelScheduledCountdown()`, `isScheduledCountdownActive()`, remaining-seconds and action-title getters. |
 | `command/subcommands/PowerSubcommand` | `schedule`/`next` output; `undo` also cancels a scheduled countdown. |
 | `module/SimpleModules` (`Power`) | Init / reload / shutdown hooks. |
-| `Permissions` | `ui.command.power.schedule` (read-only, default `FALSE`). |
+| `Permissions` | `power.schedule` (FALSE) and the five `autorestart.*` nodes (toggle/skip/undoskip/reset = OP, status = TRUE). |
+| `command/subcommands/AutorestartSubcommand` | `/ui autorestart on\|off\|status\|skip\|undoskip\|reset` (Paper Brigadier bridge, auto-discovered via `@SubCommandInfo`). |
 
-## 8. Edge cases
+## 9. Edge cases
 
 | Case | Result |
 |------|--------|
@@ -136,7 +157,7 @@ Keys: `scheduled_warning` (`%action%`, `%minutes%`), `scheduled_next`
 | Invalid time/interval | Entry dropped with a warning; timer mode is disabled on an invalid interval. |
 | Empty `times` / `enabled = false` | No ticker; `/ui power schedule` reports "not configured". |
 
-## 9. Tests
+## 10. Tests
 
 - `ui-other/src/test/.../restart/RestartScheduleTest` — time parsing, interval
   parsing (`30s`, `48h`, `7D`, invalid), next-occurrence rollover, duration
@@ -146,13 +167,14 @@ Keys: `scheduled_warning` (`%action%`, `%minutes%`), `scheduled_next`
   confirm the deadline did not reset; set the player gate to a failing
   comparison and confirm the skip + reset.
 
-## 10. Files
+## 11. Files
 
 ```
 ui-other/.../restart/RestartSchedule.java
 ui-other/.../restart/ScheduledRestartManager.java
 ui-other/.../command/PowerManager.java
 ui-other/.../command/subcommands/PowerSubcommand.java
+ui-other/.../command/subcommands/AutorestartSubcommand.java
 ui-other/.../module/SimpleModules.java
 ui-other/src/test/.../restart/RestartScheduleTest.java
 ui-core/.../config/AddonCatalog.java

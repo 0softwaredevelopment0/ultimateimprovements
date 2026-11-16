@@ -48,6 +48,7 @@ public final class ScheduledRestartManager {
     private static final String STATE_LAST_SLOT = "last_slot";
     private static final String STATE_NEXT_RUN = "next_run";
     private static final String STATE_INTERVAL_MS = "interval_ms";
+    private static final String STATE_SKIP_PENDING = "skip_pending";
 
     /** Tick period in ticks (1 second). */
     private static final long TICK_PERIOD = 20L;
@@ -85,6 +86,7 @@ public final class ScheduledRestartManager {
     /** Local representation of the clock-mode slot (null in timer mode). */
     private LocalDateTime nextRestart;
     private String lastFiredSlot;
+    private boolean skipPending;
     private final Set<Integer> sentWarnings = new LinkedHashSet<>();
 
     private ScheduledRestartManager() {}
@@ -132,6 +134,8 @@ public final class ScheduledRestartManager {
             ConsoleLogger.info("[ScheduledRestart] Disabled in config (scheduled_restart.enabled: false)");
             return;
         }
+
+        skipPending = "true".equalsIgnoreCase(StateStore.get(STATE_NAMESPACE, STATE_SKIP_PENDING));
 
         zone = resolveZone(cfg.getString("scheduled_restart.timezone", ""));
         mode = parseMode(cfg.getString("scheduled_restart.mode", "times"));
@@ -317,6 +321,81 @@ public final class ScheduledRestartManager {
         return action;
     }
 
+    /** @return true when the next run is flagged to be skipped (persisted in the DB). */
+    public synchronized boolean isSkipPending() {
+        return skipPending;
+    }
+
+    /** @return a short human-readable mode description ("times" / "timer (48h 0m 0s)"). */
+    public String describeMode() {
+        return mode == Mode.TIMER
+                ? "timer (" + RestartSchedule.formatDuration(interval) + ")"
+                : "times";
+    }
+
+    /**
+     * Turns the feature on/off from an in-game command and writes the value back
+     * to {@code UI-Other.toml}.
+     *
+     * @return true when the config write was performed
+     */
+    public synchronized boolean setEnabled(boolean value) {
+        Main main = plugin;
+        if (main == null) return false;
+
+        if (!value) {
+            PowerManager power = PowerManager.getInstance();
+            if (power != null && power.isScheduledCountdownActive()) {
+                power.cancelScheduledCountdown("Console");
+            }
+        }
+
+        main.getConfig().set("scheduled_restart.enabled", value);
+        main.saveConfig();
+        start(main);
+        return true;
+    }
+
+    /**
+     * Marks (or clears) the next run to be skipped. The flag is persisted, so it
+     * survives a server restart. At the due moment the action is cancelled and
+     * the schedule advances normally.
+     *
+     * @return false when there is no schedule to skip (only for {@code skip})
+     */
+    public synchronized boolean setSkipPending(boolean value) {
+        if (value && (!enabled || nextFireMillis <= 0)) return false;
+        skipPending = value;
+        StateStore.put(STATE_NAMESPACE, STATE_SKIP_PENDING, value ? "true" : null);
+        return true;
+    }
+
+    /**
+     * Resets the schedule from now: timer mode restarts the configured interval,
+     * clock mode recomputes the next slot. A pending skip is cleared.
+     *
+     * @return false when the feature is disabled or has nothing scheduled
+     */
+    public synchronized boolean resetSchedule() {
+        if (!enabled || nextFireMillis <= 0) return false;
+
+        PowerManager power = PowerManager.getInstance();
+        if (power != null && power.isScheduledCountdownActive()) {
+            power.cancelScheduledCountdown("Console");
+        }
+
+        setSkipPending(false);
+        sentWarnings.clear();
+        advance(System.currentTimeMillis());
+        return true;
+    }
+
+    private String actionTitle() {
+        return action == RequestType.STOP
+                ? MessagesManager.getString("power.action_stop_title", "Shutdown")
+                : MessagesManager.getString("power.action_restart_title", "Restart");
+    }
+
     /** @return the next scheduled moment, or {@code null} when nothing is scheduled. */
     public LocalDateTime getNextRestart() {
         if (!enabled || nextFireMillis <= 0) return null;
@@ -357,6 +436,20 @@ public final class ScheduledRestartManager {
 
         // A restart that completed inside the same minute must not be replayed.
         if (mode == Mode.TIMES && slotKey != null && slotKey.equals(lastFiredSlot)) {
+            advance(now);
+            sentWarnings.clear();
+            return;
+        }
+
+        // Operator requested a skip: the timer still reaches zero, then the
+        // action is cancelled here and the schedule advances as usual.
+        if (skipPending) {
+            skipPending = false;
+            StateStore.put(STATE_NAMESPACE, STATE_SKIP_PENDING, null);
+            Broadcast.send(MessagesManager.getString("power.autorestart_skip_cancelled",
+                    "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled:</red> <white>%action%</white> <gray>(skip)</gray><red>.</red>")
+                    .replace("%action%", actionTitle()));
+            ConsoleLogger.info("[ScheduledRestart] Due action skipped by /ui autorestart skip.");
             advance(now);
             sentWarnings.clear();
             return;

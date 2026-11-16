@@ -218,6 +218,7 @@ tab-completion for all subcommands.
 /ui setrad <nick> <n>   — set radiation
 /ui checkrad [nick]     — check radiation
 /ui power off|reboot|schedule|confirm|undo — server power (schedule = next planned restart)
+/ui autorestart on|off|status|skip|undoskip|reset — automatic restart control
 /ui plugin              — plugin management
 /ui update [tag]        — download release JARs into UltimateImprovements/update (not applied)
 /ui swapjar             — move update/ JARs into plugins/ (apply = server restart)
@@ -244,7 +245,10 @@ tab-completion for all subcommands.
 > countdown. The optional `player_limit_*` gate skips the action (and resets the
 > schedule) when the online count does not satisfy the comparison.
 > `/ui power schedule` shows the next run, `/ui power undo` cancels an active
-> scheduled countdown.
+> scheduled countdown. `/ui autorestart on|off` toggles the feature in game and
+> writes the value back to the TOML, `status` shows the time left, `skip` skips
+> the next run (persisted, still announced at the deadline), `undoskip` clears
+> it and `reset` restarts the timer from now.
 
 ---
 

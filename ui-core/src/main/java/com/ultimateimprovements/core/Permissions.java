@@ -215,6 +215,11 @@ public final class Permissions {
     public static final String CMD_POWER_UNDO = "ui.command.power.undo";
     /** /ui power schedule — read-only next scheduled restart. */
     public static final String CMD_POWER_SCHEDULE = "ui.command.power.schedule";
+    public static final String CMD_AUTORESTART_TOGGLE = "ui.command.autorestart.toggle";
+    public static final String CMD_AUTORESTART_STATUS = "ui.command.autorestart.status";
+    public static final String CMD_AUTORESTART_SKIP = "ui.command.autorestart.skip";
+    public static final String CMD_AUTORESTART_UNDOSKIP = "ui.command.autorestart.undoskip";
+    public static final String CMD_AUTORESTART_RESET = "ui.command.autorestart.reset";
     public static final String CMD_SUDO = "ui.command.sudo";
     public static final String CMD_UUID = "ui.command.uuid";
     public static final String CMD_CILIST = "ui.command.cilist";
@@ -518,6 +523,11 @@ public final class Permissions {
                 new Permission(CMD_POWER_REBOOT, "Request server restart", PermissionDefault.FALSE),
                 new Permission(CMD_POWER_UNDO, "Cancel a pending shutdown or restart", PermissionDefault.FALSE),
                 new Permission(CMD_POWER_SCHEDULE, "Show the next scheduled server restart", PermissionDefault.FALSE),
+                new Permission(CMD_AUTORESTART_TOGGLE, "Toggle the automatic scheduled restart (/ui autorestart on|off)", PermissionDefault.OP),
+                new Permission(CMD_AUTORESTART_STATUS, "Show the next automatic restart (/ui autorestart status)", PermissionDefault.TRUE),
+                new Permission(CMD_AUTORESTART_SKIP, "Skip the next automatic restart (/ui autorestart skip)", PermissionDefault.OP),
+                new Permission(CMD_AUTORESTART_UNDOSKIP, "Cancel a pending automatic-restart skip (/ui autorestart undoskip)", PermissionDefault.OP),
+                new Permission(CMD_AUTORESTART_RESET, "Reset the automatic-restart timer (/ui autorestart reset)", PermissionDefault.OP),
                 new Permission(CMD_SUDO, "Use sudo mode commands", PermissionDefault.FALSE),
                 new Permission(CMD_UUID, "Look up player UUIDs", PermissionDefault.FALSE),
                 new Permission(CMD_CILIST, "List custom items", PermissionDefault.FALSE),

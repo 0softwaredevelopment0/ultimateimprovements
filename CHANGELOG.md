@@ -3,6 +3,27 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.8.6-alpha.4] - 2026-11-17
+
+### Added
+- **`/ui autorestart on|off|status|skip|undoskip|reset`.** In-game control of
+  the automatic restart schedule, registered through the existing Paper
+  Brigadier `/ui` root (with tab-completion):
+  - `on|off` toggles the feature and writes `scheduled_restart.enabled` back to
+    `UI-Other.toml`; `off` also cancels an active planned countdown;
+  - `status` shows the time until the next run (plugin prefix, read-only,
+    available to everyone);
+  - `skip` flags the next run to be skipped — the flag is persisted in the DB,
+    warnings still fire, and at the deadline the server broadcasts that the run
+    was cancelled and advances the schedule;
+  - `undoskip` clears the pending skip;
+  - `reset` restarts the timer from now (a full configured interval in timer
+    mode), clears the skip and cancels an active planned countdown.
+- New permissions: `ui.command.autorestart.toggle|skip|undoskip|reset` (OP by
+  default) and `ui.command.autorestart.status` (everyone by default).
+- Bilingual `power.autorestart_*` messages (EN default, RU when
+  `messages.lang = "ru"`), all replies carry the plugin prefix.
+
 ## [1.8.6-alpha.3] - 2026-11-17
 
 ### Added

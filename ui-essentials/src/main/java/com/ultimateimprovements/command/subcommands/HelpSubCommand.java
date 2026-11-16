@@ -406,6 +406,8 @@ public class HelpSubCommand implements SubCommand {
                 .u("give <player> <key> [flags]", "issue a key")
                 .u("list", "list issued keys");
         cmd("power", "Server power management").u("off|reboot|schedule|...", "shutdown, restart or next scheduled restart");
+        cmd("autorestart", "Automatic restart schedule")
+                .u("on|off|status|skip|undoskip|reset", "control the scheduled restart");
         cmd("setrad", "Set a player's radiation").u("<player> <mSv>", "debug tool");
     }
 

@@ -1127,6 +1127,39 @@ scheduled_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>О
 # Action skipped because the player-count gate failed (%online%, %comparison%, %value%).
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановое событие отменено: не выполнено условие по онлайну</red> <gray>(%online% онлайн, требуется %comparison% %value%)</gray><red>.</red>
 scheduled_skipped_limit = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановое событие отменено: не выполнено условие по онлайну</red> <gray>(%online% онлайн, требуется %comparison% %value%)</gray><red>.</red>"
+# /ui autorestart on — feature enabled.
+# Default: <green>✔ <white>Авторестарт <green>включён</green>.</white>
+autorestart_enabled = "<green>✔ <white>Авторестарт <green>включён</green>.</white>"
+# /ui autorestart off — feature disabled.
+# Default: <green>✔ <white>Авторестарт <red>выключен</red>.</white>
+autorestart_disabled = "<green>✔ <white>Авторестарт <red>выключен</red>.</white>"
+# /ui autorestart status — feature off (%time% unused).
+# Default: <gray>Авторестарт <red>выключен</red>.</gray>
+autorestart_status_off = "<gray>Авторестарт <red>выключен</red>.</gray>"
+# /ui autorestart status (%time%, %remaining%).
+# Default: <gray>Следующий авторестарт:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>
+autorestart_status = "<gray>Следующий авторестарт:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>"
+# /ui autorestart skip — the next run will be skipped.
+# Default: <green>✔ <white>Следующий авторестарт будет пропущен.</white>
+autorestart_skip_set = "<green>✔ <white>Следующий авторестарт будет пропущен.</white>"
+# Status hint while a skip is pending.
+# Default: <gray>ℹ Следующий запуск будет пропущен —</gray> <white>/ui autorestart undoskip</white><gray>.</gray>
+autorestart_skip_pending = "<gray>ℹ Следующий запуск будет пропущен —</gray> <white>/ui autorestart undoskip</white><gray>.</gray>"
+# Broadcast when the skipped run reaches its deadline (%action%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановое событие отменено:</red> <white>%action%</white> <gray>(skip)</gray><red>.</red>
+autorestart_skip_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановое событие отменено:</red> <white>%action%</white> <gray>(skip)</gray><red>.</red>"
+# /ui autorestart undoskip — pending skip cleared.
+# Default: <green>✔ <white>Пропуск следующего авторестарта отменён.</white>
+autorestart_undoskip_done = "<green>✔ <white>Пропуск следующего авторестарта отменён.</white>"
+# /ui autorestart undoskip — nothing to clear.
+# Default: <gray>Активного пропуска нет.</gray>
+autorestart_undoskip_none = "<gray>Активного пропуска нет.</gray>"
+# /ui autorestart reset — timer restarted (%time%, %remaining%).
+# Default: <green>✔ <white>Таймер авторестарта сброшен. Следующий запуск:</white> <yellow>%time%</yellow> <gray>(через %remaining%)</gray>
+autorestart_reset = "<green>✔ <white>Таймер авторестарта сброшен. Следующий запуск:</white> <yellow>%time%</yellow> <gray>(через %remaining%)</gray>"
+# /ui autorestart — schedule manager unavailable.
+# Default: <red>Авторестарт недоступен.</red>
+autorestart_unavailable = "<red>Авторестарт недоступен.</red>"
 
 # actionbar section.
 # Placeholders: %action%, %seconds%
@@ -1858,6 +1891,39 @@ scheduled_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Sc
 # Action skipped because the player-count gate failed (%online%, %comparison%, %value%).
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled: online player limit not met</red> <gray>(%online% online, required %comparison% %value%)</gray><red>.</red>
 scheduled_skipped_limit = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled: online player limit not met</red> <gray>(%online% online, required %comparison% %value%)</gray><red>.</red>"
+# /ui autorestart on — feature enabled.
+# Default: <green>✔ <white>Automatic restart is now <green>enabled</green>.</white>
+autorestart_enabled = "<green>✔ <white>Automatic restart is now <green>enabled</green>.</white>"
+# /ui autorestart off — feature disabled.
+# Default: <green>✔ <white>Automatic restart is now <red>disabled</red>.</white>
+autorestart_disabled = "<green>✔ <white>Automatic restart is now <red>disabled</red>.</white>"
+# /ui autorestart status — feature off.
+# Default: <gray>Automatic restart is <red>off</red>.</gray>
+autorestart_status_off = "<gray>Automatic restart is <red>off</red>.</gray>"
+# /ui autorestart status (%time%, %remaining%).
+# Default: <gray>Next automatic restart:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>
+autorestart_status = "<gray>Next automatic restart:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>"
+# /ui autorestart skip — the next run will be skipped.
+# Default: <green>✔ <white>The next automatic restart will be skipped.</white>
+autorestart_skip_set = "<green>✔ <white>The next automatic restart will be skipped.</white>"
+# Status hint while a skip is pending.
+# Default: <gray>ℹ The next run will be skipped — use</gray> <white>/ui autorestart undoskip</white><gray>.</gray>
+autorestart_skip_pending = "<gray>ℹ The next run will be skipped — use</gray> <white>/ui autorestart undoskip</white><gray>.</gray>"
+# Broadcast when the skipped run reaches its deadline (%action%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled:</red> <white>%action%</white> <gray>(skip)</gray><red>.</red>
+autorestart_skip_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled:</red> <white>%action%</white> <gray>(skip)</gray><red>.</red>"
+# /ui autorestart undoskip — pending skip cleared.
+# Default: <green>✔ <white>The pending skip was cancelled.</white>
+autorestart_undoskip_done = "<green>✔ <white>The pending skip was cancelled.</white>"
+# /ui autorestart undoskip — nothing to clear.
+# Default: <gray>There is no pending skip.</gray>
+autorestart_undoskip_none = "<gray>There is no pending skip.</gray>"
+# /ui autorestart reset — timer restarted (%time%, %remaining%).
+# Default: <green>✔ <white>Restart timer reset. Next run:</white> <yellow>%time%</yellow> <gray>(in %remaining%)</gray>
+autorestart_reset = "<green>✔ <white>Restart timer reset. Next run:</white> <yellow>%time%</yellow> <gray>(in %remaining%)</gray>"
+# /ui autorestart — schedule manager unavailable.
+# Default: <red>Automatic restart is unavailable.</red>
+autorestart_unavailable = "<red>Automatic restart is unavailable.</red>"
 
 # actionbar section.
 # Placeholders: %action%, %seconds%
