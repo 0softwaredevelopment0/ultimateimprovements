@@ -21,9 +21,12 @@ public final class AuthModules {
             @Override
             protected void onInit(JavaPlugin plugin) throws Exception {
                 AuthManager.init();
-                // Register against UI-Auth itself so soft reload/unload can unregister
-                // the listener and its temporary auth state as one lifecycle unit.
-                plugin.getServer().getPluginManager().registerEvents(new AuthListener(), plugin);
+                // ModuleManager initializes modules with UI-Core's Main instance,
+                // but the listener belongs to UI-Auth so its own reload/disable can
+                // reliably unregister it.
+                JavaPlugin listenerOwner = UIAuth.getInstance() != null
+                        ? UIAuth.getInstance() : plugin;
+                plugin.getServer().getPluginManager().registerEvents(new AuthListener(), listenerOwner);
                 ConsoleLogger.info("[AuthModule] Auth system initialized.");
             }
 
