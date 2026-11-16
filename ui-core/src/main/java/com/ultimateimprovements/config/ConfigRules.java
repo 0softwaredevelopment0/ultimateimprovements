@@ -454,11 +454,17 @@ final class ConfigRules {
             integer("power.countdown_sound.beep_speedup.max_per_second", 0, 100),
 
             bool("scheduled_restart.enabled"),
+            notBlank("scheduled_restart.mode", 16),
             stringList("scheduled_restart.times"),
             string("scheduled_restart.timezone", false, 64),
+            notBlank("scheduled_restart.timer", 16),
+            notBlank("scheduled_restart.action", 16),
             intList("scheduled_restart.warning_minutes"),
             integer("scheduled_restart.countdown_seconds", 1, 3600),
             bool("scheduled_restart.skip_if_empty"),
+            bool("scheduled_restart.player_limit_enabled"),
+            notBlank("scheduled_restart.player_limit_comparison", 16),
+            integer("scheduled_restart.player_limit_value", 0, 100000),
 
             integer("suicide.countdown_duration", 1, 3600),
             integer("suicide.cooldown_seconds", 0, 36000),

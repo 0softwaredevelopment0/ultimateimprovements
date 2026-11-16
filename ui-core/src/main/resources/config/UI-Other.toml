@@ -812,27 +812,49 @@ min_per_second = 1
 # Default: 6
 max_per_second = 6
 
-# Automatic scheduled server restart (/ui power schedule).
+# Automatic scheduled server power action (/ui power schedule).
 [scheduled_restart]
 # Master switch (true = feature on).
 # Default: false
 enabled = false
-# Daily restart times in the "HH:mm" format (server clock, see timezone below).
+# Schedule mode: "times" = daily clock times (times + timezone),
+# "timer" = repeating interval (timer, anchored to a timestamp persisted in the DB).
+# Default: "times"
+mode = "times"
+# Clock-mode times in the "HH:mm" format (server clock, see timezone below).
 # Any number of entries; duplicates are ignored and invalid entries are skipped with a warning.
 # Default: ["04:00"]
 times = ["04:00"]
-# IANA timezone for the schedule (e.g. "Europe/Moscow"). Empty = server default timezone.
+# IANA timezone for clock mode (e.g. "Europe/Moscow"). Empty = server default timezone.
 # Default: ""
 timezone = ""
-# Chat warnings, in minutes before the restart. Sorted automatically; 0 removes warnings.
+# Timer-mode interval with an explicit unit: s = seconds, m = minutes, h = hours, d = days.
+# Example: "48h" restarts the server every 48 hours. The next run is stored in the DB,
+# so an early server restart does not reset the countdown.
+# Default: "48h"
+timer = "48h"
+# Action at the scheduled moment: "restart" or "shutdown".
+# Default: "restart"
+action = "restart"
+# Chat warnings, in minutes before the action. Sorted automatically; empty list removes warnings.
 # Default: [30, 15, 10, 5, 1]
 warning_minutes = [30, 15, 10, 5, 1]
-# Countdown length in seconds between the scheduled trigger and the actual restart.
+# Countdown length in seconds between the scheduled trigger and the actual action.
 # Default: 60
 countdown_seconds = 60
-# Skip the restart when no players are online (the slot is not retried until tomorrow).
+# Skip the action when no players are online (the run is still consumed).
 # Default: false
 skip_if_empty = false
+# Player-count gate checked at the scheduled moment; when it fails, the action is
+# skipped and the schedule starts over (timer: now + interval, times: next slot).
+# Default: false
+player_limit_enabled = false
+# Comparison: "above" (online > value), "below" (online < value) or "equal" (online == value).
+# Default: "above"
+player_limit_comparison = "above"
+# Reference value for player_limit_comparison.
+# Default: 1
+player_limit_value = 1
 
 # /kill-style suicide command behaviour.
 [suicide]
@@ -1087,21 +1109,24 @@ executing = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер
 direct_stop = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер выключается (команда консоли)...</red>"
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер перезагружается (команда консоли)...</red>
 direct_restart = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер перезагружается (команда консоли)...</red>"
-# Chat warning before a scheduled restart (%minutes%).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка сервера через</red> <yellow>%minutes%</yellow> <red>мин.</red>
-scheduled_warning = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка сервера через</red> <yellow>%minutes%</yellow> <red>мин.</red>"
-# Next scheduled restart (%time%, %remaining%).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Следующая плановая перезагрузка:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>
-scheduled_next = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Следующая плановая перезагрузка:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>"
-# Scheduled restart countdown in progress (%remaining%).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка через</red> <yellow>%remaining%</yellow><red>.</red>
-scheduled_running = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка через</red> <yellow>%remaining%</yellow><red>.</red>"
+# Chat warning before the action (%action%, %minutes%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <yellow>%minutes%</yellow> <red>мин.</red>
+scheduled_warning = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <yellow>%minutes%</yellow> <red>мин.</red>"
+# Next scheduled run (%time%, %remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Следующее плановое событие:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>
+scheduled_next = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Следующее плановое событие:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>"
+# Action countdown in progress (%action%, %remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% через</red> <yellow>%remaining%</yellow><red>.</red>
+scheduled_running = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% через</red> <yellow>%remaining%</yellow><red>.</red>"
 # No schedule configured.
-# Default: <dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>Плановые перезагрузки не настроены.</gray>
-scheduled_none = "<dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>Плановые перезагрузки не настроены.</gray>"
-# Scheduled restart cancelled by an operator (%by%).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка отменена</red> <white>%by%</white><red>.</red>
-scheduled_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановая перезагрузка отменена</red> <white>%by%</white><red>.</red>"
+# Default: <dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>Плановые события не настроены.</gray>
+scheduled_none = "<dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>Плановые события не настроены.</gray>"
+# Scheduled action cancelled by an operator (%action%, %by%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Отменено плановое событие:</red> <white>%action%</white> <gray>(%by%)</gray><red>.</red>
+scheduled_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Отменено плановое событие:</red> <white>%action%</white> <gray>(%by%)</gray><red>.</red>"
+# Action skipped because the player-count gate failed (%online%, %comparison%, %value%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановое событие отменено: не выполнено условие по онлайну</red> <gray>(%online% онлайн, требуется %comparison% %value%)</gray><red>.</red>
+scheduled_skipped_limit = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановое событие отменено: не выполнено условие по онлайну</red> <gray>(%online% онлайн, требуется %comparison% %value%)</gray><red>.</red>"
 
 # actionbar section.
 # Placeholders: %action%, %seconds%
@@ -1815,21 +1840,24 @@ executing = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %acti
 direct_stop = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server shutting down (console command)...</red>"
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server restarting (console command)...</red>
 direct_restart = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server restarting (console command)...</red>"
-# Scheduled restart warning.
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled server restart in</red> <yellow>%minutes%</yellow> <red>min.</red>
-scheduled_warning = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled server restart in</red> <yellow>%minutes%</yellow> <red>min.</red>"
-# Next scheduled restart (%time%, %remaining%).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Next scheduled restart:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>
-scheduled_next = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Next scheduled restart:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>"
-# Scheduled restart countdown in progress (%remaining%).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled restart in</red> <yellow>%remaining%</yellow><red>.</red>
-scheduled_running = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled restart in</red> <yellow>%remaining%</yellow><red>.</red>"
+# Chat warning before the action (%action%, %minutes%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% in</red> <yellow>%minutes%</yellow> <red>min.</red>
+scheduled_warning = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% in</red> <yellow>%minutes%</yellow> <red>min.</red>"
+# Next scheduled run (%time%, %remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Next scheduled action:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>
+scheduled_next = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Next scheduled action:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>"
+# Action countdown in progress (%action%, %remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% in</red> <yellow>%remaining%</yellow><red>.</red>
+scheduled_running = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% in</red> <yellow>%remaining%</yellow><red>.</red>"
 # No schedule configured.
-# Default: <dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>No scheduled restarts are configured.</gray>
-scheduled_none = "<dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>No scheduled restarts are configured.</gray>"
-# Scheduled restart cancelled by an operator (%by%).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled restart cancelled</red> <white>%by%</white><red>.</red>
-scheduled_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled restart cancelled</red> <white>%by%</white><red>.</red>"
+# Default: <dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>No scheduled actions are configured.</gray>
+scheduled_none = "<dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>No scheduled actions are configured.</gray>"
+# Scheduled action cancelled by an operator (%action%, %by%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled:</red> <white>%action%</white> <gray>(%by%)</gray><red>.</red>
+scheduled_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled:</red> <white>%action%</white> <gray>(%by%)</gray><red>.</red>"
+# Action skipped because the player-count gate failed (%online%, %comparison%, %value%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled: online player limit not met</red> <gray>(%online% online, required %comparison% %value%)</gray><red>.</red>
+scheduled_skipped_limit = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled: online player limit not met</red> <gray>(%online% online, required %comparison% %value%)</gray><red>.</red>"
 
 # actionbar section.
 # Placeholders: %action%, %seconds%

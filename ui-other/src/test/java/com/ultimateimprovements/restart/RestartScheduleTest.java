@@ -53,6 +53,28 @@ class RestartScheduleTest {
     }
 
     @Test
+    @DisplayName("parseInterval accepts s/m/h/d with an explicit unit")
+    void parseIntervalValid() {
+        assertEquals(Duration.ofSeconds(30), RestartSchedule.parseInterval("30s"));
+        assertEquals(Duration.ofMinutes(15), RestartSchedule.parseInterval("15m"));
+        assertEquals(Duration.ofHours(48), RestartSchedule.parseInterval(" 48h "));
+        assertEquals(Duration.ofDays(7), RestartSchedule.parseInterval("7D"));
+    }
+
+    @Test
+    @DisplayName("parseInterval rejects missing units, zero and malformed values")
+    void parseIntervalInvalid() {
+        assertNull(RestartSchedule.parseInterval(null));
+        assertNull(RestartSchedule.parseInterval(""));
+        assertNull(RestartSchedule.parseInterval("48"));
+        assertNull(RestartSchedule.parseInterval("0h"));
+        assertNull(RestartSchedule.parseInterval("-5h"));
+        assertNull(RestartSchedule.parseInterval("1.5h"));
+        assertNull(RestartSchedule.parseInterval("48x"));
+        assertNull(RestartSchedule.parseInterval("h"));
+    }
+
+    @Test
     @DisplayName("parseTimes handles null/empty input")
     void parseTimesEmpty() {
         assertTrue(RestartSchedule.parseTimes(null, null).isEmpty());

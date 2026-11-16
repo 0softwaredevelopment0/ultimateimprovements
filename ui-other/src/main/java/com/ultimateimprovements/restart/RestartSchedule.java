@@ -8,7 +8,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Pure helpers for the scheduled-restart feature: parsing configured
@@ -20,6 +23,10 @@ public final class RestartSchedule {
 
     /** Key format of a consumed slot (persisted in {@code ui_state}). */
     public static final DateTimeFormatter SLOT_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    /** Interval with an explicit unit: {@code 30s}, {@code 15m}, {@code 48h}, {@code 7d}. */
+    private static final Pattern INTERVAL = Pattern.compile("^\\s*(\\d{1,7})\\s*([smhd])\\s*$",
+            Pattern.CASE_INSENSITIVE);
 
     private RestartSchedule() {}
 
@@ -60,6 +67,37 @@ public final class RestartSchedule {
         } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    /**
+     * Parses a timer interval with an explicit unit:
+     * {@code s} = seconds, {@code m} = minutes, {@code h} = hours,
+     * {@code d} = days (e.g. {@code "48h"}).
+     *
+     * @return the duration, or {@code null} when the value is malformed or not positive
+     */
+    public static Duration parseInterval(String raw) {
+        if (raw == null) return null;
+        Matcher matcher = INTERVAL.matcher(raw);
+        if (!matcher.matches()) return null;
+
+        long amount;
+        try {
+            amount = Long.parseLong(matcher.group(1));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+        if (amount <= 0) return null;
+
+        long seconds = switch (matcher.group(2).toLowerCase(Locale.ROOT)) {
+            case "s" -> amount;
+            case "m" -> amount * 60L;
+            case "h" -> amount * 3_600L;
+            case "d" -> amount * 86_400L;
+            default -> 0L;
+        };
+        if (seconds <= 0) return null;
+        return Duration.ofSeconds(seconds);
     }
 
     /**

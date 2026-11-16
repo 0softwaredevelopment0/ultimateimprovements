@@ -81,7 +81,8 @@ public final class PowerSubcommand {
             String remaining = RestartSchedule.formatDuration(
                     Duration.ofSeconds(pm.getCountdownRemainingSeconds()));
             sender.sendMessage(MessageUtil.parse(MessagesManager.getString("power.scheduled_running",
-                    "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled restart in</red> <yellow>%remaining%</yellow><red>.</red>")
+                    "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled %action% in</red> <yellow>%remaining%</yellow><red>.</red>")
+                    .replace("%action%", pm.getScheduledActionTitle())
                     .replace("%remaining%", remaining)));
             return true;
         }

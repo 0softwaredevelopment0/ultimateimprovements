@@ -3,6 +3,24 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.8.6-alpha.3] - 2026-11-17
+
+### Added
+- **Scheduled power actions: clock and timer modes.** `[scheduled_restart]` now
+  has `mode = "times"` (daily `times` + IANA `timezone`) and
+  `mode = "timer"` with an interval such as `timer = "48h"` (`s`, `m`, `h`,
+  `d`). Timer deadlines are persisted in `ui_state`, so restarting the server
+  early does not reset the countdown; a downtime that passes the deadline fires
+  the action right after boot.
+- **Action selection:** `action = "restart"` (default) or `action = "shutdown"`.
+- **Player-count gate:** `player_limit_enabled` (default off),
+  `player_limit_comparison` (`above`, `below`, `equal`) and
+  `player_limit_value` (default `1`). Checked at the scheduled moment; when it
+  fails the action is skipped and the schedule resets (timer: now + interval).
+- New bilingual messages `power.scheduled_skipped_limit` and `%action%`
+  placeholders in the existing scheduled-action messages. All broadcasts keep
+  the plugin prefix.
+
 ## [1.8.6-alpha.2] - 2026-11-17
 
 ### Added

@@ -37,6 +37,7 @@ public class PowerManager {
     private BossBar activeBossBar;
     private boolean countdownActive;
     private boolean countdownScheduled;
+    private RequestType countdownType;
     private long countdownEndsAtMillis;
 
     // Config: timeouts
@@ -184,13 +185,13 @@ public class PowerManager {
     }
 
     /**
-     * Starts a restart requested by the schedule (no player, no pending request).
+     * Starts a power action requested by the schedule (no player, no pending request).
      *
      * @return false when another power action is already running
      */
-    public boolean startScheduledRestart(int durationSeconds) {
+    public boolean startScheduledPowerAction(RequestType type, int durationSeconds) {
         if (currentRequest != null || countdownActive) return false;
-        return startCountdown(RequestType.RESTART, durationSeconds, true);
+        return startCountdown(type == null ? RequestType.RESTART : type, durationSeconds, true);
     }
 
     /**
@@ -205,6 +206,7 @@ public class PowerManager {
         int duration = Math.max(1, durationSeconds);
         countdownActive = true;
         countdownScheduled = scheduled;
+        countdownType = type;
         countdownEndsAtMillis = System.currentTimeMillis() + duration * 1000L;
 
         String actionMsg = type == RequestType.STOP
@@ -350,6 +352,7 @@ public class PowerManager {
     private void finishCountdown() {
         countdownActive = false;
         countdownScheduled = false;
+        countdownType = null;
         countdownEndsAtMillis = 0L;
         countdownTask = null;
         if (activeBossBar != null) {
@@ -368,6 +371,14 @@ public class PowerManager {
         return countdownActive && countdownScheduled;
     }
 
+    /** @return localized title of the active planned action ("Restart"/"Shutdown"). */
+    public String getScheduledActionTitle() {
+        if (!countdownActive) return "";
+        return countdownType == RequestType.STOP
+                ? MessagesManager.getString("power.action_stop_title", "Shutdown")
+                : MessagesManager.getString("power.action_restart_title", "Restart");
+    }
+
     /** @return whole seconds left on the active countdown, or 0. */
     public int getCountdownRemainingSeconds() {
         if (!countdownActive) return 0;
@@ -383,6 +394,7 @@ public class PowerManager {
     public boolean cancelScheduledCountdown(String cancelerName) {
         if (!isScheduledCountdownActive()) return false;
 
+        RequestType cancelledType = countdownType;
         if (countdownTask != null) {
             countdownTask.cancel();
             countdownTask = null;
@@ -390,8 +402,12 @@ public class PowerManager {
         finishCountdown();
 
         String by = cancelerName == null || cancelerName.isBlank() ? "Console" : cancelerName;
+        String actionTitle = cancelledType == RequestType.STOP
+                ? MessagesManager.getString("power.action_stop_title", "Shutdown")
+                : MessagesManager.getString("power.action_restart_title", "Restart");
         Broadcast.send(MessagesManager.getString("power.scheduled_cancelled",
-                "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled restart cancelled</red> <white>%by%</white><red>.</red>")
+                "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled %action% cancelled</red> <white>%by%</white><red>.</red>")
+                .replace("%action%", actionTitle)
                 .replace("%by%", by));
         return true;
     }

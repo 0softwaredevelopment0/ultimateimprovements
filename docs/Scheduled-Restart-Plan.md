@@ -5,103 +5,153 @@
 
 ## 1. Goal
 
-Restart the server automatically at fixed daily times (cron-style "restart at
-04:00 every day"), with player-facing warnings and a countdown that reuses the
-existing power-management UX (chat, ActionBar, BossBar, accelerating beeps).
+Run a server power action automatically — either at fixed daily times
+("restart at 04:00") or on a repeating interval ("every 48 hours"). The action
+is a restart by default, but a shutdown can be selected. Warnings, countdown and
+player-facing messages are shared between both modes.
 
 Non-goals:
 
-- No arbitrary cron expressions or per-weekday schedules in v1 — a list of
-  daily `HH:mm` times is enough and keeps the config readable.
-- No automatic shutdown (`/ui power off`) — only restart.
-- No command to edit the schedule in game; the TOML file is the source of truth
-  and `/ui reload` applies changes.
+- No cron expressions, weekdays or month rules — a list of daily `HH:mm` times
+  (clock mode) and one interval (timer mode) keep the config readable.
+- No in-game schedule editor; the TOML file is the source of truth and
+  `/ui reload` applies changes.
+- No per-world schedules.
 
-## 2. Behaviour
+## 2. Modes
 
-1. `[scheduled_restart]` in `UI-Other.toml` lists daily times (`times = ["04:00"]`).
-2. One second before each time the manager broadcasts configured warnings
-   (`warning_minutes = [30, 15, 10, 5, 1]`).
-3. At the scheduled time the manager starts the normal power countdown
+### Clock mode — `mode = "times"`
+
+`times = ["04:00", "16:00"]` in the configured IANA `timezone` (empty = server
+default). The next slot is computed from the current time; a slot that already
+passed today rolls over to tomorrow.
+
+### Timer mode — `mode = "timer"`
+
+`timer = "48h"` (units: `s`, `m`, `h`, `d`). The next absolute deadline is
+stored in the `ui_state` table (`scheduled_restart.next_run`, epoch millis) and
+survives server restarts:
+
+- restart **before** the deadline → the same deadline is restored, nothing resets;
+- restart **after** the deadline (downtime) → the action fires on the first tick
+  after boot, then the next deadline is `now + interval`;
+- changing the configured interval (or switching back from clock mode) starts a
+  fresh interval from now.
+
+## 3. Behaviour at the scheduled moment
+
+1. Warnings (`warning_minutes = [30, 15, 10, 5, 1]`) are broadcast in both
+   modes. Only the most urgent not-yet-sent threshold is broadcast per tick.
+2. At the deadline the player-count gate is evaluated (see §4). If it fails, the
+   action is skipped and the schedule resets:
+   - timer mode → `next_run = now + interval` (persisted);
+   - clock mode → the next daily slot.
+3. If another power request/countdown is already running, the run is skipped and
+   consumed in the same way (no double restart).
+4. Otherwise the normal `PowerManager` countdown starts
    (`countdown_seconds`, default 60 s): BossBar + ActionBar + chat + beeps.
-   When the countdown reaches zero the existing `PowerManager` path runs
-   `Bukkit.getServer().restart()`, so shutdown rewards/hooks keep working.
-4. `/ui power schedule` (alias `/ui power next`) prints the next scheduled
-   restart and the time left. `/ui power undo` cancels an active scheduled
-   countdown (the cancelled slot is not retried until the next day).
-5. Skipped slot is consumed, never replayed: `skip_if_empty` (nobody online) or
-   a conflicting manual power request. A slot that is more than two minutes
-   late (server freeze, long GC pause) is skipped with a console warning.
+5. At zero the configured `action` runs: `Bukkit.getServer().restart()` or
+   `Bukkit.getServer().shutdown()`. Shutdown rewards/hooks are granted first.
+6. The consumed run is recorded **before** the restart/shutdown:
+   - timer mode → next deadline persisted in `ui_state`;
+   - clock mode → slot key `yyyy-MM-dd HH:mm` in `ui_state` (`last_slot`), so a
+     restart that completes inside the same minute is never replayed.
 
-### Restart-loop protection
+## 4. Player-count gate
 
-The executed slot is persisted in the existing `ui_state` table
-(`StateStore`, namespace `scheduled_restart`, key `last_slot`, value
-`yyyy-MM-dd HH:mm`). A server that comes back at `04:00:20` therefore sees the
-slot as already consumed and does not restart again. A cold start **after** the
-slot never fires it retroactively: the next occurrence is computed strictly
-after "now".
+```toml
+player_limit_enabled = false
+player_limit_comparison = "above"   # above | below | equal
+player_limit_value = 1
+```
 
-## 3. Config
+- `above` — allowed while `online > value` (e.g. value 5: needs more than 5);
+- `below` — allowed while `online < value`;
+- `equal` — allowed while `online == value`.
+
+Disabled by default. Checked only at the scheduled moment (not at warnings).
+`skip_if_empty` remains as a simpler "nobody online" skip and is evaluated
+first.
+
+## 5. Config
 
 ```toml
 [scheduled_restart]
 enabled = false
+mode = "times"                 # times | timer
 times = ["04:00"]
 timezone = ""                  # IANA id, empty = server default
+timer = "48h"                  # only for mode = "timer"
+action = "restart"             # restart | shutdown
 warning_minutes = [30, 15, 10, 5, 1]
 countdown_seconds = 60
 skip_if_empty = false
+player_limit_enabled = false
+player_limit_comparison = "above"
+player_limit_value = 1
 ```
 
 Validation:
 
-- `ConfigRules` validates types/ranges (`enabled`, `times`, `timezone`,
-  `warning_minutes`, `countdown_seconds`, `skip_if_empty`).
-- `RestartSchedule.parseTimes` silently drops malformed entries and logs one
-  warning; `ZoneId` falls back to the server default on an invalid id.
+- `ConfigRules` validates types/ranges; `notBlank` for `mode`, `timer`, `action`
+  and `player_limit_comparison`.
+- `RestartSchedule.parseTimes` / `parseInterval` drop malformed values and log
+  one warning; an invalid timer disables the ticker (safe default), an invalid
+  mode/comparison/action falls back with a warning.
 - New root key `scheduled_restart` is routed to `UI-Other` in `AddonCatalog`,
   so existing installs receive the section through the normal repair pass.
 
-## 4. Architecture
+## 6. Messages
+
+Bilingual (`messages.power.*` = RU, `messages_en.power.*` = EN); the language is
+chosen by `messages.lang` (EN default). `Broadcast.send` prepends the plugin
+prefix (`[UI] `), so every warning/skip message carries it.
+
+Keys: `scheduled_warning` (`%action%`, `%minutes%`), `scheduled_next`
+(`%time%`, `%remaining%`), `scheduled_running` (`%action%`, `%remaining%`),
+`scheduled_none`, `scheduled_cancelled` (`%action%`, `%by%`),
+`scheduled_skipped_limit` (`%online%`, `%comparison%`, `%value%`).
+
+## 7. Architecture
 
 | Piece | Responsibility |
 |-------|----------------|
-| `restart/RestartSchedule` | Pure helpers: parse `HH:mm`, next occurrence, duration formatting, slot key. No Bukkit — unit tested. |
-| `restart/ScheduledRestartManager` | Config load, one-second ticker, warning state, persistence, starts/cancels the countdown. |
-| `command/PowerManager` | Countdown UI (unchanged visuals). New `startScheduledRestart(seconds)`, `cancelScheduledCountdown()`, `isScheduledCountdownActive()`, remaining-seconds getter. |
+| `restart/RestartSchedule` | Pure helpers: `HH:mm` parsing, next occurrence, interval parsing (`48h`), duration formatting, slot key. Unit tested. |
+| `restart/ScheduledRestartManager` | Config load, one-second ticker, mode/deadline handling, warnings, DB persistence, player gate, starts/cancels the countdown. |
+| `command/PowerManager` | Shared countdown UI. `startScheduledPowerAction(type, seconds)`, `cancelScheduledCountdown()`, `isScheduledCountdownActive()`, remaining-seconds and action-title getters. |
 | `command/subcommands/PowerSubcommand` | `schedule`/`next` output; `undo` also cancels a scheduled countdown. |
-| `module/SimpleModules` (`Power`) | Init / reload / shutdown hooks for the manager. |
-| `Permissions` | `ui.command.power.schedule` (read-only; default `FALSE` like the other power nodes). |
+| `module/SimpleModules` (`Power`) | Init / reload / shutdown hooks. |
+| `Permissions` | `ui.command.power.schedule` (read-only, default `FALSE`). |
 
-The ticker is a single `runTaskTimer` every 20 ticks (same pattern as
-`AutoBroadcastManager`); it stops with the plugin/module.
-
-## 5. Edge cases
+## 8. Edge cases
 
 | Case | Result |
 |------|--------|
-| Server boots after today's slot | Next = tomorrow; no retroactive restart. |
-| Restart completes inside the same minute | `last_slot` persisted → no second restart. |
+| Restart before the timer deadline | Deadline restored from DB; countdown continues. |
+| Server was down through the timer deadline | Action fires right after boot, then `now + interval`. |
+| Restart completes inside the same minute (clock mode) | `last_slot` prevents a replay. |
 | `/ui reload` during countdown | Ticker restarts, countdown keeps running. |
-| Manual `/ui power reboot` pending/confirmed at the slot | Slot consumed + console warning (no double restart). |
-| Invalid time entry | Dropped, console warning, other entries keep working. |
+| Manual power request pending at the deadline | Run consumed + console warning. |
+| Player gate fails | Skip message, schedule resets (timer: now + interval). |
+| Invalid time/interval | Entry dropped with a warning; timer mode is disabled on an invalid interval. |
 | Empty `times` / `enabled = false` | No ticker; `/ui power schedule` reports "not configured". |
 
-## 6. Tests
+## 9. Tests
 
-- `ui-other/src/test/.../restart/RestartScheduleTest` — parsing (`H:mm`,
-  `HH:mm`, invalid), next-occurrence rollover, duration formatting.
-- Manual in-game check: set `times` to one minute ahead, `/ui reload`, verify
-  warning → countdown → restart, then verify no repeat after the restart and
-  `/ui power schedule` output.
+- `ui-other/src/test/.../restart/RestartScheduleTest` — time parsing, interval
+  parsing (`30s`, `48h`, `7D`, invalid), next-occurrence rollover, duration
+  formatting.
+- Manual in-game check: `mode = "timer"`, `timer = "2m"`, `/ui reload`, verify
+  warning → countdown → action, restart the server before the deadline and
+  confirm the deadline did not reset; set the player gate to a failing
+  comparison and confirm the skip + reset.
 
-## 7. Files
+## 10. Files
 
 ```
 ui-other/.../restart/RestartSchedule.java
 ui-other/.../restart/ScheduledRestartManager.java
-ui-other/.../command/PowerManager.java            (refactor + scheduled API)
+ui-other/.../command/PowerManager.java
 ui-other/.../command/subcommands/PowerSubcommand.java
 ui-other/.../module/SimpleModules.java
 ui-other/src/test/.../restart/RestartScheduleTest.java

@@ -235,10 +235,16 @@ tab-completion for all subcommands.
 
 > `/stop` and `/restart` are intercepted and route through `/ui power off|reboot`.
 >
-> Daily automatic restarts are configured in `configs/UI-Other.toml` under
-> `[scheduled_restart]` (`times = ["04:00"]`, `warning_minutes`,
-> `countdown_seconds`, `timezone`, `skip_if_empty`). `/ui power schedule` shows
-> the next one, `/ui power undo` cancels an active scheduled countdown.
+> Automatic restarts/shutdowns are configured in `configs/UI-Other.toml` under
+> `[scheduled_restart]`. Two modes: `mode = "times"` with daily
+> `times = ["04:00"]` + `timezone`, or `mode = "timer"` with an interval such
+> as `timer = "48h"` (`s`/`m`/`h`/`d`) — the timer deadline is persisted in the
+> DB and survives early server restarts. `action` selects `restart` (default) or
+> `shutdown`; `warning_minutes` and `countdown_seconds` drive the warnings and
+> countdown. The optional `player_limit_*` gate skips the action (and resets the
+> schedule) when the online count does not satisfy the comparison.
+> `/ui power schedule` shows the next run, `/ui power undo` cancels an active
+> scheduled countdown.
 
 ---
 
