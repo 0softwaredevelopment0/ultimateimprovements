@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "show_notification": true,
+  "group": "golden_carrot",
+  "category": "misc",
+  "pattern": [
+    "GGG",
+    "GCG",
+    "GGG"
+  ],
+  "key": {
+    "G": [
+      "minecraft:gold_ingot"
+    ],
+    "C": [
+      "minecraft:carrot"
+    ]
+  },
+  "result": {
+    "id": "minecraft:golden_carrot",
+    "count": 1
+  }
+}
