@@ -133,6 +133,12 @@ public final class NetherPortalManager {
             return;
         }
 
+        if ((setDefaultDelayGamerule || setCreativeDelayGamerule) && checkIntervalTicks >= PORTAL_DELAY_TICKS) {
+            ConsoleLogger.warn("[NetherPortal] check_interval_ticks (" + checkIntervalTicks
+                    + ") is not below the portal delay (" + PORTAL_DELAY_TICKS
+                    + "t) — vanilla may teleport the entity before the scan.");
+        }
+
         applyGamerules();
         if (setDefaultDelayGamerule || setCreativeDelayGamerule) {
             gameruleTask = Bukkit.getScheduler().runTaskTimer(

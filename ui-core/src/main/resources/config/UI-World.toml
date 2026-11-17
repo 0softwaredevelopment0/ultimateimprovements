@@ -346,7 +346,8 @@ enabled = false
 # Who to scan: "players" (players only) or "entities" (every entity).
 # Default: "players"
 target = "players"
-# Scan period in ticks (20 ticks = 1 second).
+# Scan period in ticks (20 ticks = 1 second). Keep it below the 80-tick portal
+# delay, otherwise vanilla may teleport the entity before the scan.
 # Default: 20
 check_interval_ticks = 20
 # World filter: "all" (list is ignored), "whitelist" or "blacklist".

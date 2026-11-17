@@ -171,6 +171,7 @@ invalid worlds and invalid config values go through `ConsoleLogger`
 | Creative player | Creative delay is also forced to 80, so the scan wins. |
 | Gamerule toggle off | That gamerule is no longer enforced (its current value is left alone). |
 | Entity leaves the portal block | The next scan no longer matches it; nothing to break. |
+| `check_interval_ticks` >= 80 | The manager warns at startup/reload: vanilla may teleport the entity before the scan. |
 | Portal frame | Not touched; the portal blocks are broken naturally. |
 
 ## 11. Tests
