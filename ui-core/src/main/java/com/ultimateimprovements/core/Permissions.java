@@ -304,6 +304,11 @@ public final class Permissions {
     public static final String UI_OVERLOAD_LOGS = "ui.overload.logs";
     public static final String UI_PUNISH_NOTIFY = "ui.punish.notify";
     public static final String UI_PROXY_SERVER = "ui.proxy.server";
+    /**
+     * See spectators in the tab list. Viewers without this node never get the
+     * spectator's player-info entry, so they cannot tell who is spectating.
+     */
+    public static final String UI_TAB_SEE_SPECTATORS = "ui.tab.see_spectators";
     /** /ui server lockdown — join bypass: may join while the server lockdown is active. */
     public static final String UI_SERVERLOCKDOWN_BYPASS = "ui.serverlockdown.bypass";
 
@@ -571,6 +576,7 @@ public final class Permissions {
                 new Permission(UI_OVERLOAD_LOGS, "Receive overload logs", PermissionDefault.FALSE),
                 new Permission(UI_PUNISH_NOTIFY, "Receive punish notifications", PermissionDefault.FALSE),
                 new Permission(UI_PROXY_SERVER, "Access proxy server features", PermissionDefault.FALSE),
+                new Permission(UI_TAB_SEE_SPECTATORS, "See spectators in the tab list (within tab.spectator_view_radius)", PermissionDefault.OP),
                 new Permission(UI_SERVERLOCKDOWN_BYPASS, "Join while the server lockdown (/ui server lockdown) is active", PermissionDefault.FALSE)
         );
     }

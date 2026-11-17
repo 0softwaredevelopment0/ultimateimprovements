@@ -9,11 +9,17 @@ enabled = true
 # Interval in ticks (20 ticks = 1 second).
 # Default: 20
 update_interval_ticks = 20
-# Keep spectators in the tab list and show their name as a regular
-# (non-italic) entry instead of the client's italic spectator style.
+# Hide spectators from players that are not allowed to see them. A viewer with
+# the ui.tab.see_spectators permission (OP by default) sees a spectator that is
+# within spectator_view_radius as a regular (non-italic) tab entry; everyone
+# else does not see the spectator entry at all.
 # The key keeps its historical name for config compatibility.
 # Default: true
 hide_spectators = true
+# Radius in blocks for ui.tab.see_spectators viewers. 0 = no distance limit
+# (permission only). Different worlds count as out of range.
+# Default: 128
+spectator_view_radius = 128
 # Default: ["<gradient:#00AAFF:#FF55FF>  ✦ UltimateImprovements ✦  </gradient>", "<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>"]
 header = ["<gradient:#00AAFF:#FF55FF>  ✦ UltimateImprovements ✦  </gradient>", "<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>"]
 # Default: ["<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>", "<gray>  Online: <white>%online%</white><gray>/%max_players%  •  TPS: <white>%tps%</white></gray>", "<gray>  Discord: <aqua>discord.gg/ultimateimprovements</aqua></gray>"]

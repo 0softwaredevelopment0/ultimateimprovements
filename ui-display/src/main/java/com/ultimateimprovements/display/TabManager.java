@@ -1,11 +1,13 @@
 package com.ultimateimprovements.display;
 
 import com.ultimateimprovements.core.Main;
+import com.ultimateimprovements.core.Permissions;
 import com.ultimateimprovements.database.PlayerSettingsDB;
 import com.ultimateimprovements.util.MessageUtil;
 import com.ultimateimprovements.util.PlaceholderResolver;
 import com.ultimateimprovements.core.hooks.CoreHooks;
 import net.kyori.adventure.text.Component;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,9 +34,10 @@ import java.util.stream.Collectors;
  *   <li>Header — text above the player list (MiniMessage + placeholders)</li>
  *   <li>Footer — text below the player list (MiniMessage + placeholders)</li>
  *   <li>PlayerList name — prefix/suffix before/after the name (ping, PAPI, etc.)</li>
- *   <li>Spectator tab style — spectators stay in the tab, but their entry is
- *       rendered as a regular (non-italic) name instead of the client's
- *       italic spectator style</li>
+ *   <li>Spectator tab visibility — spectators are listed as regular (non-italic)
+ *       names only for viewers with {@code ui.tab.see_spectators} that are
+ *       within {@code tab.spectator_view_radius}; everyone else does not see
+ *       them in the tab at all</li>
  *   <li>Sort mode — sorts names in the tab (A-Z, Z-A, LuckPerms, OP)</li>
  * </ul>
  */
@@ -49,7 +52,8 @@ public class TabManager extends BukkitRunnable implements Listener {
     private String objectivePrefix;
     private String objectiveSuffix;
     private String objectiveFormat;
-    private boolean normalizeSpectatorTab;
+    private boolean spectatorTabEnabled;
+    private int spectatorViewRadius;
     private int intervalTicks;
     private int playerListIntervalTicks;
     private int playerListTickCounter;
@@ -82,18 +86,13 @@ public class TabManager extends BukkitRunnable implements Listener {
 
         instance.reloadConfig();
 
-        // Fix the tab style of already-online spectators on start/reload
-        if (instance.normalizeSpectatorTab) {
-            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (p.getGameMode() == GameMode.SPECTATOR) {
-                        sendNormalSpectatorTabEntry(p);
-                    }
-                }
-            }, 1L);
+        // Apply the spectator tab policy to already-online players on start/reload
+        if (instance.spectatorTabEnabled) {
+            TabManager tab = instance;
+            Bukkit.getScheduler().runTaskLater(Main.getInstance(), tab::applySpectatorTabStyles, 1L);
         }
 
-        if (instance.enabled) {
+        if (instance.enabled || instance.spectatorTabEnabled) {
             // A BukkitRunnable CANNOT be reused after cancel() — always a new instance
             instance.runTaskTimer(Main.getInstance(), 20L, instance.intervalTicks);
         }
@@ -132,9 +131,10 @@ public class TabManager extends BukkitRunnable implements Listener {
         this.objectivePrefix = config.getString("tab.player_list.objective_prefix", "");
         this.objectiveSuffix = config.getString("tab.player_list.objective_suffix", "");
         this.objectiveFormat = config.getString("tab.player_list.format", "");
-        // Legacy key name: the feature no longer hides spectators, it only
-        // replaces their italic tab entry with a regular one.
-        this.normalizeSpectatorTab = config.getBoolean("tab.hide_spectators", false);
+        // Legacy key name: hides spectators from players that are not allowed
+        // to see them; allowed viewers get a regular (non-italic) entry.
+        this.spectatorTabEnabled = config.getBoolean("tab.hide_spectators", false);
+        this.spectatorViewRadius = Math.max(0, config.getInt("tab.spectator_view_radius", 128));
         this.intervalTicks = Math.max(10, config.getInt("tab.update_interval_ticks", 20));
         this.playerListIntervalTicks = config.getInt("tab.player_list.update_interval_ticks", 0);
         // If 0 — updates at the same frequency as the header/footer
@@ -154,50 +154,101 @@ public class TabManager extends BukkitRunnable implements Listener {
         }
     }
 
-    // ── Spectator tab style ──
+    // ── Spectator tab visibility ──
     //
     // The vanilla client renders every tab entry whose game mode is SPECTATOR
-    // in italics. Removing the player from the tab list (what this module used
-    // to do) made spectators invisible there, which is not what the feature is
-    // about. Instead the server tells the other clients that the spectator is
-    // in SURVIVAL mode: the entry stays in the tab and looks like any regular
-    // player. The spectator's own client is never touched, so their camera,
-    // no-clip and entity spectating keep working.
+    // in italics. The tab entry is also the only place where other players can
+    // learn that someone is spectating.
+    //
+    // Policy per viewer:
+    //   • the viewer has ui.tab.see_spectators (OP by default) and is within
+    //     tab.spectator_view_radius blocks of the spectator → the entry is sent
+    //     as SURVIVAL, so it stays in the tab and looks like a regular player;
+    //   • otherwise → the entry is removed from that viewer's tab.
+    // The spectator's own client is never touched, so their camera, no-clip and
+    // entity spectating keep working, and vanishing still owns its own removal.
 
     private static final GameType TAB_GAME_MODE = GameType.SURVIVAL;
 
     /**
-     * Sends the normal (non-italic) tab entry of a spectator to every other player.
+     * Re-applies the spectator tab policy for every spectator currently online.
      */
-    private static void sendNormalSpectatorTabEntry(Player spectator) {
-        ClientboundPlayerInfoUpdatePacket packet = buildGameModePacket(spectator, TAB_GAME_MODE);
-        if (packet == null) return;
+    private void applySpectatorTabStyles() {
         for (Player online : Bukkit.getOnlinePlayers()) {
-            if (online.getUniqueId().equals(spectator.getUniqueId())) continue;
-            sendPacket(online, packet);
+            if (online.getGameMode() == GameMode.SPECTATOR) {
+                applySpectatorTabStyle(online);
+            }
         }
     }
 
     /**
-     * Restores the real game mode in the tab entry after the player leaves spectator mode.
+     * Applies the spectator tab policy of one spectator to every other viewer.
+     * Idempotent: ADD/REMOVE packets are safe to repeat, which lets the periodic
+     * pass repair entries re-sent by the server after dimension changes.
      */
-    private static void restoreRealTabEntry(Player player, GameMode mode) {
-        ClientboundPlayerInfoUpdatePacket packet = buildGameModePacket(player, toGameType(mode));
-        if (packet == null) return;
-        for (Player online : Bukkit.getOnlinePlayers()) {
-            if (online.getUniqueId().equals(player.getUniqueId())) continue;
-            sendPacket(online, packet);
+    private void applySpectatorTabStyle(Player spectator) {
+        ServerPlayer handle;
+        try {
+            handle = ((CraftPlayer) spectator).getHandle();
+        } catch (Exception e) {
+            return;
+        }
+
+        ClientboundPlayerInfoUpdatePacket normalEntry = buildGameModePacket(spectator, TAB_GAME_MODE);
+        ClientboundPlayerInfoRemovePacket removeEntry =
+                new ClientboundPlayerInfoRemovePacket(List.of(spectator.getUniqueId()));
+        boolean vanished = CoreHooks.isVanished(spectator.getUniqueId());
+
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            if (viewer.getUniqueId().equals(spectator.getUniqueId())) continue;
+
+            if (!vanished && isSpectatorVisibleInTab(viewer, spectator)) {
+                try {
+                    ServerPlayer viewerHandle = ((CraftPlayer) viewer).getHandle();
+                    // The entry may have been removed for this viewer before;
+                    // ADD_PLAYER restores it and is a no-op if it still exists.
+                    sendPacket(viewer, ClientboundPlayerInfoUpdatePacket
+                            .createPlayerInitializing(List.of(handle), viewerHandle));
+                    if (normalEntry != null) sendPacket(viewer, normalEntry);
+                } catch (Exception ignored) {}
+            } else {
+                sendPacket(viewer, removeEntry);
+            }
         }
     }
 
     /**
-     * Sends one spectator's normal tab entry to a single viewer (used on join).
+     * Whether this viewer may see the spectator in the tab: permission plus the
+     * configured radius (0 = no distance limit). Other worlds count as too far.
      */
-    private static void sendNormalSpectatorTabEntryTo(Player viewer, Player spectator) {
-        if (viewer.getUniqueId().equals(spectator.getUniqueId())) return;
-        ClientboundPlayerInfoUpdatePacket packet = buildGameModePacket(spectator, TAB_GAME_MODE);
-        if (packet == null) return;
-        sendPacket(viewer, packet);
+    private boolean isSpectatorVisibleInTab(Player viewer, Player spectator) {
+        if (!viewer.hasPermission(Permissions.UI_TAB_SEE_SPECTATORS)) return false;
+        if (spectatorViewRadius <= 0) return true;
+        if (!viewer.getWorld().equals(spectator.getWorld())) return false;
+
+        double dx = viewer.getX() - spectator.getX();
+        double dy = viewer.getY() - spectator.getY();
+        double dz = viewer.getZ() - spectator.getZ();
+        double radius = spectatorViewRadius;
+        return dx * dx + dy * dy + dz * dz <= radius * radius;
+    }
+
+    /**
+     * Re-adds the player to every viewer's tab with the real game mode after
+     * they leave spectator mode. Viewers that never saw the spectator entry
+     * still get the full ADD_PLAYER payload.
+     */
+    private void restoreRealTabEntry(Player player) {
+        if (CoreHooks.isVanished(player.getUniqueId())) return; // vanish owns the entry
+        try {
+            ServerPlayer handle = ((CraftPlayer) player).getHandle();
+            for (Player viewer : Bukkit.getOnlinePlayers()) {
+                if (viewer.getUniqueId().equals(player.getUniqueId())) continue;
+                ServerPlayer viewerHandle = ((CraftPlayer) viewer).getHandle();
+                sendPacket(viewer, ClientboundPlayerInfoUpdatePacket
+                        .createPlayerInitializing(List.of(handle), viewerHandle));
+            }
+        } catch (Exception ignored) {}
     }
 
     private static ClientboundPlayerInfoUpdatePacket buildGameModePacket(Player player, GameType gameMode) {
@@ -223,19 +274,10 @@ public class TabManager extends BukkitRunnable implements Listener {
         }
     }
 
-    private static void sendPacket(Player viewer, ClientboundPlayerInfoUpdatePacket packet) {
+    private static void sendPacket(Player viewer, Packet<?> packet) {
         try {
             ((CraftPlayer) viewer).getHandle().connection.send(packet);
         } catch (Exception ignored) {}
-    }
-
-    private static GameType toGameType(GameMode mode) {
-        return switch (mode) {
-            case CREATIVE -> GameType.CREATIVE;
-            case ADVENTURE -> GameType.ADVENTURE;
-            case SPECTATOR -> GameType.SPECTATOR;
-            default -> GameType.SURVIVAL;
-        };
     }
 
     /**
@@ -256,13 +298,13 @@ public class TabManager extends BukkitRunnable implements Listener {
     // IMPORTANT: all event handlers use TabManager.getInstance() instead of this,
     // because after /ui reload Bukkit still holds a reference to the OLD instance
     // (listenersRegistered=true → registerEvents() isn't called again).
-    // If handlers used this.normalizeSpectatorTab, they'd read stale values from
+    // If handlers used this.spectatorTabEnabled, they'd read stale values from
     // the old object instead of the current one.
 
     @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR, ignoreCancelled = true)
     public void onGameModeChange(PlayerGameModeChangeEvent event) {
         TabManager tab = instance;
-        if (tab == null || !tab.normalizeSpectatorTab) return;
+        if (tab == null || !tab.spectatorTabEnabled) return;
 
         Player player = event.getPlayer();
         GameMode newMode = event.getNewGameMode();
@@ -273,11 +315,12 @@ public class TabManager extends BukkitRunnable implements Listener {
             if (!player.isOnline()) return;
 
             if (newMode == GameMode.SPECTATOR && oldMode != GameMode.SPECTATOR) {
-                // Switched to spectator — keep the entry, drop the italic style
-                sendNormalSpectatorTabEntry(player);
+                // Switched to spectator — hide from unauthorized viewers, show
+                // the allowed ones a regular (non-italic) entry
+                tab.applySpectatorTabStyle(player);
             } else if (oldMode == GameMode.SPECTATOR && newMode != GameMode.SPECTATOR) {
-                // Left spectator — restore the real game mode (and its tab style)
-                restoreRealTabEntry(player, newMode);
+                // Left spectator — viewers that had no entry need it back
+                tab.restoreRealTabEntry(player);
             }
         }, 1L);
     }
@@ -285,23 +328,14 @@ public class TabManager extends BukkitRunnable implements Listener {
     @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerJoin(PlayerJoinEvent event) {
         TabManager tab = instance;
-        if (tab == null || !tab.normalizeSpectatorTab) return;
+        if (tab == null || !tab.spectatorTabEnabled) return;
 
-        Player player = event.getPlayer();
+        // The initial player-info snapshot carries the real (italic/listed)
+        // spectator entries, so the whole policy has to be re-applied to the
+        // new viewer and (if they are a spectator) to everyone else.
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-            if (!player.isOnline()) return;
-
-            // If the new player is a spectator — give them a normal tab entry everywhere
-            if (player.getGameMode() == GameMode.SPECTATOR) {
-                sendNormalSpectatorTabEntry(player);
-            }
-
-            // Fix the tab entries of the spectators this player can already see:
-            // the initial player-info snapshot carries their real (italic) game mode
-            for (Player online : Bukkit.getOnlinePlayers()) {
-                if (online.getGameMode() == GameMode.SPECTATOR) {
-                    sendNormalSpectatorTabEntryTo(player, online);
-                }
+            if (event.getPlayer().isOnline()) {
+                tab.applySpectatorTabStyles();
             }
         }, 1L);
     }
@@ -309,39 +343,42 @@ public class TabManager extends BukkitRunnable implements Listener {
     @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR, ignoreCancelled = true)
     public void onWorldChange(PlayerChangedWorldEvent event) {
         TabManager tab = instance;
-        if (tab == null || !tab.normalizeSpectatorTab) return;
+        if (tab == null || !tab.spectatorTabEnabled) return;
 
-        Player player = event.getPlayer();
-        if (player.getGameMode() == GameMode.SPECTATOR) {
-            // On world change the client may re-read the tab entry — fix it again
-            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-                if (player.isOnline() && player.getGameMode() == GameMode.SPECTATOR) {
-                    sendNormalSpectatorTabEntry(player);
-                }
-            }, 2L);
-        }
+        // A dimension change re-syncs player info; also changes the distance check
+        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+            if (event.getPlayer().isOnline()) {
+                tab.applySpectatorTabStyles();
+            }
+        }, 2L);
     }
 
     @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         TabManager tab = instance;
-        if (tab == null || !tab.normalizeSpectatorTab) return;
+        if (tab == null || !tab.spectatorTabEnabled) return;
 
-        Player player = event.getPlayer();
-        if (player.getGameMode() == GameMode.SPECTATOR) {
-            // On respawn the client may re-read the tab entry — fix it again
-            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-                if (player.isOnline() && player.getGameMode() == GameMode.SPECTATOR) {
-                    sendNormalSpectatorTabEntry(player);
-                }
-            }, 2L);
-        }
+        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+            if (event.getPlayer().isOnline()) {
+                tab.applySpectatorTabStyles();
+            }
+        }, 2L);
     }
 
     @Override
     public void run() {
-        if (!enabled) return;
+        if (enabled) {
+            runTab();
+        }
+        // The spectator policy has its own switch and needs periodic updates
+        // because it depends on movement (tab.spectator_view_radius).
+        if (spectatorTabEnabled) {
+            applySpectatorTabStyles();
+        }
+    }
 
+    /** Header/footer, player-list names, sorting and vanish upkeep. */
+    private void runTab() {
         List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
         sortPlayers(players);
 
@@ -386,17 +423,6 @@ public class TabManager extends BukkitRunnable implements Listener {
         // Sorting updates every tick because players join/leave
         if (sortMode != SortMode.NONE) {
             applySortOrder(players);
-        }
-
-        // Re-apply the normal tab style of spectators — setPlayerListOrder()
-        // and the player-info re-sync on dimension changes may hand the client
-        // the real SPECTATOR game mode again, which turns the entry italic
-        if (normalizeSpectatorTab) {
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                if (p != null && p.getGameMode() == GameMode.SPECTATOR) {
-                    sendNormalSpectatorTabEntry(p);
-                }
-            }
         }
 
         // Re-hide vanished players — any tab operations may

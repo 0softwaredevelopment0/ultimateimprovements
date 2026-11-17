@@ -592,6 +592,7 @@ final class ConfigRules {
             bool("tab.enabled"),
             integer("tab.update_interval_ticks", 1, 72000),
             bool("tab.hide_spectators"),
+            integer("tab.spectator_view_radius", 0, 100000),
             stringList("tab.header"),
             stringList("tab.footer"),
             bool("tab.player_list.objective_enabled"),
