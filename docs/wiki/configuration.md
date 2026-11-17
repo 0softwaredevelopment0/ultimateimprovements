@@ -1,0 +1,150 @@
+# Configuration
+
+## Where configuration is stored
+
+All family members share one folder:
+
+\`plugins/UltimateImprovements/configs/\`
+
+The configuration system uses **one TOML file per logical addon/config owner**. Each file contains that owner's settings and message templates:
+
+- \`messages.*\` — Russian message set.
+- \`messages_en.*\` — English message set.
+
+The global UI language is selected in \`UI-Core.toml\` with \`messages.lang = "en"\` or \`"ru"\`.
+
+## Config files
+
+The current AddonCatalog defines the following logical files:
+
+| File | Main configuration areas |
+|---|---|
+| \`UI-Core.toml\` | Shared/global settings, config controls, version check, language, global messages |
+| \`UI-Shared.toml\` | Shared gameplay systems, radiation and related common mechanics |
+| \`UI-MBS.toml\` | Multiblock structures, Dark Fusion Reactor and compact nuclear reactor |
+| \`UI-Datapack.toml\` | Bundled datapack switches, language, pack order and module parts |
+| \`UI-Advancements.toml\` | Achievement master switch, per-achievement switches and thresholds |
+| \`UI-Enchantments.toml\` | Custom enchantment registry settings and level/cost values |
+| \`UI-Chat.toml\` | Chat formatting, filters, channels, pings and auto-broadcast |
+| \`UI-Clans.toml\` | Clan system |
+| \`UI-Combat.toml\` | Combat and turret settings |
+| \`UI-Punish.toml\` | Punishments, lists, moderation messages |
+| \`UI-Essentials.toml\` | Homes, reports, scheduled restart and general utilities |
+| \`UI-Energy.toml\` | Energy transfer, batteries, generators and consumers |
+| \`UI-Anticheat.toml\` | Anti-cheat settings |
+| \`UI-Enchant.toml\` | Enchantment mechanics |
+| \`UI-Auth.toml\` | Authentication, password policy, lockouts and 2FA |
+| \`UI-Protection.toml\` | Protection and void protection |
+| \`UI-Display.toml\` | Tab, scoreboard and bossbar |
+| \`UI-Admin.toml\` | Economy and OP-related settings |
+| \`UI-Player.toml\` | Player-state and equipment effects |
+| \`UI-Guard.toml\` | Packet/proxy/redstone/bot/lockdown guards |
+| \`UI-World.toml\` | World mechanics, sculk, meteor and portal behavior |
+| \`UI-Items.toml\` | Item mechanics and item-related features |
+| \`UI-Other.toml\` | Additional features and mechanics |
+
+**Important:** this is a list of config owners, not a list of JARs. \`UI-Advancements.toml\` and \`UI-Enchantments.toml\` are logical config files; they are not extra plugin projects.
+
+## Editing workflow
+
+1. Stop and back up the server before making risky changes.
+2. Edit the appropriate file in a text editor that preserves UTF-8.
+3. Preserve TOML syntax, types and section names.
+4. For ordinary live-reloadable settings, run \`/ui reload\`.
+5. Check the console for parse errors, validation warnings and module reload results.
+6. Restart when the setting controls startup-time plugin loading, datapack discovery or registry registration.
+
+Do not rename config files unless a migration or release note explicitly instructs you to do so.
+
+## Automatic repair and recovery
+
+On startup the config manager creates missing files from templates bundled in the plugin family. Missing keys are repaired from the defaults. If a TOML file cannot be parsed, the broken file is backed up using a numbered name such as:
+
+\`UI-Addon-broken-1.toml\`
+
+The plugin then recreates the config from its bundled template. Do not delete a broken backup until you have recovered any custom values from it.
+
+The manager also contains migrations for settings moved between addon files. Those migrations are intended to preserve existing values and remove the old duplicate section.
+
+## Useful UI-Core settings
+
+The bundled core template currently documents:
+
+| Key | Default | Purpose |
+|---|---:|---|
+| \`config.commands_enabled\` | \`false\` | Master gate for in-game config regeneration/reset commands |
+| \`config.read_timeout_sec\` | \`5\` | Maximum read/parse time per TOML file; validated/clamped to 1–300 seconds |
+| \`debug.startup_scans\` | \`false\` | Enables extra startup/structure/energy scan logs |
+| \`version_check.enabled\` | \`true\` | Enables the server API compatibility check |
+| \`version_check.min_api_version\` | \`"26.3"\` | Minimum runtime API version checked by the core |
+
+The version check reads the actual running server version. Editing the JAR's \`api-version\` metadata does not bypass the runtime check.
+
+## Language and messages
+
+- Set \`messages.lang\` in UI-Core.toml to \`"en"\` or \`"ru"\`.
+- Message text is stored alongside the settings in each owner's file.
+- Messages use MiniMessage formatting, for example \`<red>\`, \`<yellow>\`, \`<gradient:...>\` and clickable components where supported.
+- A few addon-local settings also document their own language fallback. Follow the comments in the generated file.
+
+## Reload versus restart
+
+Usually reloadable through \`/ui reload\`:
+
+- ordinary TOML values;
+- messages and formatting;
+- module states and settings that the relevant module reload implementation supports.
+
+Restart required:
+
+- datapack pack discovery/position/language changes that affect startup registration;
+- custom enchantment registry settings;
+- custom advancement/datapack registration changes;
+- changes to the installed plugin JAR family or Paper dependency graph.
+
+A reload command cannot retroactively repeat Paper's bootstrap phase. When in doubt, follow the comment next to the setting in the generated TOML file.
+
+## Config recovery commands
+
+The command tree includes:
+
+\`\`\`text
+/ui config regen <UI-Addon.toml>
+/ui config reset <addon|all>
+/ui config confirm
+/ui config cancel
+\`\`\`
+
+These operations are deliberately protected:
+
+- the relevant config permission must be granted;
+- \`config.commands_enabled\` must be enabled;
+- the request must be confirmed through the plugin's confirmation flow.
+
+A reset/regeneration backs up the affected live config before replacing it. Use a filesystem backup for large changes; do not rely exclusively on the in-game recovery command.
+
+## Selected addon examples
+
+### Datapack
+
+\`UI-Datapack.toml\` contains \`datapack.enabled\`, \`datapack.lang\`, \`datapack.position\` and feature switches under \`datapack.modules.*\`. Discovery is startup-time.
+
+### Advancements
+
+\`UI-Advancements.toml\` controls the master switch and individual achievement nodes. Tunables include challenge goals/time limits and selected server-event thresholds. Restart after changing the content that is installed into the achievement tree.
+
+### Enchantments
+
+\`UI-Enchantments.toml\` stores the master switch, per-enchantment \`enabled\` flags, display names, maximum levels, anvil cost, equipment slots and enchanting cost/weight behavior. Registry entries are filled during startup; restart after changing them.
+
+### Scheduled restart
+
+\`UI-Essentials.toml\` has a \`[scheduled_restart]\` section. The documented modes are daily fixed times (\`mode = "times"\`, \`times = ["04:00"]\`, timezone) or an interval (\`mode = "timer"\`, for example \`timer = "48h"\`). The action can be restart or shutdown; warning, countdown and online-player gates are configurable. The timer deadline and skip state are persisted.
+
+### Punishment messages
+
+\`UI-Punish.toml\` stores Russian and English MiniMessage templates. Documented placeholders include \`%player%\`, \`%punisher%\`, \`%reason%\`, \`%duration%\` and \`%discord_url%\`.
+
+## Source of truth
+
+The templates are bundled under \`ui-core/src/main/resources/config/\`. For the precise accepted keys and defaults of a release, inspect the TOML template in that release rather than copying a config example from an older guide.
