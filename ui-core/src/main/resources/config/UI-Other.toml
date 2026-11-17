@@ -478,11 +478,11 @@ slowness_duration = 20
 # Default: true
 enabled = true
 # Speed.
-# Default: 4
-speed_amplifier = 4
+# Default: 1
+speed_amplifier = 1
 # Interval in ticks (20 ticks = 1 second).
-# Default: 5
-interval_ticks = 5
+# Default: 20
+interval_ticks = 20
 
 # minecart speed section.
 [features.minecart_speed]
