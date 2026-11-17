@@ -17,6 +17,7 @@
 ### Organization Docs
 
 [![Full Guide](https://img.shields.io/badge/GUIDE-GUIDE.md-blueviolet)](GUIDE.md)
+[![Full Wiki](https://img.shields.io/badge/WIKI-docs%2Fwiki-blue)](docs/wiki/README.md)
 
 > **Ultimate Improvements** is a big collection of everything a server needs: authentication, an energy network, a fusion reactor, radiation, custom items and enchantments, an achievement tree, turrets, protection systems — and 80+ toggleable modules on top. The collection ships as a **family of 21 plugins** (UI-Core + 20 addons) that work as one system, built on the modern Paper plugin loader.
 
