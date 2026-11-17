@@ -72,7 +72,7 @@ public final class AddonCatalog {
                 "check", "codepanel", "sudo", "gsit_spin_guard", "maintenance",
                 "console_lockdown", "server_lockdown", "command_policy", "stresstest");
         // ── UI-World ──
-        route("UI-World", "wireless_redstone", "meteor", "block_friction", "sculk");
+        route("UI-World", "wireless_redstone", "meteor", "block_friction", "sculk", "nether_portal");
         // ── UI-Items ──
         route("UI-Items", "concrete_bucket", "netherite_upgrade", "particle_accelerator",
                 "remote_detonator", "fireball", "portable_workbench");
@@ -109,7 +109,7 @@ public final class AddonCatalog {
         routeMsg("UI-Guard", "packet_guard", "bot_protection",
                 "check", "codepanel", "sudo", "maintenance", "console_lockdown",
                 "server_lockdown", "stresstest");
-        routeMsg("UI-World", "meteor");
+        routeMsg("UI-World", "meteor", "nether_portal");
         routeMsg("UI-Other", "changedimmension", "motd",
                 "suicide", "notes", "power", "death_logger",
                 "structures", "space", "wireless_redstone",

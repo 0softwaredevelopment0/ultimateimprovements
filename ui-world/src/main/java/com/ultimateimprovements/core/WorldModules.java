@@ -4,6 +4,7 @@ import com.ultimateimprovements.core.hooks.CoreHooks;
 import com.ultimateimprovements.mechanics.features.collapse.BlockCollapseListener;
 import com.ultimateimprovements.mechanics.features.collapse.BlockCollapseManager;
 import com.ultimateimprovements.mechanics.features.movement.BlockFrictionListener;
+import com.ultimateimprovements.mechanics.features.netherportal.NetherPortalManager;
 import com.ultimateimprovements.mechanics.features.sculk.SculkGrowthListener;
 import com.ultimateimprovements.mechanics.features.sculk.SculkGrowthManager;
 import com.ultimateimprovements.mechanics.features.sculk.SculkHazardManager;
@@ -197,6 +198,24 @@ public final class WorldModules {
             @Override
             protected void onReloadConfig(JavaPlugin plugin) {
                 MinecartSpeedManager.reloadConfig();
+            }
+        });
+
+        // NetherPortal — break portals when players/entities enter them.
+        mm.register(new PluginModule("NetherPortal", "mechanics/features/nether_portal", false) {
+            @Override
+            protected void onInit(JavaPlugin plugin) throws Exception {
+                NetherPortalManager.init((Main) plugin);
+            }
+
+            @Override
+            protected void onDisable(JavaPlugin plugin) {
+                NetherPortalManager.shutdown();
+            }
+
+            @Override
+            protected void onReloadConfig(JavaPlugin plugin) {
+                NetherPortalManager.reload();
             }
         });
 

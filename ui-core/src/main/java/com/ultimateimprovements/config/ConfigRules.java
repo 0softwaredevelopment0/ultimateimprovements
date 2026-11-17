@@ -815,6 +815,16 @@ final class ConfigRules {
             integer("meteor.interval.max", 1, 100000),
             bool("meteor.log_scheduler"),
 
+            // ── UI-World · nether portal breaking ──
+            bool("nether_portal.enabled"),
+            stringEnum("nether_portal.target", "players", "entities"),
+            integer("nether_portal.check_interval_ticks", 1, 72000),
+            stringEnum("nether_portal.world_mode", "all", "whitelist", "blacklist"),
+            stringList("nether_portal.worlds"),
+            bool("nether_portal.set_default_delay_gamerule"),
+            bool("nether_portal.set_creative_delay_gamerule"),
+            integer("nether_portal.gamerule_interval_ticks", 1, 72000),
+
             // ── UI-Items · concrete bucket ──
             bool("concrete_bucket.enabled"),
             integer("concrete_bucket.harden_delay_seconds", 1, 3600,

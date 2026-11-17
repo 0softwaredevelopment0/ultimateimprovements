@@ -334,6 +334,42 @@ ambient = false
 # Default: true
 icon = true
 
+# ---- NETHER PORTAL BREAKING ----
+
+# Break a nether portal when a player/entity enters it. The check is periodic:
+# every `check_interval_ticks` the allowed worlds are scanned and a portal block
+# under a matching entity is broken naturally (the obsidian frame stays).
+[nether_portal]
+# Master switch (true = feature on).
+# Default: false
+enabled = false
+# Who to scan: "players" (players only) or "entities" (every entity).
+# Default: "players"
+target = "players"
+# Scan period in ticks (20 ticks = 1 second).
+# Default: 20
+check_interval_ticks = 20
+# World filter: "all" (list is ignored), "whitelist" or "blacklist".
+# Default: "all"
+world_mode = "all"
+# Dimension IDs ("minecraft:overworld", "minecraft:the_nether",
+# "namespace:path"). Used only by whitelist/blacklist; unknown dimensions are
+# logged once at startup/reload and ignored afterwards. The example below does
+# not exist — replace it with your own dimensions.
+# Default: ["minecraft:example"]
+worlds = ["minecraft:example"]
+# Force minecraft:players_nether_portal_default_delay = 80 in every allowed
+# world, so the portal is always broken before vanilla teleports the entity.
+# Default: true
+set_default_delay_gamerule = true
+# Force minecraft:players_nether_portal_creative_delay = 80 as well (creative
+# players would otherwise teleport almost instantly).
+# Default: true
+set_creative_delay_gamerule = true
+# How often the gamerules above are re-applied, in ticks (200 = 10 seconds).
+# Default: 200
+gamerule_interval_ticks = 200
+
 # ---- MESSAGES ----
 
 [messages.meteor]
@@ -359,6 +395,19 @@ spawn_failed = "<red>❌ Не удалось вызвать метеор — п�
 # Default: <yellow>⚠ Вызвано </yellow><white>%spawned%</white><yellow> из </yellow><white>%count%</white><yellow> метеоров — достигнут лимит активных.</yellow>
 spawn_partial = "<yellow>⚠ Вызвано </yellow><white>%spawned%</white><yellow> из </yellow><white>%count%</white><yellow> метеоров — достигнут лимит активных.</yellow>"
 
+[messages.nether_portal]
+usage = "<gray>Использование:</gray> <white>/ui netherportal on|off|mode player|entity|status</white>"
+enabled = "<green>✔ <white>Ломание незер-порталов теперь <green>включено</green>.</white>"
+disabled = "<green>✔ <white>Ломание незер-порталов теперь <red>выключено</red>.</white>"
+mode_changed = "<green>✔ <white>Режим изменён на <yellow>%mode%</yellow>.</white>"
+invalid_mode = "<red>Неверный режим: <white>%mode%</white>. Используйте <white>player</white> или <white>entity</white>.</red>"
+status_header = "<dark_gray>────────── <white>Незер-порталы</white> <dark_gray>──────────</dark_gray>"
+status_state = "<gray>Состояние: </gray>%state%"
+status_target = "<gray>Цель: </gray><white>%target%</white><gray> · проверка каждые </gray><white>%interval%t</white>"
+status_worlds = "<gray>Миры: </gray>%worlds%"
+status_gamerules = "<gray>Геймрулы: </gray>%gamerules%<gray> · каждые </gray><white>%interval%t</white>"
+status_broken = "<gray>Порталов сломано с перезагрузки: </gray><yellow>%count%</yellow>"
+
 # ---- MESSAGES (ENGLISH) ----
 
 [messages_en.meteor]
@@ -371,3 +420,16 @@ module_not_init = "<red>❌ Meteor module is not initialized!</red>"
 spawned = "<green>✔</green> <white>Spawned </white><yellow>%count%</yellow><white> meteor(s)!</white>"
 spawn_failed = "<red>❌ Could not spawn a meteor — see the server console for the reason.</red>"
 spawn_partial = "<yellow>⚠ Spawned </yellow><white>%spawned%</white><yellow> of </yellow><white>%count%</white><yellow> meteor(s) — active limit reached.</yellow>"
+
+[messages_en.nether_portal]
+usage = "<gray>Usage:</gray> <white>/ui netherportal on|off|mode player|entity|status</white>"
+enabled = "<green>✔ <white>Nether portal breaking is now <green>enabled</green>.</white>"
+disabled = "<green>✔ <white>Nether portal breaking is now <red>disabled</red>.</white>"
+mode_changed = "<green>✔ <white>Target changed to <yellow>%mode%</yellow>.</white>"
+invalid_mode = "<red>Invalid mode: <white>%mode%</white>. Use <white>player</white> or <white>entity</white>.</red>"
+status_header = "<dark_gray>────────── <white>Nether portal</white> <dark_gray>──────────</dark_gray>"
+status_state = "<gray>State: </gray>%state%"
+status_target = "<gray>Target: </gray><white>%target%</white><gray> · check every </gray><white>%interval%t</white>"
+status_worlds = "<gray>Worlds: </gray>%worlds%"
+status_gamerules = "<gray>Gamerules: </gray>%gamerules%<gray> · every </gray><white>%interval%t</white>"
+status_broken = "<gray>Portals broken since reload: </gray><yellow>%count%</yellow>"

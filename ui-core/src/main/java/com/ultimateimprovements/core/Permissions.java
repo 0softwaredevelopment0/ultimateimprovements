@@ -220,6 +220,12 @@ public final class Permissions {
     public static final String CMD_AUTORESTART_SKIP = "ui.command.autorestart.skip";
     public static final String CMD_AUTORESTART_UNDOSKIP = "ui.command.autorestart.undoskip";
     public static final String CMD_AUTORESTART_RESET = "ui.command.autorestart.reset";
+    /** /ui netherportal on|off — toggle the portal-breaking mechanic. */
+    public static final String CMD_NETHERPORTAL_TOGGLE = "ui.command.netherportal.toggle";
+    /** /ui netherportal mode — choose players or all entities. */
+    public static final String CMD_NETHERPORTAL_MODE = "ui.command.netherportal.mode";
+    /** /ui netherportal status — read-only state and mode. */
+    public static final String CMD_NETHERPORTAL_STATUS = "ui.command.netherportal.status";
     public static final String CMD_SUDO = "ui.command.sudo";
     public static final String CMD_UUID = "ui.command.uuid";
     public static final String CMD_CILIST = "ui.command.cilist";
@@ -528,6 +534,9 @@ public final class Permissions {
                 new Permission(CMD_AUTORESTART_SKIP, "Skip the next automatic restart (/ui autorestart skip)", PermissionDefault.OP),
                 new Permission(CMD_AUTORESTART_UNDOSKIP, "Cancel a pending automatic-restart skip (/ui autorestart undoskip)", PermissionDefault.OP),
                 new Permission(CMD_AUTORESTART_RESET, "Reset the automatic-restart timer (/ui autorestart reset)", PermissionDefault.OP),
+                new Permission(CMD_NETHERPORTAL_TOGGLE, "Toggle nether portal breaking (/ui netherportal on|off)", PermissionDefault.OP),
+                new Permission(CMD_NETHERPORTAL_MODE, "Change the nether portal breaking target (/ui netherportal mode)", PermissionDefault.OP),
+                new Permission(CMD_NETHERPORTAL_STATUS, "Show nether portal breaking status (/ui netherportal status)", PermissionDefault.TRUE),
                 new Permission(CMD_SUDO, "Use sudo mode commands", PermissionDefault.FALSE),
                 new Permission(CMD_UUID, "Look up player UUIDs", PermissionDefault.FALSE),
                 new Permission(CMD_CILIST, "List custom items", PermissionDefault.FALSE),

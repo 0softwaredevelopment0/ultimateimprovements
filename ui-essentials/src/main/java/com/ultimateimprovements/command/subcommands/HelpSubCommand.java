@@ -57,9 +57,11 @@ public class HelpSubCommand implements SubCommand {
         final String desc;
         final List<Usage> usages = new ArrayList<>();
         final List<Sub> subs = new ArrayList<>();
+        final List<String> permissions = new ArrayList<>();
         Cmd(String desc) { this.desc = desc; }
         Cmd u(String args, String note) { usages.add(new Usage(args, note)); return this; }
         Cmd sub(String name, String args, String desc) { subs.add(new Sub(name, args, desc)); return this; }
+        Cmd perm(String... nodes) { permissions.addAll(Arrays.asList(nodes)); return this; }
     }
 
     private static final Map<String, Cmd> COMMANDS = new LinkedHashMap<>();
@@ -407,7 +409,16 @@ public class HelpSubCommand implements SubCommand {
                 .u("list", "list issued keys");
         cmd("power", "Server power management").u("off|reboot|schedule|...", "shutdown, restart or next scheduled restart");
         cmd("autorestart", "Automatic restart schedule")
-                .u("on|off|status|skip|undoskip|reset", "control the scheduled restart");
+                .u("on|off|status|skip|undoskip|reset", "control the scheduled restart")
+                .perm("ui.command.autorestart.toggle", "ui.command.autorestart.status",
+                        "ui.command.autorestart.skip", "ui.command.autorestart.undoskip",
+                        "ui.command.autorestart.reset");
+        cmd("netherportal", "Break nether portals when players/entities enter them")
+                .u("on|off", "toggle the mechanic (writes nether_portal.enabled)")
+                .u("mode player|entity", "choose who is scanned (writes nether_portal.target)")
+                .u("status", "show the state, target and world filter")
+                .perm("ui.command.netherportal.toggle", "ui.command.netherportal.mode",
+                        "ui.command.netherportal.status");
         cmd("setrad", "Set a player's radiation").u("<player> <mSv>", "debug tool");
     }
 
@@ -483,7 +494,7 @@ public class HelpSubCommand implements SubCommand {
             } else {
                 shortUsage = "";
             }
-            boolean access = hasAccess(sender, name);
+            boolean access = hasAccess(sender, name, info);
 
             Component cmdPart = Component.text("/ui " + name)
                     .color(access ? NamedTextColor.WHITE : NamedTextColor.RED)
@@ -612,8 +623,16 @@ public class HelpSubCommand implements SubCommand {
         }
 
         // Permission + back link
-        sender.sendMessage(MessageUtil.parse("<dark_gray>┃ <gray>Permission: <white>ui.command."
-                + cmdName + (hasAccess(sender, cmdName) ? " <green>(you have it)" : " <red>(missing)")));
+        if (info != null && !info.permissions.isEmpty()) {
+            for (String permission : info.permissions) {
+                sender.sendMessage(MessageUtil.parse("<dark_gray>┃ <gray>Permission: <white>"
+                        + permission + (sender.hasPermission(permission)
+                        ? " <green>(you have it)" : " <red>(missing)")));
+            }
+        } else {
+            sender.sendMessage(MessageUtil.parse("<dark_gray>┃ <gray>Permission: <white>ui.command."
+                    + cmdName + (hasAccess(sender, cmdName, info) ? " <green>(you have it)" : " <red>(missing)")));
+        }
         Component back = Component.text("┃ [< Back to the list]")
                 .color(NamedTextColor.YELLOW)
                 .clickEvent(ClickEvent.runCommand("/ui help"))
@@ -650,10 +669,17 @@ public class HelpSubCommand implements SubCommand {
 
     /**
      * Whether the sender has access to the command.
-     * Console and OP see everything; for players we check ui.command.<name> and wildcards.
+     * Console and OP see everything; for players we check the command's
+     * declared permission nodes first (most commands are split across
+     * sub-permissions) and fall back to {@code ui.command.<name>}.
      */
-    private static boolean hasAccess(CommandSender sender, String name) {
+    private static boolean hasAccess(CommandSender sender, String name, Cmd info) {
         if (!(sender instanceof Player)) return true; // console — full access
+        if (info != null) {
+            for (String permission : info.permissions) {
+                if (sender.hasPermission(permission)) return true;
+            }
+        }
         if (sender.hasPermission("ui.command." + name)) return true;
         if (sender.hasPermission("ui.command.*")) return true;
         if (sender.hasPermission("ui.*")) return true;

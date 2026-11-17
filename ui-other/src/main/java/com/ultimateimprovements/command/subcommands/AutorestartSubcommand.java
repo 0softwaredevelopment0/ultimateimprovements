@@ -48,6 +48,7 @@ public final class AutorestartSubcommand implements SubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length < 2) {
+            CommandErrors.syntaxError(sender);
             send(sender, USAGE);
             return true;
         }
@@ -60,6 +61,7 @@ public final class AutorestartSubcommand implements SubCommand {
             case "undoskip", "unskip" -> skip(sender, false);
             case "reset" -> reset(sender);
             default -> {
+                CommandErrors.unknownCommand(sender, args[1]);
                 send(sender, USAGE);
                 yield true;
             }
@@ -86,14 +88,12 @@ public final class AutorestartSubcommand implements SubCommand {
 
         ScheduledRestartManager schedule = ScheduledRestartManager.getInstance();
         if (schedule == null) {
-            send(sender, MessagesManager.getString("power.autorestart_unavailable",
-                    "<red>Automatic restart is unavailable.</red>"));
+            CommandErrors.moduleDisabled(sender, "scheduled_restart");
             return true;
         }
 
         if (!schedule.setEnabled(enabled)) {
-            send(sender, MessagesManager.getString("power.autorestart_unavailable",
-                    "<red>Automatic restart is unavailable.</red>"));
+            CommandErrors.moduleDisabled(sender, "scheduled_restart");
             return true;
         }
 
@@ -153,8 +153,7 @@ public final class AutorestartSubcommand implements SubCommand {
 
         ScheduledRestartManager schedule = ScheduledRestartManager.getInstance();
         if (schedule == null) {
-            send(sender, MessagesManager.getString("power.autorestart_unavailable",
-                    "<red>Automatic restart is unavailable.</red>"));
+            CommandErrors.moduleDisabled(sender, "scheduled_restart");
             return true;
         }
 

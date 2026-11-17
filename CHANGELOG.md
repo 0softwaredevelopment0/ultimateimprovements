@@ -3,6 +3,35 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.9.0-alpha.1] - 2026-11-17
+
+### Added
+- **Nether portal breaking** (`[nether_portal]` in `configs/UI-World.toml`,
+  off by default). A periodic task scans the allowed worlds and breaks the
+  `minecraft:nether_portal` block under a matching entity with
+  `Block#breakNaturally()`; vanilla collapses the portal and the obsidian frame
+  stays. Config: `target = "players" | "entities"` (players by default),
+  `check_interval_ticks` (20), `world_mode = "all" | "whitelist" | "blacklist"`
+  (all, list ignored), `worlds` (dimension IDs), and the two portal-delay
+  gamerules (`set_default_delay_gamerule` / `set_creative_delay_gamerule`, both
+  on, re-applied every `gamerule_interval_ticks`, default 200). Both delays are
+  forced to 80 ticks in every allowed world, so vanilla cannot teleport the
+  entity before the scan. Unknown dimensions are warned about once at
+  startup/reload and ignored afterwards.
+- **`/ui netherportal on|off|mode player|entity|status`.** `on|off` and `mode`
+  write their value back to the TOML; `status` is read-only. New permissions
+  `ui.command.netherportal.toggle` and `.mode` (OP by default) and
+  `.status` (everyone).
+- Bilingual `nether_portal.*` messages (RU/EN), all replies keep the plugin
+  prefix.
+- `/ui help` now understands commands whose access is split across several
+  permission nodes, so `autorestart` and `netherportal` show their real nodes
+  instead of a false `(no permission)`.
+
+### Fixed
+- `/ui autorestart` now reports the shared error codes: `001` for missing or
+  unknown subcommands and `018` when the manager is unavailable.
+
 ## [1.8.6-alpha.4] - 2026-11-17
 
 ### Added

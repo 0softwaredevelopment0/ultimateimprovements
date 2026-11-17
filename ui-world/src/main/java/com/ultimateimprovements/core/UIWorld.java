@@ -2,6 +2,7 @@ package com.ultimateimprovements.core;
 
 import com.ultimateimprovements.command.SubCommandRegistry;
 import com.ultimateimprovements.command.subcommands.LegacySubCommandAdapter;
+import com.ultimateimprovements.mechanics.features.netherportal.NetherPortalSubcommand;
 import com.ultimateimprovements.mechanics.features.sculk.SculkSubcommand;
 import com.ultimateimprovements.mechanics.features.world.CmdBlockTracker;
 import com.ultimateimprovements.mechanics.features.world.EnderPearlChallenge;
@@ -27,7 +28,7 @@ public class UIWorld extends JavaPlugin {
             "Beacon", "BlockCollapse", "DragonEgg", "BlockFriction", "BedrockBreak", "Kaboom",
             "EarthCore", "WoodcutterChallenge", "EnderPearlChallenge", "NetheriteKing",
             "OutOfMemory", "ServerFreeze", "CmdBlockTracker", "DeathBell", "MinecartSpeed",
-            "WirelessRedstone", "SculkGrowth", "SculkHazards", "Meteor");
+            "WirelessRedstone", "SculkGrowth", "SculkHazards", "Meteor", "NetherPortal");
 
     private static UIWorld instance;
 
@@ -94,6 +95,7 @@ public class UIWorld extends JavaPlugin {
             registry.register(LegacySubCommandAdapter.of("cmdblocklist", CmdBlockTracker::execute));
             registry.register(LegacySubCommandAdapter.of("sculk",
                     SculkSubcommand::execute, SculkSubcommand::tabComplete));
+            registry.register(new NetherPortalSubcommand());
             registry.register(LegacySubCommandAdapter.of("advancement", (s, a) -> {
                 if (!(s instanceof Player p)) return false;
                 if (a.length < 2) {
