@@ -3,6 +3,17 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.10.0-alpha.2] - 2026-11-17
+
+### Fixed
+- **Spectators no longer disappear from the tab list.** `tab.hide_spectators`
+  used to remove the player-info entry, so a spectator was invisible in the
+  tab. The module now keeps the entry and only replaces the game mode the other
+  clients see with `SURVIVAL`, which drops the client's italic spectator style
+  while the name stays visible and looks like any regular player. The
+  spectator's own client is left untouched, so spectator camera/no-clip still
+  work.
+
 ## [1.10.0-alpha.1] - 2026-11-17
 
 ### Added

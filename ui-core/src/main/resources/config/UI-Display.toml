@@ -9,6 +9,9 @@ enabled = true
 # Interval in ticks (20 ticks = 1 second).
 # Default: 20
 update_interval_ticks = 20
+# Keep spectators in the tab list and show their name as a regular
+# (non-italic) entry instead of the client's italic spectator style.
+# The key keeps its historical name for config compatibility.
 # Default: true
 hide_spectators = true
 # Default: ["<gradient:#00AAFF:#FF55FF>  ✦ UltimateImprovements ✦  </gradient>", "<dark_gray>  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  </dark_gray>"]
