@@ -70,10 +70,10 @@ These use cached user metadata. When the player or metadata is unavailable, the 
 The dynamic metric syntax supports:
 
 \`\`\`text
-%<metric>[_<stat>][_ <window>][_color]%
+%<metric>[_<stat>][_<window>][_color]%
 \`\`\`
 
-Remove the illustrative space before the window. Supported metrics:
+Supported metrics:
 
 - \`tps\`
 - \`mspt\`
