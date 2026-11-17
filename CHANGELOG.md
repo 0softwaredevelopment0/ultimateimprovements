@@ -6,13 +6,16 @@ in this file.
 ## [1.10.0-alpha.2] - 2026-11-17
 
 ### Fixed
-- **Spectators no longer disappear from the tab list.** `tab.hide_spectators`
-  used to remove the player-info entry, so a spectator was invisible in the
-  tab. The module now keeps the entry and only replaces the game mode the other
-  clients see with `SURVIVAL`, which drops the client's italic spectator style
-  while the name stays visible and looks like any regular player. The
+- **Spectators in the tab list are now permission- and distance-based.**
+  `tab.hide_spectators` used to remove the player-info entry for everyone, so a
+  spectator was invisible in the tab. It now keeps the entry but sends it as
+  `SURVIVAL`, which drops the client's italic spectator style, and only to
+  viewers that may see it: the new `ui.tab.see_spectators` permission (OP by
+  default) plus the new `tab.spectator_view_radius` setting (blocks, default
+  `128`, `0` = no distance limit). Everyone else does not get the spectator
+  entry at all, so ordinary players still cannot tell who is spectating. The
   spectator's own client is left untouched, so spectator camera/no-clip still
-  work.
+  work, and vanish keeps owning its own tab removal.
 
 ## [1.10.0-alpha.1] - 2026-11-17
 
