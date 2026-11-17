@@ -1,8 +1,8 @@
 package com.ultimateimprovements.command.subcommands;
 
 import com.ultimateimprovements.command.CommandErrors;
-
 import com.ultimateimprovements.command.SubCommand;
+import com.ultimateimprovements.core.Main;
 import com.ultimateimprovements.util.MessageUtil;
 import com.ultimateimprovements.util.PlayerDataIO;
 import org.bukkit.Bukkit;
@@ -54,6 +54,12 @@ public class InvseeSubcommand implements SubCommand {
         }
         if (!player.hasPermission(permission)) {
             CommandErrors.noPermission(player, permission);
+            return true;
+        }
+        String configKey = ender ? "endersee.enabled" : "invsee.enabled";
+        Main main = Main.getInstance();
+        if (main != null && !main.getConfig().getBoolean(configKey, true)) {
+            CommandErrors.moduleDisabled(player, configKey);
             return true;
         }
         if (args.length < 2) {

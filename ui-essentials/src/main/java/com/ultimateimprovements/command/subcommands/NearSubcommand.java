@@ -21,7 +21,7 @@ public final class NearSubcommand {
      * /ui near [radius]
      * <p>
      * Shows players within {@code radius} blocks of the sender.
-     * Disabled by default (near.enabled: false in config.yml).
+     * Disabled when {@code near.enabled: false} (enabled by default).
      * The maximum radius is set in the config (near.max_radius, default 128).
      */
     public static boolean execute(CommandSender sender, String[] args) {
@@ -35,7 +35,7 @@ public final class NearSubcommand {
         }
 
         // Check whether the command is enabled in the config
-        if (!Main.getInstance().getConfig().getBoolean("near.enabled", false)) {
+        if (!Main.getInstance().getConfig().getBoolean("near.enabled", true)) {
             CommandErrors.moduleDisabled(sender, "near");
             return true;
         }

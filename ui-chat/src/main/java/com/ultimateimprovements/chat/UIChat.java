@@ -71,6 +71,10 @@ public class UIChat extends JavaPlugin {
         // CmdLogger
         CmdLogger.init(main);
 
+        // Hide private-message commands from the console log (UI-Chat.toml
+        // chat.hide_private_messages, default on).
+        PrivateMessageLogFilter.register();
+
         // OJM (Override Join/Leave Messages)
         OjmManager.init(main);
 
@@ -86,6 +90,8 @@ public class UIChat extends JavaPlugin {
         // CmdLogger listeners live under UI-Core's handle and it also holds the
         // /ui outcome listener — release both on disable.
         CmdLogger.shutdown();
+        // Console log filter (root logger, not tied to a HandlerList).
+        PrivateMessageLogFilter.unregister();
         // OJM listener also lives under UI-Core's handle.
         OjmManager.shutdown();
 

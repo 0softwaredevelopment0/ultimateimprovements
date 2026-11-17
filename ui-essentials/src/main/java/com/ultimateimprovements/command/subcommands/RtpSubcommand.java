@@ -25,7 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * /ui rtp — random teleportation with flexible configuration.
  * <p>
- * Disabled by default ({@code rtp.enabled: false}).
+ * Disabled when {@code rtp.enabled: false} (enabled by default); requires the
+ * {@code ui.command.rtp} permission (OP by default).
  * The config allows setting the radius, area shape (square/circle),
  * black/white block lists, height limits, air/void avoidance,
  * cooldown and a world list.
@@ -77,7 +78,7 @@ public final class RtpSubcommand {
 
         // Check: is the command enabled
         FileConfiguration cfg = Main.getInstance().getConfig();
-        if (!cfg.getBoolean("rtp.enabled", false)) {
+        if (!cfg.getBoolean("rtp.enabled", true)) {
             CommandErrors.moduleDisabled(sender, "rtp");
             return true;
         }

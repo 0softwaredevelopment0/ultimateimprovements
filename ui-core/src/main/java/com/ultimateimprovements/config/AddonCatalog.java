@@ -40,7 +40,7 @@ public final class AddonCatalog {
         route("UI-Punish", "punish", "blacklist", "opwhitelist", "op_lists", "access_control");
         // ── UI-Essentials ──
         route("UI-Essentials", "home", "spawn", "heal_feed", "report", "rtp", "near",
-                "endersee", "troll");
+                "endersee", "invsee", "troll");
         // ── UI-Anticheat ──
         route("UI-Anticheat", "anticheat");
         // ── UI-Datapack ──
