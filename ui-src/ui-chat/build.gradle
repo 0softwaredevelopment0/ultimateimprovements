@@ -6,8 +6,23 @@ plugins {
 dependencies {
     paperweight.paperDevBundle("26.3.build.+")
     implementation project(':ui-core')
-    implementation project(':ui-shared')
-    implementation project(':ui-mbs')
+    // Mute enforcement: ChatManager calls PunishJoinListener.isMuted().
+    // compileOnly — UI-Punish is a separate plugin JAR at runtime.
+    compileOnly project(':ui-punish')
+    implementation 'org.xerial:sqlite-jdbc:3.54.1.0'
+    compileOnly 'de.mkammerer:argon2-jvm:2.12'
+    compileOnly('com.github.MilkBowl:VaultAPI:1.7') {
+        exclude group: 'org.bukkit', module: 'bukkit'
+    }
+    compileOnly 'me.clip:placeholderapi:2.11.6'
+
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }
 
 tasks {
@@ -15,7 +30,7 @@ tasks {
         dependsOn(shadowJar)
     }
     shadowJar {
-        archiveBaseName.set('UI-Energy')
+        archiveBaseName.set('UI-Chat')
         archiveVersion.set(project.version.toString())
         configurations = [project.configurations.runtimeClasspath]
         // Do not bundle sibling UltimateImprovements plugin JARs (UI-Core, ...).
@@ -25,7 +40,7 @@ tasks {
         dependencies {
             exclude(dependency('com.ultimateimprovements:.*:.*'))
         }
-        // config.yml lives only in UI-Core (ui-core/src/main/resources)
+        // config.yml lives only in UI-Core (ui-src/ui-core/src/main/resources)
         exclude 'config.yml'
     }
 }

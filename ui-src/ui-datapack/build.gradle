@@ -6,15 +6,7 @@ plugins {
 dependencies {
     paperweight.paperDevBundle("26.3.build.+")
     implementation project(':ui-core')
-    // Mute enforcement: ChatManager calls PunishJoinListener.isMuted().
-    // compileOnly — UI-Punish is a separate plugin JAR at runtime.
-    compileOnly project(':ui-punish')
-    implementation 'org.xerial:sqlite-jdbc:3.54.1.0'
-    compileOnly 'de.mkammerer:argon2-jvm:2.12'
-    compileOnly('com.github.MilkBowl:VaultAPI:1.7') {
-        exclude group: 'org.bukkit', module: 'bukkit'
-    }
-    compileOnly 'me.clip:placeholderapi:2.11.6'
+    implementation 'com.moandjiezana.toml:toml4j:0.7.2'
 
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -25,12 +17,16 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+// The bundled UI-Datapack resources live in this module's own
+// src/main/resources/datapacks/ and are copied into the jar under
+// datapacks/ by the regular processResources task — the path
+// DatapackInstaller extracts from.
 tasks {
     assemble {
         dependsOn(shadowJar)
     }
     shadowJar {
-        archiveBaseName.set('UI-Chat')
+        archiveBaseName.set('UI-Datapack')
         archiveVersion.set(project.version.toString())
         configurations = [project.configurations.runtimeClasspath]
         // Do not bundle sibling UltimateImprovements plugin JARs (UI-Core, ...).
@@ -40,7 +36,7 @@ tasks {
         dependencies {
             exclude(dependency('com.ultimateimprovements:.*:.*'))
         }
-        // config.yml lives only in UI-Core (ui-core/src/main/resources)
+        // config.yml lives only in UI-Core (ui-src/ui-core/src/main/resources)
         exclude 'config.yml'
     }
 }

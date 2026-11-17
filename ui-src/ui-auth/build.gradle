@@ -6,21 +6,7 @@ plugins {
 dependencies {
     paperweight.paperDevBundle("26.3.build.+")
     implementation project(':ui-core')
-    implementation project(':ui-shared')
-    implementation project(':ui-chat')
-    implementation project(':ui-clans')
-    implementation project(':ui-combat')
-    implementation project(':ui-energy')
-    implementation project(':ui-punish')
-    implementation project(':ui-anticheat')
-    implementation project(':ui-essentials')
-    implementation project(':ui-mbs')
-    implementation 'org.xerial:sqlite-jdbc:3.54.1.0'
     implementation 'de.mkammerer:argon2-jvm:2.12'
-    compileOnly('com.github.MilkBowl:VaultAPI:1.7') {
-        exclude group: 'org.bukkit', module: 'bukkit'
-    }
-    compileOnly 'me.clip:placeholderapi:2.11.6'
 
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -36,17 +22,14 @@ tasks {
         dependsOn(shadowJar)
     }
     shadowJar {
-        archiveBaseName.set('UI-Other')
+        archiveBaseName.set('UI-Auth')
         archiveVersion.set(project.version.toString())
         configurations = [project.configurations.runtimeClasspath]
         // Do not bundle sibling UltimateImprovements plugin JARs (UI-Core, ...).
-        // Bundled duplicate core classes were loaded from this JAR instead of
-        // UI-Core, so static state (Main.getInstance()) was null in the module's
-        // copy and modules disabled themselves at startup.
         dependencies {
             exclude(dependency('com.ultimateimprovements:.*:.*'))
         }
-        // config.yml lives only in UI-Core (ui-core/src/main/resources)
+        // config.yml lives only in UI-Core (ui-src/ui-core/src/main/resources)
         exclude 'config.yml'
     }
 }

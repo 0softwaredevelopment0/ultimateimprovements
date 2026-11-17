@@ -35,8 +35,7 @@ scan_cyrillic.py
 node_modules/
 
 # Runtime logs (do not commit)
-ui-mbs/logs/
-ui-core/logs/
+ui-src/*/logs/
 
 # Eclipse/JDT build output
 */bin/

@@ -147,4 +147,4 @@ A reset/regeneration backs up the affected live config before replacing it. Use 
 
 ## Source of truth
 
-The templates are bundled under \`ui-core/src/main/resources/config/\`. For the precise accepted keys and defaults of a release, inspect the TOML template in that release rather than copying a config example from an older guide.
+The templates are bundled under \`ui-src/ui-core/src/main/resources/config/\`. For the precise accepted keys and defaults of a release, inspect the TOML template in that release rather than copying a config example from an older guide.

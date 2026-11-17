@@ -6,6 +6,8 @@ plugins {
 dependencies {
     paperweight.paperDevBundle("26.3.build.+")
     implementation project(':ui-core')
+    implementation project(':ui-shared')
+    implementation project(':ui-mbs')
 }
 
 tasks {
@@ -13,7 +15,7 @@ tasks {
         dependsOn(shadowJar)
     }
     shadowJar {
-        archiveBaseName.set('UI-Punish')
+        archiveBaseName.set('UI-Energy')
         archiveVersion.set(project.version.toString())
         configurations = [project.configurations.runtimeClasspath]
         // Do not bundle sibling UltimateImprovements plugin JARs (UI-Core, ...).
@@ -23,7 +25,7 @@ tasks {
         dependencies {
             exclude(dependency('com.ultimateimprovements:.*:.*'))
         }
-        // config.yml lives only in UI-Core (ui-core/src/main/resources)
+        // config.yml lives only in UI-Core (ui-src/ui-core/src/main/resources)
         exclude 'config.yml'
     }
 }

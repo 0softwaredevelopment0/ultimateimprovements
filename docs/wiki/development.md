@@ -2,22 +2,25 @@
 
 ## Repository layout
 
-The project is a Gradle multi-project build. The root settings.gradle lists 21 plugin projects: ui-core and 20 addons.
+The project is a Gradle multi-project build. The root `settings.gradle` discovers
+21 plugin projects under `ui-src/`: `ui-core` and 20 addons. The Gradle project
+names stay flat (`:ui-core`, `:ui-chat`, ...), only their directory differs.
 
 The main source areas are:
 
 | Path | Role |
 |---|---|
-| ui-core/ | Common runtime, config, database, permissions, command APIs, shared services |
-| ui-shared/ | Shared feature implementations |
-| ui-datapack/ | Datapack packaging and bootstrap-time registration |
-| ui-mbs/ | Multiblock structure data and mechanics |
-| ui-energy/ | Energy graph, storage and machinery |
-| ui-auth/ | Authentication |
-| ui-essentials/ | General commands and player utilities |
-| ui-chat/, ui-display/ | Communication and display features |
-| ui-guard/, ui-anticheat/, ui-protection/ | Security/protection systems |
-| remaining ui-*/ projects | Domain-specific addons |
+| ui-src/ | All plugin modules (Gradle subprojects) |
+| ui-src/ui-core/ | Common runtime, config, database, permissions, command APIs, shared services |
+| ui-src/ui-shared/ | Shared feature implementations |
+| ui-src/ui-datapack/ | Datapack packaging and bootstrap-time registration |
+| ui-src/ui-mbs/ | Multiblock structure data and mechanics |
+| ui-src/ui-energy/ | Energy graph, storage and machinery |
+| ui-src/ui-auth/ | Authentication |
+| ui-src/ui-essentials/ | General commands and player utilities |
+| ui-src/ui-chat/, ui-src/ui-display/ | Communication and display features |
+| ui-src/ui-guard/, ui-src/ui-anticheat/, ui-src/ui-protection/ | Security/protection systems |
+| remaining ui-src/ui-*/ projects | Domain-specific addons |
 | docs/ | Design notes and documentation |
 
 ## Toolchain
