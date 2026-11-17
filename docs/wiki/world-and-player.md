@@ -106,7 +106,7 @@ Important details:
 
 - creative and spectator players are skipped;
 - the hazard bypass requires an explicitly granted **ui.sculk.hazards.bypass** node;
-- **ui.***, ***** and ordinary OP status do not satisfy that exact-grant check;
+- Wildcard nodes such as ui.* and * and ordinary OP status do not satisfy that exact-grant check;
 - the hazard module is independent from the sculk-growth start/stop switch.
 
 The [sculk.hazards.*] sections in UI-World.toml provide per-rule settings.
