@@ -1,6 +1,7 @@
 # UI-Player — player features (armor/trim effects, vanish, ...).
 #
 # Active language follows messages.lang.
+
 [vanish]
 # Default: []
 vanished_players = []
@@ -646,7 +647,305 @@ ambient = false
 # Default: false
 icon = false
 
-# Sunburn mechanic: players burn in daylight under conditions.
+# attributes section.
+[features.attributes]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+
+# Attribute units. Each unit changes ONE attribute of its targets, either with a
+# persistent MODIFIER (default) or by overriding the BASE value.
+# Unit names are ordinal numbers (1, 2, 3, ...).
+#
+# ⚠ TO REMOVE THE MODIFIERS left on players: set enabled = false ABOVE WITHOUT
+# deleting the units below, then run `/ui reload` or restart the server. The
+# plugin strips every modifier described here from all online players (and from
+# each player on his next join) and records the new state in the database
+# (ui_state, namespace "attributes"). A modifier's identity is its unit name
+# (key unit_<name>), so DELETING or RENAMING a unit while it is applied leaves
+# its old modifier on the players forever.
+[features.attributes.units]
+
+# Unit 1 — how far this player receives other players' waypoints.
+[features.attributes.units."1"]
+# Change type: "modifier" (persistent modifier, default) or "base" (replaces
+# the vanilla base value; then use `value` instead of `target`).
+# Default: modifier
+type = "modifier"
+# Attribute key: namespaced (minecraft:...), bare (waypoint_receive_range) or
+# legacy constant (WAYPOINT_RECEIVE_RANGE).
+# Default: minecraft:waypoint_receive_range
+attribute = "minecraft:waypoint_receive_range"
+# Desired FINAL value (modifier type only): the plugin computes the modifier
+# amount itself as `target - current base value`, so a server-side default or a
+# value changed by another plugin cannot skew the result. Measured on the server
+# (Leaf 26.3 registry): waypoint_receive/transmit_range default 0 with a
+# 60 000 000 maximum, below_name_distance 10, name_tag_distance 64,
+# sneaking_speed 0.3 (capped at 1.0), attack_speed 4, attack_damage 2 (players
+# get their own base from DefaultAttributes). The attribute's own min/max limit
+# still applies. Use `amount` instead for a raw addition ("amount = 2.0" = +2
+# on top of the base).
+# Default: 8192.0
+target = 8192.0
+# Modifier operation: add_number | add_scalar | multiply_scalar_1 (modifier only).
+# Default: add_number
+operation = "add_number"
+# Equipment slot group the modifier applies to (modifier only).
+# Default: any
+slot = "any"
+# Re-apply on a schedule: false = apply once at startup/join, true = every
+# `interval_ticks`. Modifiers persist in player data, so false is enough for
+# them; base values are overwritten by vanilla/other plugins more often.
+# Default: false
+schedule = false
+# Period of the re-application, in ticks (20 ticks = 1 second).
+# Default: 200
+interval_ticks = 200
+# Targets: ["all"] for every online player, or a list of nicknames.
+# Default: ["all"]
+targets = ["all"]
+
+# Unit 2 — how far this player's waypoints are sent to other players.
+[features.attributes.units."2"]
+# Default: modifier
+type = "modifier"
+# Default: minecraft:waypoint_transmit_range
+attribute = "minecraft:waypoint_transmit_range"
+# Default: 8192.0
+target = 8192.0
+# Default: add_number
+operation = "add_number"
+# Default: any
+slot = "any"
+# Default: false
+schedule = false
+# Default: 200
+interval_ticks = 200
+# Default: ["all"]
+targets = ["all"]
+
+# Unit 3 — distance at which this player's name is rendered below the entity.
+[features.attributes.units."3"]
+# Default: modifier
+type = "modifier"
+# Default: minecraft:below_name_distance
+attribute = "minecraft:below_name_distance"
+# Default: 8.0
+target = 8.0
+# Default: add_number
+operation = "add_number"
+# Default: any
+slot = "any"
+# Default: false
+schedule = false
+# Default: 200
+interval_ticks = 200
+# Default: ["all"]
+targets = ["all"]
+
+# Unit 4 — distance at which this player's name tag is visible.
+[features.attributes.units."4"]
+# Default: modifier
+type = "modifier"
+# Default: minecraft:name_tag_distance
+attribute = "minecraft:name_tag_distance"
+# Default: 8.0
+target = 8.0
+# Default: add_number
+operation = "add_number"
+# Default: any
+slot = "any"
+# Default: false
+schedule = false
+# Default: 200
+interval_ticks = 200
+# Default: ["all"]
+targets = ["all"]
+
+# Unit 5 — player attack damage (legacy server tuning, now a modifier).
+[features.attributes.units."5"]
+# Default: modifier
+type = "modifier"
+# Default: minecraft:attack_damage
+attribute = "minecraft:attack_damage"
+# Default: 0.1
+target = 0.1
+# Default: add_number
+operation = "add_number"
+# Default: any
+slot = "any"
+# Default: true
+schedule = true
+# Default: 200
+interval_ticks = 200
+# Default: ["all"]
+targets = ["all"]
+
+# Unit 6 — player sneaking speed (legacy server tuning, now a modifier).
+[features.attributes.units."6"]
+# Default: modifier
+type = "modifier"
+# Default: minecraft:sneaking_speed
+attribute = "minecraft:sneaking_speed"
+# Default: 1.0
+target = 1.0
+# Default: add_number
+operation = "add_number"
+# Default: any
+slot = "any"
+# Default: true
+schedule = true
+# Default: 200
+interval_ticks = 200
+# Default: ["all"]
+targets = ["all"]
+
+# Unit 7 — player attack speed (legacy server tuning, now a modifier).
+[features.attributes.units."7"]
+# Default: modifier
+type = "modifier"
+# Default: minecraft:attack_speed
+attribute = "minecraft:attack_speed"
+# Default: 3.5
+target = 3.5
+# Default: add_number
+operation = "add_number"
+# Default: any
+slot = "any"
+# Default: true
+schedule = true
+# Default: 200
+interval_ticks = 200
+# Default: ["all"]
+targets = ["all"]
+
+# beacon section.
+[features.beacon]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Default: true
+glowing = true
+# Default: true
+blindness = true
+# Default: 4
+regeneration_amplifier = 4
+# Default: 4
+resistance_amplifier = 4
+# Interval in ticks (20 ticks = 1 second).
+# Default: 5
+interval_ticks = 5
+
+# blockdmg section.
+[features.blockdmg]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Damage.
+# Default: 1
+dripstone_damage = 1
+# Damage.
+# Default: 1
+endrod_damage = 1
+# Interval in ticks (20 ticks = 1 second).
+# Default: 5
+interval_ticks = 5
+
+# boostedcobweb section.
+[features.boostedcobweb]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+
+# deathbell section.
+[features.deathbell]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Default: true
+lightning = true
+
+# glassbreak section.
+[features.glassbreak]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Damage.
+# Default: 1
+damage = 1
+
+# shieldslowness section.
+[features.shieldslowness]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Default: 255
+slowness_amplifier = 255
+# Duration.
+# Default: 20
+slowness_duration = 20
+
+# terracotaspeed section.
+[features.terracotaspeed]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Speed.
+# Default: 1
+speed_amplifier = 1
+# Interval in ticks (20 ticks = 1 second).
+# Default: 20
+interval_ticks = 20
+
+# Sunburn: players burn in daylight (helmet integrity degrades).
+[sunburn]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Interval in ticks (20 ticks = 1 second).
+# Default: 80
+check_interval = 80
+# Default: 80
+fire_ticks = 80
+# Default: true
+extinguish_when_safe = true
+# Interval in ticks (20 ticks = 1 second).
+# Default: 80
+helmet_degrade_interval = 80
+# Default: 1
+helmet_integrity_loss = 1
+# World name.
+# Default: ["world"]
+included_worlds = ["world"]
+
+# /kill-style suicide command behaviour.
+[suicide]
+# Duration.
+# Default: 10
+countdown_duration = 10
+# Cooldown.
+# Default: 10
+cooldown_seconds = 10
+# Timeout.
+# Default: 30
+confirm_timeout = 30
+
+# sounds section.
+[suicide.sounds]
+# Default: "BLOCK_NOTE_BLOCK_PLING"
+warning = "BLOCK_NOTE_BLOCK_PLING"
+# Default: "BLOCK_NOTE_BLOCK_PLING"
+tick = "BLOCK_NOTE_BLOCK_PLING"
+# Default: "ENTITY_LIGHTNING_BOLT_THUNDER"
+finish = "ENTITY_LIGHTNING_BOLT_THUNDER"
+
+# bossbar section.
+[suicide.bossbar]
+# Color.
+# Default: "RED"
+color = "RED"
+# Default: "SOLID"
+style = "SOLID"
 
 # Elytra wear: during ACTUAL gliding the elytra can tear and drop to a few
 # durability points. Rolled once per interval, only while gliding with a
@@ -669,11 +968,115 @@ interval_ticks = 80
 # Default: true
 ignore_creative = true
 
+# suicide section.
+# Placeholders: %seconds%, %timeout%
+[messages.suicide]
+
+# messages section.
+# Placeholders: %seconds%, %timeout%, %sender%, %target%
+[messages.suicide.messages]
+# Default: <dark_red>❌</dark_red> <red>Подождите</red> <yellow>%seconds%</yellow> <red>секунд перед повторным использованием!</red>
+cooldown_message = "<dark_red>❌</dark_red> <red>Подождите</red> <yellow>%seconds%</yellow> <red>секунд перед повторным использованием!</red>"
+# Default: <dark_red>❌</dark_red> <red>У вас уже запущен обратный отсчёт!</red>
+already_running = "<dark_red>❌</dark_red> <red>У вас уже запущен обратный отсчёт!</red>"
+# Title text (MiniMessage).
+# Default: <dark_red>☠</dark_red> <red>ВНИМАНИЕ!</red>
+warning_title = "<dark_red>☠</dark_red> <red>ВНИМАНИЕ!</red>"
+# Default: <white>Вы собираетесь совершить суицид!</white>
+warning_text = "<white>Вы собираетесь совершить суицид!</white>"
+# Default: <red>⚠ Это действие нельзя отменить после подтверждения!</red>
+warning_no_cancel = "<red>⚠ Это действие нельзя отменить после подтверждения!</red>"
+# Default: <yellow>Введите</yellow> <white>/ui suicide</white> <yellow>снова для подтверждения и запуска отсчёта.</yellow>
+warning_confirm_hint = "<yellow>Введите</yellow> <white>/ui suicide</white> <yellow>снова для подтверждения и запуска отсчёта.</yellow>"
+# Default: <gray>Если передумаете — просто подождите</gray> <yellow>%timeout%</yellow> <gray>секунд и запрос истечёт.</gray>
+warning_cancel_hint = "<gray>Если передумаете — просто подождите</gray> <yellow>%timeout%</yellow> <gray>секунд и запрос истечёт.</gray>"
+# Default: <yellow>ℹ</yellow> <white>Запрос суицида отменён (истекло время).</white>
+timeout_message = "<yellow>ℹ</yellow> <white>Запрос суицида отменён (истекло время).</white>"
+# Default: <dark_red>☠</dark_red> <red>Отсчёт запущен!</red>
+confirmed_title = "<dark_red>☠</dark_red> <red>Отсчёт запущен!</red>"
+# Default: <red>Отменить нельзя!</red>
+confirmed_no_cancel = "<red>Отменить нельзя!</red>"
+# Default: <red><bold>☠</bold></red> <white>Суицид через</white> <yellow><bold>%seconds%</bold></yellow> <white>секунд</white>
+timer_actionbar = "<red><bold>☠</bold></red> <white>Суицид через</white> <yellow><bold>%seconds%</bold></yellow> <white>секунд</white>"
+# Default: <dark_gray>[<dark_red>☠</dark_red>]</dark_gray> <red>Суицид через</red> <yellow>%seconds%</yellow> <red>секунд...</red>
+timer_chat = "<dark_gray>[<dark_red>☠</dark_red>]</dark_gray> <red>Суицид через</red> <yellow>%seconds%</yellow> <red>секунд...</red>"
+# Default: <dark_gray>[<dark_red>☠</dark_red>]</dark_gray> <red>Вы совершили суицид...</red>
+death_message = "<dark_gray>[<dark_red>☠</dark_red>]</dark_gray> <red>Вы совершили суицид...</red>"
+# Title text (MiniMessage).
+# Default: <dark_red>☠</dark_red> <red>ПРИНУДИТЕЛЬНЫЙ СУИЦИД!</red>
+forced_title = "<dark_red>☠</dark_red> <red>ПРИНУДИТЕЛЬНЫЙ СУИЦИД!</red>"
+# Default: <gray>Игрок </gray><white>%sender%</white><gray> принудительно отправляет вас в суицид.</gray>
+forced_body = "<gray>Игрок </gray><white>%sender%</white><gray> принудительно отправляет вас в суицид.</gray>"
+# Default: <red>Отменить нельзя!</red>
+forced_nocancel = "<red>Отменить нельзя!</red>"
+# Default: <green>✔</green> <white>Игрок</white> <yellow>%target%</yellow> <white>совершил принудительный суицид.</white>
+forced_sender_success = "<green>✔</green> <white>Игрок</white> <yellow>%target%</yellow> <white>совершил принудительный суицид.</white>"
+
+# bossbar section.
+[messages.suicide.bossbar]
+# Default: <dark_red>☠</dark_red> <red>Суицид через</red> <yellow>%seconds%</yellow> <red>секунд</red>
+title = "<dark_red>☠</dark_red> <red>Суицид через</red> <yellow>%seconds%</yellow> <red>секунд</red>"
+
 # elytra_wear section.
 # Placeholders: %durability%
 [messages.elytra_wear]
 # Default: <red>✦</red> <white>Ваши элитры треснули! Осталось прочности: </white><red>%durability%</red>
 torn = "<red>✦</red> <white>Ваши элитры треснули! Осталось прочности: </white><red>%durability%</red>"
+
+# suicide section.
+# Placeholders: %seconds%, %timeout%, %sender%, %target%
+[messages_en.suicide]
+
+# messages section.
+# Placeholders: %seconds%, %timeout%, %sender%, %target%
+[messages_en.suicide.messages]
+# Cooldown.
+# Default: <dark_red>❌</dark_red> <red>Please wait</red> <yellow>%seconds%</yellow> <red>seconds before using this again…
+cooldown_message = "<dark_red>❌</dark_red> <red>Please wait</red> <yellow>%seconds%</yellow> <red>seconds before using this again!</red>"
+# Default: <dark_red>❌</dark_red> <red>You already have a countdown running!</red>
+already_running = "<dark_red>❌</dark_red> <red>You already have a countdown running!</red>"
+# Title text (MiniMessage).
+# Default: <dark_red>☠</dark_red> <red>WARNING!</red>
+warning_title = "<dark_red>☠</dark_red> <red>WARNING!</red>"
+# Default: <white>You are about to commit suicide!</white>
+warning_text = "<white>You are about to commit suicide!</white>"
+# Default: <red>⚠ This cannot be undone after confirmation!</red>
+warning_no_cancel = "<red>⚠ This cannot be undone after confirmation!</red>"
+# Default: <yellow>Type</yellow> <white>/ui suicide</white> <yellow>again to confirm and start the countdown.</yellow>
+warning_confirm_hint = "<yellow>Type</yellow> <white>/ui suicide</white> <yellow>again to confirm and start the countdown.</yellow>"
+# Default: <gray>If you change your mind — just wait</gray> <yellow>%timeout%</yellow> <gray>seconds and the request wil…
+warning_cancel_hint = "<gray>If you change your mind — just wait</gray> <yellow>%timeout%</yellow> <gray>seconds and the request will expire.</gray>"
+# Timeout.
+# Default: <yellow>ℹ</yellow> <white>Suicide request cancelled (timed out).</white>
+timeout_message = "<yellow>ℹ</yellow> <white>Suicide request cancelled (timed out).</white>"
+# Title text (MiniMessage).
+# Default: <dark_red>☠</dark_red> <red>Countdown started!</red>
+confirmed_title = "<dark_red>☠</dark_red> <red>Countdown started!</red>"
+# Default: <red>Cannot be cancelled!</red>
+confirmed_no_cancel = "<red>Cannot be cancelled!</red>"
+# Default: <red><bold>☠</bold></red> <white>Suicide in</white> <yellow><bold>%seconds%</bold></yellow> <white>seconds</w…
+timer_actionbar = "<red><bold>☠</bold></red> <white>Suicide in</white> <yellow><bold>%seconds%</bold></yellow> <white>seconds</white>"
+# Default: <dark_gray>[<dark_red>☠</dark_red>]</dark_gray> <red>Suicide in</red> <yellow>%seconds%</yellow> <red>seconds…
+timer_chat = "<dark_gray>[<dark_red>☠</dark_red>]</dark_gray> <red>Suicide in</red> <yellow>%seconds%</yellow> <red>seconds...</red>"
+# Message text (MiniMessage).
+# Default: <dark_gray>[<dark_red>☠</dark_red>]</dark_gray> <red>You have committed suicide...</red>
+death_message = "<dark_gray>[<dark_red>☠</dark_red>]</dark_gray> <red>You have committed suicide...</red>"
+# Title text (MiniMessage).
+# Default: <dark_red>☠</dark_red> <red>FORCE SUICIDE!</red>
+forced_title = "<dark_red>☠</dark_red> <red>FORCE SUICIDE!</red>"
+# Default: <gray>Player </gray><white>%sender%</white><gray> is force-suiciding you.</gray>
+forced_body = "<gray>Player </gray><white>%sender%</white><gray> is force-suiciding you.</gray>"
+# Default: <red>Cannot be cancelled!</red>
+forced_nocancel = "<red>Cannot be cancelled!</red>"
+# Default: <green>✔</green> <white>Player</white> <yellow>%target%</yellow> <white>has been force-suicided.</white>
+forced_sender_success = "<green>✔</green> <white>Player</white> <yellow>%target%</yellow> <white>has been force-suicided.</white>"
+
+# bossbar section.
+# Placeholders: %seconds%
+[messages_en.suicide.bossbar]
+# Title text (MiniMessage).
+# Default: <dark_red>☠</dark_red> <red>Suicide in</red> <yellow>%seconds%</yellow> <red>seconds</red>
+title = "<dark_red>☠</dark_red> <red>Suicide in</red> <yellow>%seconds%</yellow> <red>seconds</red>"
 
 [messages_en.elytra_wear]
 # Default: <red>✦</red> <white>Your elytra tore! Durability left: </white><red>%durability%</red>

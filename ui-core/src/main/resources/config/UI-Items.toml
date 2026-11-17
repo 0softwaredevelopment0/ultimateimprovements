@@ -5,6 +5,7 @@
 # ==================================================================
 
 # Concrete bucket: poured water turns into concrete after the delay.
+
 [concrete_bucket]
 # Master switch (true = a concrete bucket pours cement instead of plain water).
 # Default: true
@@ -163,6 +164,49 @@ self_damage = false
 # Sound played on the shot (Bukkit Sound name, empty = silent).
 # Default: ENTITY_GHAST_SHOOT
 shoot_sound = "ENTITY_GHAST_SHOOT"
+
+# antimatter section.
+[features.antimatter]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Radius in blocks.
+# Default: 5
+explosion_radius = 5
+# Default: true
+break_blocks = true
+# Default: true
+set_fire = true
+
+# entitylocator section.
+[features.entitylocator]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Radius in blocks.
+# Default: 12
+scan_radius = 12
+# Interval in ticks (20 ticks = 1 second). The locator only plays a note
+# sound and a dust trail, so a short interval keeps the feedback smooth.
+# Default: 10
+interval_ticks = 10
+
+# exp bottle upgrade section.
+[features.exp_bottle_upgrade]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Maximum value.
+# Default: 100
+max_multiplier = 100
+# Amount.
+# Default: 1
+anvil_cost_amount = 1
+# Display name (MiniMessage).
+# Default: "<i:false><yellow>Experience bottle <gold>x{level}</gold></yellow>"
+item_name = "<i:false><yellow>Experience bottle <gold>x{level}</gold></yellow>"
+# Default: ["<i:false><gray>Gives <aqua>{level}</aqua> times more experience.</gray>", "<i:false><dark_gray>{level} + {level} = <aqua>x{next}</aqua> on an anvil.</dark_gray>"]
+item_lore = ["<i:false><gray>Gives <aqua>{level}</aqua> times more experience.</gray>", "<i:false><dark_gray>{level} + {level} = <aqua>x{next}</aqua> on an anvil.</dark_gray>"]
 
 # ==================================================================
 # MESSAGES

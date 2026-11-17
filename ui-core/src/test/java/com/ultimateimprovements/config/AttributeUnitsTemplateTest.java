@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Guards the {@code features.attributes.units.*} block of the bundled UI-Other
+ * Guards the {@code features.attributes.units.*} block of the bundled UI-Player
  * template — the config surface of the scheduled attribute-grant manager:
  * <ul>
  *   <li>every shipped default is a MODIFIER with a {@code target} (the desired
@@ -40,10 +40,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class AttributeUnitsTemplateTest {
 
-    /** Loads the bundled UI-Other template as a flattened Bukkit view. */
-    private static YamlConfiguration loadOtherTemplate() throws Exception {
-        try (InputStream in = AttributeUnitsTemplateTest.class.getResourceAsStream("/config/UI-Other.toml")) {
-            assertNotNull(in, "bundled config/UI-Other.toml must exist");
+    /** Loads the bundled UI-Player template as a flattened Bukkit view. */
+    private static YamlConfiguration loadPlayerTemplate() throws Exception {
+        try (InputStream in = AttributeUnitsTemplateTest.class.getResourceAsStream("/config/UI-Player.toml")) {
+            assertNotNull(in, "bundled config/UI-Player.toml must exist");
             YamlConfiguration view = new YamlConfiguration();
             flatten(new Toml().read(new InputStreamReader(in, StandardCharsets.UTF_8)).toMap(), "", view);
             return view;
@@ -52,8 +52,8 @@ class AttributeUnitsTemplateTest {
 
     /** Raw template text (comment checks). */
     private static String readRawTemplate() throws Exception {
-        try (InputStream in = AttributeUnitsTemplateTest.class.getResourceAsStream("/config/UI-Other.toml")) {
-            assertNotNull(in, "bundled config/UI-Other.toml must exist");
+        try (InputStream in = AttributeUnitsTemplateTest.class.getResourceAsStream("/config/UI-Player.toml")) {
+            assertNotNull(in, "bundled config/UI-Player.toml must exist");
             StringBuilder sb = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
                 String line;
@@ -86,7 +86,7 @@ class AttributeUnitsTemplateTest {
     @Test
     @DisplayName("Range units 1-4 are one-shot modifiers targeting 8192/8192/8/8")
     void rangeUnitsTargetFinalValues() throws Exception {
-        YamlConfiguration cfg = loadOtherTemplate();
+        YamlConfiguration cfg = loadPlayerTemplate();
 
         assertTrue(cfg.getBoolean("features.attributes.enabled"),
                 "features.attributes.enabled must default to true");
@@ -123,7 +123,7 @@ class AttributeUnitsTemplateTest {
     @Test
     @DisplayName("Legacy tuning units 5-7 are scheduled modifiers targeting 0.1/1.0/3.5")
     void legacyUnitsAreTargetModifiers() throws Exception {
-        YamlConfiguration cfg = loadOtherTemplate();
+        YamlConfiguration cfg = loadPlayerTemplate();
 
         assertEquals("minecraft:attack_damage", cfg.getString(unit("5", "attribute")));
         assertEquals(0.1, cfg.getDouble(unit("5", "target")), 0.0001);
@@ -149,7 +149,7 @@ class AttributeUnitsTemplateTest {
     @Test
     @DisplayName("Legacy flat attribute keys are not part of the template any more")
     void legacyFlatKeysRemoved() throws Exception {
-        YamlConfiguration cfg = loadOtherTemplate();
+        YamlConfiguration cfg = loadPlayerTemplate();
         for (String legacy : List.of("attack_damage", "sneak_speed", "attack_speed", "interval_ticks")) {
             assertFalse(cfg.isSet("features.attributes." + legacy),
                     "legacy key features.attributes." + legacy + " must be migrated into units");
@@ -172,8 +172,8 @@ class AttributeUnitsTemplateTest {
     @Test
     @DisplayName("Ordinal unit tables survive the TOML write/read round-trip")
     void ordinalUnitTablesRoundTrip(@TempDir Path tempDir) throws Exception {
-        YamlConfiguration cfg = loadOtherTemplate();
-        File out = tempDir.resolve("UI-Other-roundtrip.toml").toFile();
+        YamlConfiguration cfg = loadPlayerTemplate();
+        File out = tempDir.resolve("UI-Player-roundtrip.toml").toFile();
 
         // Serialize exactly like AddonConfigManager does on every config write.
         CommentedTomlTemplate.write(out, TomlConfigManager.sectionToMap(cfg), null, null);

@@ -5,6 +5,7 @@
 # ==================================================================
 
 # Wireless redstone transmitters/receivers.
+
 [wireless_redstone]
 # Enable wireless redstone transmitters/receivers.
 # Default: true
@@ -370,6 +371,296 @@ set_creative_delay_gamerule = true
 # How often the gamerules above are re-applied, in ticks (200 = 10 seconds).
 # Default: 200
 gamerule_interval_ticks = 200
+
+# block collapse section.
+[features.block_collapse]
+# Master switch (true = feature on).
+# Default: false
+enabled = false
+# Default: 1.0
+rate = 1.0
+# Interval in ticks (20 ticks = 1 second).
+# Default: 20
+interval_ticks = 20
+# Interval in ticks (20 ticks = 1 second).
+# Default: 600
+save_interval_seconds = 600
+# Master switch (true = feature on).
+# Default: true
+lore_enabled = true
+# Interval in ticks (20 ticks = 1 second).
+# Default: 100
+lore_interval_ticks = 100
+# Default: false
+log_block_actions = false
+# Default: 5.0
+default_heaviness = 5.0
+# Default: []
+heaviness_overrides = []
+
+# scan section.
+[features.block_collapse.scan]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Delay.
+# Default: 1
+delay_seconds = 1
+# Interval in ticks (20 ticks = 1 second).
+# Default: 1
+interval_seconds = 1
+# Default: 16
+area = 16
+# Maximum value.
+# Default: 50.0
+max_mspt = 50.0
+
+# dragonegg section.
+[features.dragonegg]
+# Master switch (true = feature on).
+# Default: false
+enabled = false
+# World name.
+# Default: "world_the_end"
+world = "world_the_end"
+# Default: 0
+x = 0
+# Default: 142
+y = 142
+# Default: 0
+z = 0
+# Interval in ticks (20 ticks = 1 second).
+# Default: 1728000
+interval_ticks = 1728000
+# Chance (0.0-1.0 or percent, see the value).
+# Default: 1.0
+spawn_chance = 1.0
+
+# enderchest section.
+[features.enderchest]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Chance (0.0-1.0 or percent, see the value).
+# Default: 0.001
+explosion_chance = 0.001
+# Power.
+# Default: 10.0
+explosion_power = 10.0
+# Damage.
+# Default: 1
+damage = 1
+
+# quick close section.
+[features.enderchest.quick_close]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Default: 1000
+threshold_ms = 1000
+# Damage.
+# Default: 1
+damage = 1
+
+# look away section.
+[features.enderchest.quick_close.look_away]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Default: 45.0
+angle_threshold = 45.0
+# Damage.
+# Default: 20
+explosion_damage = 20
+
+# magnet section.
+[features.magnet]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Interval in ticks (20 ticks = 1 second).
+# Default: 1
+interval_ticks = 1
+# Default: 0.05
+item_y_boost = 0.05
+
+# radius section.
+[features.magnet.radius]
+# Minimum value.
+# Default: 3
+min = 3
+# Maximum value.
+# Default: 15
+max = 15
+
+# force section.
+[features.magnet.force]
+# Default: 0.01
+base = 0.01
+# Distance in blocks.
+# Default: 0.3
+distance_multiplier = 0.3
+# Maximum value.
+# Default: 1
+max = 1
+# Maximum value.
+# Default: 0.5
+max_speed = 0.5
+
+# force curve section.
+[features.magnet.force_curve]
+# Power.
+# Default: 0.5
+power_exponent = 0.5
+# Power.
+# Default: 20.0
+power_normalize = 20.0
+
+# distance curve section.
+[features.magnet.distance_curve]
+# Default: "smoothstep"
+type = "smoothstep"
+# Minimum value.
+# Default: 0.0
+min_factor = 0.0
+
+# particles section.
+[features.magnet.particles]
+# Maximum value.
+# Default: 50
+center_max = 50
+# Maximum value.
+# Default: 30
+blocks_max = 30
+# Maximum value.
+# Default: 25
+crit_max = 25
+# Maximum value.
+# Default: 15
+portal_max = 15
+
+# unbreakable breaker section.
+[features.unbreakable_breaker]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+
+# blocks section.
+[features.unbreakable_breaker.blocks]
+
+# BEDROCK section.
+[features.unbreakable_breaker.blocks.BEDROCK]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Maximum value.
+# Default: 100
+max_damage = 100
+# Minimum value.
+# Default: "-"
+min_tool_tier = "-"
+# Default: false
+require_haste = false
+# Default: true
+drop_block = true
+# Default: true
+break_naturally = true
+# Default: true
+play_effects = true
+# Default: 0.5
+efficiency_multiplier = 0.5
+# Default: 0.3
+haste_multiplier = 0.3
+
+# damage section.
+[features.unbreakable_breaker.blocks.BEDROCK.damage]
+# Default: 4.0
+netherite_pickaxe = 4.0
+# Default: 2.5
+diamond_pickaxe = 2.5
+# Default: 1.0
+iron_pickaxe = 1.0
+# Default: 0.7
+copper_pickaxe = 0.7
+# Default: 0.5
+wooden_pickaxe = 0.5
+# Default: 0.4
+golden_pickaxe = 0.4
+# Default: 0.3
+default = 0.3
+
+# BARRIER section.
+[features.unbreakable_breaker.blocks.BARRIER]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Maximum value.
+# Default: 80.0
+max_damage = 80.0
+# Minimum value.
+# Default: "-"
+min_tool_tier = "-"
+# Default: false
+require_haste = false
+# Default: true
+drop_block = true
+# Default: true
+break_naturally = true
+# Default: true
+play_effects = true
+# Default: 0.5
+efficiency_multiplier = 0.5
+# Default: 0.3
+haste_multiplier = 0.3
+
+# damage section.
+[features.unbreakable_breaker.blocks.BARRIER.damage]
+# Default: 4.0
+netherite_pickaxe = 4.0
+# Default: 2.5
+diamond_pickaxe = 2.5
+# Default: 1.0
+iron_pickaxe = 1.0
+# Default: 0.7
+copper_pickaxe = 0.7
+# Default: 0.5
+wooden_pickaxe = 0.5
+# Default: 0.4
+golden_pickaxe = 0.4
+# Default: 0.3
+default = 0.3
+
+# Multi-block structure integrity checks and decay.
+[structure_integrity]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Maximum value.
+# Default: 1000.0
+stress_max = 1000.0
+# Default: 100.0
+stress_threshold = 100.0
+# Default: 1.0
+stress_per_open_close = 1.0
+# Default: 0.03333
+stress_decay_per_second = 0.03333
+# Default: 0.1
+base_degradation_rate = 0.1
+# Default: 2.0
+degradation_exponent = 2.0
+# Default: 0.01
+degradation_time_exponent = 0.01
+# Default: 0.01666
+integrity_recovery_per_second = 0.01666
+# Power.
+# Default: 10.0
+explosion_power = 10.0
+# Damage.
+# Default: 8192.0
+explosion_damage = 8192.0
+# Radius in blocks.
+# Default: 12
+explosion_damage_radius = 12
 
 # ---- MESSAGES ----
 

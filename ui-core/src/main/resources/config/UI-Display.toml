@@ -1,6 +1,7 @@
 # UI-Display — tab list, scoreboard, boss bar.
 #
 # Active language follows messages.lang.
+
 [tab]
 # Master switch (true = feature on).
 # Default: true
@@ -145,7 +146,73 @@ progress_increasing = true
 # Default: 20
 update_interval_ticks = 20
 
-# Wireless redstone transmitters/receivers.
+# Server MOTD (server list icon and text).
+[motd]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Default: "<gradient:#00AAFF:#FF55FF>UltimateImprovements</gradient> <dark_gray>•</dark_gray> <white>…"
+line1 = "<gradient:#00AAFF:#FF55FF>UltimateImprovements</gradient> <dark_gray>•</dark_gray> <white>1.21.4</white>"
+# Default: "<gray>✧ Welcome to the server! ✧</gray>"
+line2 = "<gray>✧ Welcome to the server! ✧</gray>"
+# Master switch (true = feature on).
+# Default: true
+icon_enabled = true
+
+# player list section.
+[motd.player_list]
+# Master switch (true = feature on).
+# Default: false
+enabled = false
+# Default: ["<gradient:#00AAFF:#FF55FF>✧ UltimateImprovements ✧</gradient>", "<dark_gray>discord.gg/ultimateimprovements</dark_gray>"]
+lines = ["<gradient:#00AAFF:#FF55FF>✧ UltimateImprovements ✧</gradient>", "<dark_gray>discord.gg/ultimateimprovements</dark_gray>"]
+
+# online counter section.
+[motd.online_counter]
+
+# current online section.
+[motd.online_counter.current_online]
+# Default: "normal"
+mode = "normal"
+# Default: 0
+value = 0
+# Default: 50
+scale = 50
+# Default: 20
+percent = 20
+# Default: 5
+add = 5
+# Minimum value.
+# Default: 10
+min = 10
+# Maximum value.
+# Default: 100
+max = 100
+# Interval in ticks (20 ticks = 1 second).
+# Default: 100
+update_interval_ticks = 100
+
+# max online section.
+[motd.online_counter.max_online]
+# Default: "normal"
+mode = "normal"
+# Default: 100
+value = 100
+# Default: 50
+scale = 50
+# Default: 0
+percent = 0
+# Default: 0
+add = 0
+# Minimum value.
+# Default: 50
+min = 50
+# Maximum value.
+# Default: 500
+max = 500
+# Interval in ticks (20 ticks = 1 second).
+# Default: 100
+update_interval_ticks = 100
 
 # ==================================================================
 # SCOREBOARD NICKNAME MESSAGES
