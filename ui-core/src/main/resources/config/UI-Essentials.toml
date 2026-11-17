@@ -10,6 +10,7 @@
 
 
 # /ui home: number of homes and related limits.
+
 [home]
 # Maximum homes per player (without extra permissions).
 # Default: 10
@@ -216,10 +217,130 @@ sound = ""
 # Default: true
 log_to_console = true
 
+# modeprotect section.
+[features.modeprotect]
+# Master switch (true = feature on).
+# Default: false
+enabled = false
+# World name.
+# Default: ["world", "world_nether", "world_the_end"]
+worlds = ["world", "world_nether", "world_the_end"]
+# Permission node.
+# Default: "ui.gmprotect.bypass"
+bypass_permission = "ui.gmprotect.bypass"
+
+# Server brand (mod name) shown in the client's F3 screen.
+[brand_spoof]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Default: "Paper"
+custom_brand = "Paper"
+
+# Server power actions (/stop, /restart) and their countdown UI.
+[power]
+# Command.
+# Default: true
+intercept_commands = true
+# Timeout.
+# Default: 30
+request_timeout = 30
+# Duration.
+# Default: 10
+countdown_duration = 10
+
+# actionbar section.
+[power.actionbar]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+
+# bossbar section.
+[power.bossbar]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Color.
+# Default: "RED"
+color = "RED"
+# Default: "SOLID"
+style = "SOLID"
+
+# countdown sound section.
+[power.countdown_sound]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Display name (MiniMessage).
+# Default: "BLOCK_NOTE_BLOCK_PLING"
+name = "BLOCK_NOTE_BLOCK_PLING"
+# Default: 1.0
+volume = 1.0
+# Default: 1.2
+pitch_base = 1.2
+# Maximum value.
+# Default: 2.0
+pitch_max = 2.0
+
+# beep speedup section.
+[power.countdown_sound.beep_speedup]
+# Master switch (true = feature on).
+# Default: true
+enabled = true
+# Minimum value.
+# Default: 1
+min_per_second = 1
+# Maximum value.
+# Default: 6
+max_per_second = 6
+
+# Automatic scheduled server power action (/ui power schedule).
+[scheduled_restart]
+# Master switch (true = feature on).
+# Default: false
+enabled = false
+# Schedule mode: "times" = daily clock times (times + timezone),
+# "timer" = repeating interval (timer, anchored to a timestamp persisted in the DB).
+# Default: "times"
+mode = "times"
+# Clock-mode times in the "HH:mm" format (server clock, see timezone below).
+# Any number of entries; duplicates are ignored and invalid entries are skipped with a warning.
+# Default: ["04:00"]
+times = ["04:00"]
+# IANA timezone for clock mode (e.g. "Europe/Moscow"). Empty = server default timezone.
+# Default: ""
+timezone = ""
+# Timer-mode interval with an explicit unit: s = seconds, m = minutes, h = hours, d = days.
+# Example: "48h" restarts the server every 48 hours. The next run is stored in the DB,
+# so an early server restart does not reset the countdown.
+# Default: "48h"
+timer = "48h"
+# Action at the scheduled moment: "restart" or "shutdown".
+# Default: "restart"
+action = "restart"
+# Chat warnings, in minutes before the action. Sorted automatically; empty list removes warnings.
+# Default: [30, 15, 10, 5, 1]
+warning_minutes = [30, 15, 10, 5, 1]
+# Countdown length in seconds between the scheduled trigger and the actual action.
+# Default: 60
+countdown_seconds = 60
+# Skip the action when no players are online (the run is still consumed).
+# Default: false
+skip_if_empty = false
+# Player-count gate checked at the scheduled moment; when it fails, the action is
+# skipped and the schedule starts over (timer: now + interval, times: next slot).
+# Default: false
+player_limit_enabled = false
+# Comparison: "above" (online > value), "below" (online < value) or "equal" (online == value).
+# Default: "above"
+player_limit_comparison = "above"
+# Reference value for player_limit_comparison.
+# Default: 1
+player_limit_value = 1
+
 # ==================================================================
 # MESSAGES — RUSSIAN (active when lang = "ru")
 # ==================================================================
-
 
 # home section.
 # Placeholders: %min%, %max%, %length%, %name%, %world%, %x%, %y%, %z%, %used%, %player%, %num%, %count%
@@ -328,6 +449,112 @@ list_entry_sep = "<gray>│</gray>"
 # Default: <gold>  ✦ </gold><white>Дома игрока </white><yellow>%player%</yellow> <gray>(%count%)</gray>
 op_list_title = "<gold>  ✦ </gold><white>Дома игрока </white><yellow>%player%</yellow> <gray>(%count%)</gray>"
 
+# power section.
+# Placeholders: %action%, %seconds%, %unit%, %by_player%, %reason%, %by%, %from%
+[messages.power]
+# Message text (MiniMessage).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Команда /stop отключена. Используйте:</red> <white>/ui power off</white>
+stop_message = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Команда /stop отключена. Используйте:</red> <white>/ui power off</white>"
+# Message text (MiniMessage).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Команда /restart отключена. Используйте:</red> <white>/ui power reboot</white>
+restart_message = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Команда /restart отключена. Используйте:</red> <white>/ui power reboot</white>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <white>%seconds%</white> <red>секунд!</red>
+countdown_broadcast = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <white>%seconds%</white> <red>секунд!</red>"
+# Default: <red>Сервер %action% через</red> <white>%seconds%</white> <red>%unit%...</red>
+countdown_seconds = "<red>Сервер %action% через</red> <white>%seconds%</white> <red>%unit%...</red>"
+# Default: выключается
+action_stop = "выключается"
+# Default: перезагружается
+action_restart = "перезагружается"
+# Title text (MiniMessage).
+# Default: Выключение
+action_stop_title = "Выключение"
+# Title text (MiniMessage).
+# Default: Перезагрузка
+action_restart_title = "Перезагрузка"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% — отменено игроком</red> <white>%by_player%</white><red>.</red>
+cancelled_by_player = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% — отменено игроком</red> <white>%by_player%</white><red>.</red>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% — автоматически отменено: %reason%</red>
+cancelled_auto = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% — автоматически отменено: %reason%</red>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% — отменено%by%%from%.</red>
+cancelled_console = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% — отменено%by%%from%.</red>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action%...</red>
+executing = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action%...</red>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер выключается (команда консоли)...</red>
+direct_stop = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер выключается (команда консоли)...</red>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер перезагружается (команда консоли)...</red>
+direct_restart = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер перезагружается (команда консоли)...</red>"
+# Chat warning before the action (%action%, %minutes%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <yellow>%minutes%</yellow> <red>мин.</red>
+scheduled_warning = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <yellow>%minutes%</yellow> <red>мин.</red>"
+# Next scheduled run (%time%, %remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Следующее плановое событие:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>
+scheduled_next = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Следующее плановое событие:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>"
+# Action countdown in progress (%action%, %remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% через</red> <yellow>%remaining%</yellow><red>.</red>
+scheduled_running = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% через</red> <yellow>%remaining%</yellow><red>.</red>"
+# No schedule configured.
+# Default: <dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>Плановые события не настроены.</gray>
+scheduled_none = "<dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>Плановые события не настроены.</gray>"
+# Scheduled action cancelled by an operator (%action%, %by%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Отменено плановое событие:</red> <white>%action%</white> <gray>(%by%)</gray><red>.</red>
+scheduled_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Отменено плановое событие:</red> <white>%action%</white> <gray>(%by%)</gray><red>.</red>"
+# Action skipped because the player-count gate failed (%online%, %comparison%, %value%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановое событие отменено: не выполнено условие по онлайну</red> <gray>(%online% онлайн, требуется %comparison% %value%)</gray><red>.</red>
+scheduled_skipped_limit = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановое событие отменено: не выполнено условие по онлайну</red> <gray>(%online% онлайн, требуется %comparison% %value%)</gray><red>.</red>"
+# /ui autorestart on — feature enabled.
+# Default: <green>✔ <white>Авторестарт <green>включён</green>.</white>
+autorestart_enabled = "<green>✔ <white>Авторестарт <green>включён</green>.</white>"
+# /ui autorestart off — feature disabled.
+# Default: <green>✔ <white>Авторестарт <red>выключен</red>.</white>
+autorestart_disabled = "<green>✔ <white>Авторестарт <red>выключен</red>.</white>"
+# /ui autorestart status — feature off (%time% unused).
+# Default: <gray>Авторестарт <red>выключен</red>.</gray>
+autorestart_status_off = "<gray>Авторестарт <red>выключен</red>.</gray>"
+# /ui autorestart status (%time%, %remaining%).
+# Default: <gray>Следующий авторестарт:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>
+autorestart_status = "<gray>Следующий авторестарт:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>"
+# /ui autorestart skip — the next run will be skipped.
+# Default: <green>✔ <white>Следующий авторестарт будет пропущен.</white>
+autorestart_skip_set = "<green>✔ <white>Следующий авторестарт будет пропущен.</white>"
+# Status hint while a skip is pending.
+# Default: <gray>ℹ Следующий запуск будет пропущен —</gray> <white>/ui autorestart undoskip</white><gray>.</gray>
+autorestart_skip_pending = "<gray>ℹ Следующий запуск будет пропущен —</gray> <white>/ui autorestart undoskip</white><gray>.</gray>"
+# Broadcast when the skipped run reaches its deadline (%action%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановое событие отменено:</red> <white>%action%</white> <gray>(skip)</gray><red>.</red>
+autorestart_skip_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Плановое событие отменено:</red> <white>%action%</white> <gray>(skip)</gray><red>.</red>"
+# /ui autorestart undoskip — pending skip cleared.
+# Default: <green>✔ <white>Пропуск следующего авторестарта отменён.</white>
+autorestart_undoskip_done = "<green>✔ <white>Пропуск следующего авторестарта отменён.</white>"
+# /ui autorestart undoskip — nothing to clear.
+# Default: <gray>Активного пропуска нет.</gray>
+autorestart_undoskip_none = "<gray>Активного пропуска нет.</gray>"
+# /ui autorestart reset — timer restarted (%time%, %remaining%).
+# Default: <green>✔ <white>Таймер авторестарта сброшен. Следующий запуск:</white> <yellow>%time%</yellow> <gray>(через %remaining%)</gray>
+autorestart_reset = "<green>✔ <white>Таймер авторестарта сброшен. Следующий запуск:</white> <yellow>%time%</yellow> <gray>(через %remaining%)</gray>"
+# /ui autorestart — schedule manager unavailable.
+# Default: <red>Авторестарт недоступен.</red>
+autorestart_unavailable = "<red>Авторестарт недоступен.</red>"
+
+# actionbar section.
+# Placeholders: %action%, %seconds%
+[messages.power.actionbar]
+# Format string (MiniMessage).
+# Default: <red>⚡</red> <white>Сервер %action% через</white> <yellow>%seconds%</yellow> <white>секунд</white>
+format = "<red>⚡</red> <white>Сервер %action% через</white> <yellow>%seconds%</yellow> <white>секунд</white>"
+
+# bossbar section.
+# Placeholders: %action%, %seconds%
+[messages.power.bossbar]
+# Default: <red>⚡ Сервер %action% через</red> <yellow>%seconds%</yellow> <red>секунд</red>
+text = "<red>⚡ Сервер %action% через</red> <yellow>%seconds%</yellow> <red>секунд</red>"
+
+# modeprotect section.
+[messages.features.modeprotect]
+# Message text (MiniMessage).
+# Default: <red>Вы не можете сменить режим игры в этом мире!</red>
+message = "<red>Вы не можете сменить режим игры в этом мире!</red>"
+
 # misc section.
 # Placeholders: %player%
 [messages.misc]
@@ -362,6 +589,7 @@ speed_enabled = "<green>⚡</green> <white>Отображение скорост
 # Speed.
 # Default: <red>⚡</red> <white>Отображение скорости: </white><red>ВЫКЛ</red>
 speed_disabled = "<red>⚡</red> <white>Отображение скорости: </white><red>ВЫКЛ</red>"
+
 # rtp section.
 # Placeholders: %player%, %seconds%, %coords%
 [messages.rtp]
@@ -471,7 +699,6 @@ remove_confirm = "<yellow>⚠</yellow> <white>Удалить </white><yellow>%na
 # MESSAGES — ENGLISH (active when lang = "en")
 # ==================================================================
 
-
 # home section.
 # Placeholders: %min%, %max%, %length%, %name%, %world%, %x%, %y%, %z%, %used%, %player%, %num%, %count%
 [messages_en.home]
@@ -579,6 +806,120 @@ list_entry_sep = "<gray>│</gray>"
 # Default: <gold>  ✦ </gold><white>Player's Homes </white><yellow>%player%</yellow> <gray>(%count%)</gray>
 op_list_title = "<gold>  ✦ </gold><white>Player's Homes </white><yellow>%player%</yellow> <gray>(%count%)</gray>"
 
+# power section.
+# Placeholders: %action%, %seconds%, %unit%, %by_player%, %reason%, %by%, %from%
+[messages_en.power]
+# Message text (MiniMessage).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>The /stop command is disabled. Use:</red> <white>/ui pow…
+stop_message = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>The /stop command is disabled. Use:</red> <white>/ui power off</white>"
+# Message text (MiniMessage).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>The /restart command is disabled. Use:</red> <white>/ui …
+restart_message = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>The /restart command is disabled. Use:</red> <white>/ui power reboot</white>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% in</red> <white>%seconds%</white> <red>seconds!…
+countdown_broadcast = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% in</red> <white>%seconds%</white> <red>seconds!</red>"
+# Default: <red>Server %action% in</red> <white>%seconds%</white> <red>%unit%...</red>
+countdown_seconds = "<red>Server %action% in</red> <white>%seconds%</white> <red>%unit%...</red>"
+# Default: shutting down
+action_stop = "shutting down"
+# Default: restarting
+action_restart = "restarting"
+# Title text (MiniMessage).
+# Default: Shutdown
+action_stop_title = "Shutdown"
+# Title text (MiniMessage).
+# Default: Restart
+action_restart_title = "Restart"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% was cancelled</red> <white>%by_player%</…
+cancelled_by_player = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% was cancelled</red> <white>%by_player%</white><red>.</red>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% was automatically cancelled: %reason%</r…
+cancelled_auto = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% was automatically cancelled: %reason%</red>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% cancelled%by%%from%.</red>
+cancelled_console = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% cancelled%by%%from%.</red>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action%...</red>
+executing = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action%...</red>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server shutting down (console command)...</red>
+direct_stop = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server shutting down (console command)...</red>"
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server restarting (console command)...</red>
+direct_restart = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server restarting (console command)...</red>"
+# Chat warning before the action (%action%, %minutes%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% in</red> <yellow>%minutes%</yellow> <red>min.</red>
+scheduled_warning = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% in</red> <yellow>%minutes%</yellow> <red>min.</red>"
+# Next scheduled run (%time%, %remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Next scheduled action:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>
+scheduled_next = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Next scheduled action:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>"
+# Action countdown in progress (%action%, %remaining%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% in</red> <yellow>%remaining%</yellow><red>.</red>
+scheduled_running = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% in</red> <yellow>%remaining%</yellow><red>.</red>"
+# No schedule configured.
+# Default: <dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>No scheduled actions are configured.</gray>
+scheduled_none = "<dark_gray>[<dark_green>✔</dark_green>]</dark_gray> <gray>No scheduled actions are configured.</gray>"
+# Scheduled action cancelled by an operator (%action%, %by%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled:</red> <white>%action%</white> <gray>(%by%)</gray><red>.</red>
+scheduled_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled:</red> <white>%action%</white> <gray>(%by%)</gray><red>.</red>"
+# Action skipped because the player-count gate failed (%online%, %comparison%, %value%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled: online player limit not met</red> <gray>(%online% online, required %comparison% %value%)</gray><red>.</red>
+scheduled_skipped_limit = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled: online player limit not met</red> <gray>(%online% online, required %comparison% %value%)</gray><red>.</red>"
+# /ui autorestart on — feature enabled.
+# Default: <green>✔ <white>Automatic restart is now <green>enabled</green>.</white>
+autorestart_enabled = "<green>✔ <white>Automatic restart is now <green>enabled</green>.</white>"
+# /ui autorestart off — feature disabled.
+# Default: <green>✔ <white>Automatic restart is now <red>disabled</red>.</white>
+autorestart_disabled = "<green>✔ <white>Automatic restart is now <red>disabled</red>.</white>"
+# /ui autorestart status — feature off.
+# Default: <gray>Automatic restart is <red>off</red>.</gray>
+autorestart_status_off = "<gray>Automatic restart is <red>off</red>.</gray>"
+# /ui autorestart status (%time%, %remaining%).
+# Default: <gray>Next automatic restart:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>
+autorestart_status = "<gray>Next automatic restart:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>"
+# /ui autorestart skip — the next run will be skipped.
+# Default: <green>✔ <white>The next automatic restart will be skipped.</white>
+autorestart_skip_set = "<green>✔ <white>The next automatic restart will be skipped.</white>"
+# Status hint while a skip is pending.
+# Default: <gray>ℹ The next run will be skipped — use</gray> <white>/ui autorestart undoskip</white><gray>.</gray>
+autorestart_skip_pending = "<gray>ℹ The next run will be skipped — use</gray> <white>/ui autorestart undoskip</white><gray>.</gray>"
+# Broadcast when the skipped run reaches its deadline (%action%).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled:</red> <white>%action%</white> <gray>(skip)</gray><red>.</red>
+autorestart_skip_cancelled = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled:</red> <white>%action%</white> <gray>(skip)</gray><red>.</red>"
+# /ui autorestart undoskip — pending skip cleared.
+# Default: <green>✔ <white>The pending skip was cancelled.</white>
+autorestart_undoskip_done = "<green>✔ <white>The pending skip was cancelled.</white>"
+# /ui autorestart undoskip — nothing to clear.
+# Default: <gray>There is no pending skip.</gray>
+autorestart_undoskip_none = "<gray>There is no pending skip.</gray>"
+# /ui autorestart reset — timer restarted (%time%, %remaining%).
+# Default: <green>✔ <white>Restart timer reset. Next run:</white> <yellow>%time%</yellow> <gray>(in %remaining%)</gray>
+autorestart_reset = "<green>✔ <white>Restart timer reset. Next run:</white> <yellow>%time%</yellow> <gray>(in %remaining%)</gray>"
+# /ui autorestart — schedule manager unavailable.
+# Default: <red>Automatic restart is unavailable.</red>
+autorestart_unavailable = "<red>Automatic restart is unavailable.</red>"
+
+# actionbar section.
+# Placeholders: %action%, %seconds%
+[messages_en.power.actionbar]
+# Format string (MiniMessage).
+# Default: <red>⚡</red> <white>Server %action% in</white> <yellow>%seconds%</yellow> <white>seconds</white>
+format = "<red>⚡</red> <white>Server %action% in</white> <yellow>%seconds%</yellow> <white>seconds</white>"
+
+# bossbar section.
+# Placeholders: %action%, %seconds%
+[messages_en.power.bossbar]
+# Default: <red>⚡ Server %action% in</red> <yellow>%seconds%</yellow> <red>seconds</red>
+text = "<red>⚡ Server %action% in</red> <yellow>%seconds%</yellow> <red>seconds</red>"
+
+# packet guard section.
+# enchant section.
+# Item Stealing action-bar feedback (en).
+
+# ==========================================================================
+# Kits (/ui kit) — named 27-slot item sets (shulker-box layout)
+# ==========================================================================
+
+# modeprotect section.
+[messages_en.features.modeprotect]
+# Message text (MiniMessage).
+# Default: <red>You cannot change your game mode in this world!</red>
+message = "<red>You cannot change your game mode in this world!</red>"
+
 # misc section.
 # Placeholders: %player%
 [messages_en.misc]
@@ -613,6 +954,7 @@ speed_enabled = "<green>⚡</green> <white>Speed display: </white><green>ON</gre
 # Speed.
 # Default: <red>⚡</red> <white>Speed display: </white><red>OFF</red>
 speed_disabled = "<red>⚡</red> <white>Speed display: </white><red>OFF</red>"
+
 # rtp section.
 # Placeholders: %player%, %seconds%, %coords%
 [messages_en.rtp]
@@ -652,6 +994,7 @@ reported_notification = "<yellow>⚠</yellow> <white>A report has been filed aga
 reporter_notified = "<green>✔</green> <white>Your report has been reviewed! Verdict: </white><yellow>%verdict%</yellow>"
 # Default: <yellow>✦</yellow> <white>You have no active reports.</white>
 no_active_report = "<yellow>✦</yellow> <white>You have no active reports.</white>"
+
 # errors section.
 # Placeholders: %player%
 [messages_en.report.errors]

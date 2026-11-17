@@ -1,7 +1,7 @@
 # Scheduled Restart Plan
 
 > Status: **implemented** (2026-11-17). Feature owner: `UI-Other`
-> (the `Power` module), config file: `configs/UI-Other.toml`.
+> (the `Power` module), config file: `configs/UI-Essentials.toml`.
 
 ## 1. Goal
 
@@ -98,7 +98,7 @@ Validation:
 - `RestartSchedule.parseTimes` / `parseInterval` drop malformed values and log
   one warning; an invalid timer disables the ticker (safe default), an invalid
   mode/comparison/action falls back with a warning.
-- New root key `scheduled_restart` is routed to `UI-Other` in `AddonCatalog`,
+- New root key `scheduled_restart` is routed to `UI-Essentials` in `AddonCatalog`,
   so existing installs receive the section through the normal repair pass.
 
 ## 6. Commands

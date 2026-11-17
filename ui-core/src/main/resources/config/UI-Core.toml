@@ -17,6 +17,7 @@ plugin_version = "1.8.4-alpha.9"
 
 # Master switch for the /ui config commands (e.g. /ui config regen).
 # Disabled by default so a stray permission grant cannot wipe config edits.
+
 [config]
 # Default: false
 commands_enabled = false
@@ -50,7 +51,6 @@ enabled = true
 # Minimum required server API version ("major.minor" or "major.minor.patch").
 # Default: "26.3"
 min_api_version = "26.3"
-
 
 # join invulnerable reset section.
 [join_invulnerable_reset]
@@ -103,7 +103,6 @@ lang = "en"
 # MESSAGES — RUSSIAN (active when lang = "ru")
 # ==================================================================
 
-
 # energy crafting section.
 # Placeholders: %amount%
 [messages.energy_crafting]
@@ -141,12 +140,6 @@ message = "<yellow>⚠</yellow> <white>Ваш предмет</white> <yellow>%it
 # Message text (MiniMessage).
 # Default: <red>Этот предмет содержит слишком много данных!</red>
 message = "<red>Этот предмет содержит слишком много данных!</red>"
-
-# modeprotect section.
-[messages.features.modeprotect]
-# Message text (MiniMessage).
-# Default: <red>Вы не можете сменить режим игры в этом мире!</red>
-message = "<red>Вы не можете сменить режим игры в этом мире!</red>"
 
 # vanish list section.
 # Placeholders: %visible%, %max%, %count%
@@ -876,13 +869,11 @@ legacy_monolithic = "[Config] Найден устаревший монолитн
 # Default: <dark_red>❌</dark_red> <red>Not enough energy!</red> <gray>Need</gray> <yellow>%amount%</yellow> <gray>energy…
 no_energy = "<dark_red>❌</dark_red> <red>Not enough energy!</red> <gray>Need</gray> <yellow>%amount%</yellow> <gray>energy.</gray>"
 
-
 # void protection section.
 [messages_en.void_protection]
 # Message text (MiniMessage).
 # Default: <green>✔</green> <white>You were saved from the void!</white>
 message = "<green>✔</green> <white>You were saved from the void!</white>"
-
 
 # features section.
 # Placeholders: %item%, %pct%
@@ -905,13 +896,6 @@ message = "<yellow>⚠</yellow> <white>Your item</white> <yellow>%item%</yellow>
 # Default: <red>This item contains too much data!</red>
 message = "<red>This item contains too much data!</red>"
 
-# modeprotect section.
-[messages_en.features.modeprotect]
-# Message text (MiniMessage).
-# Default: <red>You cannot change your game mode in this world!</red>
-message = "<red>You cannot change your game mode in this world!</red>"
-
-
 # vanish list section.
 # Placeholders: %visible%, %max%, %count%
 [messages_en.vanish_list]
@@ -920,19 +904,16 @@ online_players = "<gray>Online: </gray><white>%visible%<gray>/</gray>%max%</whit
 # Default: <gray>(%count% vanished)</gray>
 vanished_count = "<gray>(%count% vanished)</gray>"
 
-
 # plugin hide section.
 [messages_en.plugin_hide]
 # Permission node.
 # Default: <dark_red>❌</dark_red> <red>Error: <gray>You don't have permission!</gray></red>
 no_permission = "<dark_red>❌</dark_red> <red>Error: <gray>You don't have permission!</gray></red>"
 
-
 # fishing section.
 [messages_en.fishing]
 # Default: <dark_gray>[<red>⛔</red>] <red>No fish at all!</red></dark_gray>
 no_fish = "<dark_gray>[<red>⛔</red>] <red>No fish at all!</red></dark_gray>"
-
 
 # update section.
 # Placeholders: %version%, %sha%, %tag%, %release%, %from%, %to%, %status%, %size%, %type%, %message%, %seconds%
@@ -1028,7 +1009,6 @@ timeout_retry_hint = "<gray>Check internet connection or try again later.</gray>
 # Default: <red>❌ Error checking for updates!</red>
 check_error = "<red>❌ Error checking for updates!</red>"
 
-
 # General shared messages (errors, player-only, etc.).
 # Placeholders: %version%, %subcommand%
 [messages_en.general]
@@ -1072,7 +1052,6 @@ requires = "<gray> — required: \"<white>%permission%</white>\"</gray>"
 018 = "<red>This command belongs to a module that is disabled on this server</red>"
 # Clause injected into error 018 via %module% when the module/config key is known.
 module = "<gray> — module: \"<white>%module%</white>\"</gray>"
-
 
 # vote section.
 # Placeholders: %name%, %arg%, %num%, %time%, %duration%, %answer%, %total%, %display_total%, %title%, %question%, %desc%, %bar%, %count%, %pct%, %remaining%, %answers%, %votes%, %status%
@@ -1293,7 +1272,6 @@ time_left = "<gray>┃ </gray><gray>Time left: </gray><gold>%duration%</gold>"
 # MESSAGES — ENGLISH (active when lang = "en")
 # ==================================================================
 
-
 # Reputation command output (view, give/set/top/history).
 # Placeholders: %player%, %color%, %rep%, %status%, %amount%, %new%, %actor%, %old%, %place%, %id%, %arrow%, %source%, %reason%
 [messages_en.reputation]
@@ -1438,7 +1416,6 @@ too_large = "<red>❌ Single change is limited to ±100!</red>"
 # Default: <red>❌ Unknown status! Available: </red><white>allgood, limited, verylimited, atrisk, suspended, none</white>
 unknown_status = "<red>❌ Unknown status! Available: </red><white>allgood, limited, verylimited, atrisk, suspended, none</white>"
 
-
 # Ban/kick/mute/warn screens and messages. %discord_url% is taken from punishment.discord_url.
 # Placeholders: %punisher%, %reason%, %duration%, %discord_url%, %player%
 [messages_en.punishment]
@@ -1525,7 +1502,6 @@ invalid_time = ["<red>❌ Invalid time format!</red>", "<gray>Use: </gray><white
 # *-temp command called without the required -t flag.
 # Default: ["<red>❌ This command requires the time flag </red><white>-t</white><red>!</red>", "<gray>Specify a duration: </gray><white>5m</white><gray>, </gray><white>2h</white><gray>, </gray><white>1d</gray>"]
 temp_requires_time = ["<red>❌ This command requires the time flag </red><white>-t</white><red>!</red>", "<gray>Specify a duration: </gray><white>5m</white><gray>, </gray><white>2h</white><gray>, </gray><white>1d</gray>"]
-
 
 # Console texts of the startup config validation (ConfigValidator).
 # Placeholders: %key%, %message%, %type%, %value%, %min%, %max%, %description%,

@@ -237,7 +237,7 @@ tab-completion for all subcommands.
 
 > `/stop` and `/restart` are intercepted and route through `/ui power off|reboot`.
 >
-> Automatic restarts/shutdowns are configured in `configs/UI-Other.toml` under
+> Automatic restarts/shutdowns are configured in `configs/UI-Essentials.toml` under
 > `[scheduled_restart]`. Two modes: `mode = "times"` with daily
 > `times = ["04:00"]` + `timezone`, or `mode = "timer"` with an interval such
 > as `timer = "48h"` (`s`/`m`/`h`/`d`) — the timer deadline is persisted in the

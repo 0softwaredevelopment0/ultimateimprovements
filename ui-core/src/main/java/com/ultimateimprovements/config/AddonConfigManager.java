@@ -77,6 +77,7 @@ public final class AddonConfigManager {
 
         ConsoleLogger.info("[Config] Addon configs in " + UltimateDirs.CONFIGS + ": "
                 + files.size() + " file(s)");
+        migrateMovedSections();
         initialized = true;
     }
 
@@ -93,6 +94,102 @@ public final class AddonConfigManager {
         return initialized;
     }
 
+    // ========================================================================
+    // MOVED BLOCKS (settings + messages relocated between addon files)
+    // ========================================================================
+
+    /** One config block that moved from one addon's TOML to another. */
+    private record MovedBlock(String sourceAddon, String prefix, String targetAddon) {}
+
+    /**
+     * Blocks relocated out of UI-Other (and one block out of UI-Core) into the
+     * addon whose context they belong to. On an existing installation the values
+     * are copied to the target file (overriding the freshly repaired defaults)
+     * and removed from the source, so no duplicate survives and user
+     * customisation is preserved. On a fresh installation the bundled templates
+     * already hold the blocks only in their new files — nothing to move.
+     */
+    private static final List<MovedBlock> MOVED_BLOCKS = List.of(
+            // settings
+            new MovedBlock("UI-Other", "features.antimatter", "UI-Items"),
+            new MovedBlock("UI-Other", "features.attributes", "UI-Player"),
+            new MovedBlock("UI-Other", "features.beacon", "UI-Player"),
+            new MovedBlock("UI-Other", "features.blockdmg", "UI-Player"),
+            new MovedBlock("UI-Other", "features.boostedcobweb", "UI-Player"),
+            new MovedBlock("UI-Other", "features.block_collapse", "UI-World"),
+            new MovedBlock("UI-Other", "features.deathbell", "UI-Player"),
+            new MovedBlock("UI-Other", "features.dragonegg", "UI-World"),
+            new MovedBlock("UI-Other", "features.enderchest", "UI-World"),
+            new MovedBlock("UI-Other", "features.entitylocator", "UI-Items"),
+            new MovedBlock("UI-Other", "features.exp_bottle_upgrade", "UI-Items"),
+            new MovedBlock("UI-Other", "features.glassbreak", "UI-Player"),
+            new MovedBlock("UI-Other", "features.magnet", "UI-World"),
+            new MovedBlock("UI-Other", "features.modeprotect", "UI-Essentials"),
+            new MovedBlock("UI-Other", "features.shieldslowness", "UI-Player"),
+            new MovedBlock("UI-Other", "features.terracotaspeed", "UI-Player"),
+            new MovedBlock("UI-Other", "features.unbreakable_breaker", "UI-World"),
+            new MovedBlock("UI-Other", "brand_spoof", "UI-Essentials"),
+            new MovedBlock("UI-Other", "sunburn", "UI-Player"),
+            new MovedBlock("UI-Other", "power", "UI-Essentials"),
+            new MovedBlock("UI-Other", "scheduled_restart", "UI-Essentials"),
+            new MovedBlock("UI-Other", "suicide", "UI-Player"),
+            new MovedBlock("UI-Other", "motd", "UI-Display"),
+            new MovedBlock("UI-Other", "structure_integrity", "UI-World"),
+            // messages
+            new MovedBlock("UI-Other", "messages.power", "UI-Essentials"),
+            new MovedBlock("UI-Other", "messages_en.power", "UI-Essentials"),
+            new MovedBlock("UI-Other", "messages.suicide", "UI-Player"),
+            new MovedBlock("UI-Other", "messages_en.suicide", "UI-Player"),
+            new MovedBlock("UI-Core", "messages.features.modeprotect", "UI-Essentials"),
+            new MovedBlock("UI-Core", "messages_en.features.modeprotect", "UI-Essentials")
+    );
+
+    /**
+     * Copies every moved block to its new file, removes it from the old file and
+     * persists both. Runs after all files are loaded (so the target view exists)
+     * and is idempotent: an installation already cleaned up has no source keys.
+     */
+    private static void migrateMovedSections() {
+        boolean any = false;
+        boolean attributesMoved = false;
+        for (MovedBlock block : MOVED_BLOCKS) {
+            FileConfiguration source = loaded.get(block.sourceAddon());
+            FileConfiguration target = loaded.get(block.targetAddon());
+            if (source == null || target == null) continue;
+
+            List<String> leaves = new ArrayList<>();
+            for (String key : source.getKeys(true)) {
+                if (source.isConfigurationSection(key)) continue;
+                if (key.equals(block.prefix()) || key.startsWith(block.prefix() + ".")) {
+                    leaves.add(key);
+                }
+            }
+            if (leaves.isEmpty()) continue;
+
+            for (String key : leaves) {
+                target.set(key, source.get(key));
+            }
+            for (String key : leaves) {
+                source.set(key, null);
+            }
+            source.set(DIRTY_KEY, true);
+            target.set(DIRTY_KEY, true);
+            if (block.targetAddon().equals("UI-Player") && block.prefix().equals("features.attributes")) {
+                attributesMoved = true;
+            }
+            ConsoleLogger.info("[Config] Moved " + block.prefix() + ": "
+                    + block.sourceAddon() + ".toml → " + block.targetAddon() + ".toml");
+            any = true;
+        }
+        if (!any) return;
+
+        if (attributesMoved) {
+            FileConfiguration player = loaded.get("UI-Player");
+            if (player instanceof YamlConfiguration yaml) upgradeAttributeUnits(yaml);
+        }
+        saveAll();
+    }
+
     /** Re-reads every per-addon TOML file (called by {@code /ui reload}). */
     public static synchronized void reloadAll() {
         for (PerAddonFile f : files) {
@@ -101,6 +198,7 @@ public final class AddonConfigManager {
                 applyTimeoutFromCore();
             }
         }
+        migrateMovedSections();
         ConsoleLogger.info("[Config] Addon configs reloaded (" + files.size() + " file(s))");
     }
 
@@ -151,12 +249,9 @@ public final class AddonConfigManager {
     // KEY ROUTING
     // ========================================================================
 
-    /** @return the addon owning the given config key (first path segment). */
+    /** @return the addon owning the given config key (path-aware, longest prefix wins). */
     public static String addonOfKey(String key) {
-        String root = key;
-        int dot = key.indexOf('.');
-        if (dot > 0) root = key.substring(0, dot);
-        return AddonCatalog.addonOfRootKey(root);
+        return AddonCatalog.addonOfPath(key);
     }
 
     /** @return true if the key belongs to a per-addon file (false = UI-Core). */
@@ -287,7 +382,7 @@ public final class AddonConfigManager {
      */
     private static int upgradeExistingValues(String addon, YamlConfiguration view) {
         if ("UI-Chat".equals(addon)) return upgradeChatFormatColors(view);
-        if ("UI-Other".equals(addon)) return upgradeAttributeUnits(view);
+        if ("UI-Player".equals(addon)) return upgradeAttributeUnits(view);
         if ("UI-MBS".equals(addon)) return upgradeMeltdownCountdowns(view);
         if (!"UI-Core".equals(addon)) return 0;
         int upgraded = 0;
@@ -408,7 +503,7 @@ public final class AddonConfigManager {
             view.set(unit + ".value", null);     // base-only key, no longer used
             view.set(base + "." + row[0], null);  // legacy key is gone
             upgraded++;
-            ConsoleLogger.info("[Config/UI-Other] Upgraded " + base + "." + row[0]
+            ConsoleLogger.info("[Config/UI-Player] Upgraded " + base + "." + row[0]
                     + " → " + unit + " (target-valued modifier unit)");
         }
 
@@ -453,7 +548,7 @@ public final class AddonConfigManager {
     private static int dropKey(YamlConfiguration view, String path) {
         if (!view.isSet(path)) return 0;
         view.set(path, null);
-        ConsoleLogger.info("[Config/UI-Other] Removed stale " + path
+        ConsoleLogger.info("[Config/UI-Player] Removed stale " + path
                 + " (does not belong to the unit type)");
         return 1;
     }

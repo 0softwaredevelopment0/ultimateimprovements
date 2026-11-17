@@ -18,6 +18,9 @@ public final class AddonCatalog {
 
     private static final Map<String, String> ROOT_TO_ADDON = new LinkedHashMap<>();
 
+    /** Prefix → addon overrides for sub-paths inside a root key (see {@link #addonOfPath(String)}). */
+    private static final Map<String, String> PATH_TO_ADDON = new LinkedHashMap<>();
+
     private static void route(String addon, String... roots) {
         for (String r : roots) ROOT_TO_ADDON.put(r, addon);
     }
@@ -77,11 +80,42 @@ public final class AddonCatalog {
         route("UI-Items", "concrete_bucket", "netherite_upgrade", "particle_accelerator",
                 "remote_detonator", "fireball", "portable_workbench");
         // ── UI-Other (features umbrella + mechanics) ──
-        route("UI-Other",
-                "features", "brand_spoof", "sunburn",
-                "death_logger", "power", "scheduled_restart", "suicide",
-                "changedimmension", "motd",
-                "structure_integrity", "kits");
+        route("UI-Other", "features", "death_logger", "changedimmension", "kits");
+
+        // ── Sub-path routing ──
+        // Some `features.*` blocks and a few standalone roots are owned by the
+        // addon whose context they belong to (the `features` umbrella root itself
+        // stays in UI-Other for everything not listed below). Longest prefix wins.
+        routePath("UI-Items",
+                "features.antimatter", "features.entitylocator", "features.exp_bottle_upgrade");
+        routePath("UI-Player",
+                "features.attributes", "features.beacon", "features.blockdmg",
+                "features.boostedcobweb", "features.deathbell", "features.glassbreak",
+                "features.shieldslowness", "features.terracotaspeed",
+                "sunburn", "suicide");
+        routePath("UI-World",
+                "features.block_collapse", "features.dragonegg", "features.enderchest",
+                "features.magnet", "features.unbreakable_breaker",
+                "structure_integrity");
+        routePath("UI-Essentials",
+                "features.modeprotect", "brand_spoof", "power", "scheduled_restart");
+        routePath("UI-Display", "motd");
+
+        // Message groups that follow their settings block.
+        routePath("UI-Essentials",
+                "messages.power", "messages_en.power",
+                "messages.features.modeprotect", "messages_en.features.modeprotect");
+        routePath("UI-Player",
+                "messages.suicide", "messages_en.suicide");
+        routePath("UI-Display",
+                "messages.motd", "messages_en.motd");
+        routePath("UI-World",
+                "messages.structure_integrity", "messages_en.structure_integrity");
+    }
+
+    /** Prefix → addon overrides (see {@link #addonOfPath(String)}). */
+    private static void routePath(String addon, String... prefixes) {
+        for (String p : prefixes) PATH_TO_ADDON.put(p, addon);
     }
 
     // Message groups (first segment under messages/messages_en) routed to addons.
@@ -109,11 +143,14 @@ public final class AddonCatalog {
         routeMsg("UI-Guard", "packet_guard", "bot_protection",
                 "check", "codepanel", "sudo", "maintenance", "console_lockdown",
                 "server_lockdown", "stresstest");
-        routeMsg("UI-World", "meteor", "nether_portal");
-        routeMsg("UI-Other", "changedimmension", "motd",
-                "suicide", "notes", "power", "death_logger",
+        routeMsg("UI-World", "meteor", "nether_portal", "structure_integrity");
+        routeMsg("UI-Other", "changedimmension",
+                "notes", "death_logger",
                 "structures", "space", "wireless_redstone",
-                "structure_integrity", "kits", "expsplit");
+                "kits", "expsplit");
+        routeMsg("UI-Display", "motd");
+        routeMsg("UI-Player", "suicide");
+        routeMsg("UI-Essentials", "power");
     }
 
     private AddonCatalog() {}
@@ -121,6 +158,35 @@ public final class AddonCatalog {
     /** @return the addon owning the given root key (never null — defaults to CORE). */
     public static String addonOfRootKey(String rootKey) {
         return ROOT_TO_ADDON.getOrDefault(rootKey, CORE);
+    }
+
+    /**
+     * Resolves the addon owning a FULL config path, honouring the sub-path
+     * overrides (for example {@code features.antimatter} → UI-Items, while the
+     * {@code features} umbrella itself stays in UI-Other).
+     * <p>
+     * The longest matching prefix wins, so {@code features.block_collapse.scan.area}
+     * resolves through {@code features.block_collapse}.
+     *
+     * @param path dotted config path (settings or {@code messages.*})
+     * @return the owning addon (never null — defaults to CORE)
+     */
+    public static String addonOfPath(String path) {
+        if (path == null || path.isEmpty()) return CORE;
+        String best = null;
+        for (String prefix : PATH_TO_ADDON.keySet()) {
+            if (path.equals(prefix) || path.startsWith(prefix + ".")) {
+                if (best == null || prefix.length() > best.length()) best = prefix;
+            }
+        }
+        if (best != null) return PATH_TO_ADDON.get(best);
+        return addonOfRootKey(rootOf(path));
+    }
+
+    /** First path segment of a dotted key. */
+    private static String rootOf(String path) {
+        int dot = path.indexOf('.');
+        return dot > 0 ? path.substring(0, dot) : path;
     }
 
     /**
@@ -145,9 +211,9 @@ public final class AddonCatalog {
         return MSG_GROUP_TO_ADDON.getOrDefault(group, CORE);
     }
 
-    /** @return true when the root key is a shared/global core key. */
+    /** @return true when the key is a shared/global core key. */
     public static boolean isCoreRoot(String rootKey) {
-        return addonOfRootKey(rootKey).equals(CORE);
+        return addonOfPath(rootKey).equals(CORE);
     }
 
     /** All addons with per-addon config files, in family load order (CORE excluded). */

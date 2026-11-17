@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * Automatic scheduled server power action (restart or shutdown).
  * <p>
- * Reads {@code [scheduled_restart]} from {@code configs/UI-Other.toml} and ticks
+ * Reads {@code [scheduled_restart]} from {@code configs/UI-Essentials.toml} and ticks
  * once per second. Two schedule modes are supported:
  * <ul>
  *   <li>{@code mode = "times"} — daily clock times ({@code times = ["04:00"]})
@@ -335,7 +335,7 @@ public final class ScheduledRestartManager {
 
     /**
      * Turns the feature on/off from an in-game command and writes the value back
-     * to {@code UI-Other.toml}.
+     * to {@code UI-Essentials.toml}.
      *
      * @return true when the config write was performed
      */

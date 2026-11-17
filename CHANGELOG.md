@@ -3,6 +3,33 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.9.0-alpha.2] - 2026-11-17
+
+### Changed
+- **`UI-Other.toml` split by context.** Settings and messages that belonged to
+  other addons moved into their `configs/UI-<Addon>.toml` files:
+  - UI-Items: `features.antimatter`, `features.entitylocator`,
+    `features.exp_bottle_upgrade`.
+  - UI-Player: `features.attributes`, `features.beacon`, `features.blockdmg`,
+    `features.boostedcobweb`, `features.deathbell`, `features.glassbreak`,
+    `features.shieldslowness`, `features.terracotaspeed`, `sunburn`, `suicide`
+    (+ `messages.suicide`, RU/EN).
+  - UI-World: `features.block_collapse` (+ `scan`), `features.dragonegg`,
+    `features.enderchest` (+ `quick_close`), `features.magnet` (+ sub-sections),
+    `features.unbreakable_breaker`, `structure_integrity`.
+  - UI-Essentials: `features.modeprotect`, `brand_spoof`, `power`
+    (+ sub-sections), `scheduled_restart`, `messages.power` (RU/EN) and
+    `messages.features.modeprotect` (RU/EN, moved out of UI-Core).
+  - UI-Display: `motd` (+ sub-sections).
+- `AddonCatalog` now routes config keys by longest path prefix, so the
+  `features` umbrella can be split across addon files while every existing
+  `Main.getConfig()` call site keeps working unchanged.
+- Existing installations are migrated automatically on startup/reload: the
+  values are copied into the new file (user customisation preserved) and the
+  stale copies are removed, so no duplicate block survives.
+- Removed leftover comments for deleted features from the UI-Player and
+  UI-Display templates.
+
 ## [1.9.0-alpha.1] - 2026-11-17
 
 ### Added

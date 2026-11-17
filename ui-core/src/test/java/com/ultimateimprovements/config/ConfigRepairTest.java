@@ -78,7 +78,7 @@ class ConfigRepairTest {
     void allRuleKeysPresent() {
         List<String> missing = new ArrayList<>();
         for (ConfigRules.Rule rule : ConfigRules.ALL) {
-            String addon = AddonCatalog.addonOfRootKey(rootOf(rule.key));
+            String addon = AddonCatalog.addonOfPath(rule.key);
             YamlConfiguration template = loadTemplate(addon);
             if (!template.isSet(rule.key)) {
                 missing.add(rule.key + " (expected in " + addon + ".toml)");
@@ -112,7 +112,7 @@ class ConfigRepairTest {
                 "prefix", "messages", "messages_en"));
 
         for (String root : knownRoots) {
-            String addon = AddonCatalog.addonOfRootKey(root);
+            String addon = AddonCatalog.addonOfPath(root);
             YamlConfiguration template = loadTemplate(addon);
             if (!template.isSet(root)) {
                 broken.add(root + " routed to " + addon + ".toml but absent there");
