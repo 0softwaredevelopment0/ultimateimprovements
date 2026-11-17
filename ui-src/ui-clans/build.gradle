@@ -6,7 +6,14 @@ plugins {
 dependencies {
     paperweight.paperDevBundle("26.3.build.+")
     implementation project(':ui-core')
-    implementation 'org.xerial:sqlite-jdbc:3.54.1.0'
+
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }
 
 tasks {
@@ -14,7 +21,7 @@ tasks {
         dependsOn(shadowJar)
     }
     shadowJar {
-        archiveBaseName.set('UI-Essentials')
+        archiveBaseName.set('UI-Clans')
         archiveVersion.set(project.version.toString())
         configurations = [project.configurations.runtimeClasspath]
         // Do not bundle sibling UltimateImprovements plugin JARs (UI-Core, ...).
@@ -24,7 +31,7 @@ tasks {
         dependencies {
             exclude(dependency('com.ultimateimprovements:.*:.*'))
         }
-        // config.yml lives only in UI-Core (ui-core/src/main/resources)
+        // config.yml lives only in UI-Core (ui-src/ui-core/src/main/resources)
         exclude 'config.yml'
     }
 }

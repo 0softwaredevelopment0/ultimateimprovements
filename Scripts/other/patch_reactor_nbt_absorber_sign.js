@@ -9,7 +9,7 @@
 const fs = require('fs');
 const zlib = require('zlib');
 
-const file = 'ui-mbs/src/main/resources/NBT-Files/darkfusionreactor.nbt';
+const file = 'ui-src/ui-mbs/src/main/resources/NBT-Files/darkfusionreactor.nbt';
 const revert = process.argv[2] === 'revert';
 
 let data = zlib.gunzipSync(fs.readFileSync(file));

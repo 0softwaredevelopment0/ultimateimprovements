@@ -155,8 +155,8 @@ invalid worlds and invalid config values go through `ConsoleLogger`
 | `core/Permissions` | Three new nodes. |
 | `config/AddonCatalog` | Root `nether_portal` + message group routed to `UI-World`. |
 | `config/ConfigRules` | Type/range validation for the new keys. |
-| `ui-core/resources/config/UI-World.toml` | Bundled section + bilingual messages. |
-| `ui-essentials/.../HelpSubCommand` | Help card + permission summary support. |
+| `ui-src/ui-core/src/main/resources/config/UI-World.toml` | Bundled section + bilingual messages. |
+| `ui-src/ui-essentials/.../HelpSubCommand` | Help card + permission summary support. |
 
 ## 10. Edge cases
 
@@ -189,17 +189,17 @@ invalid worlds and invalid config values go through `ConsoleLogger`
 ## 12. Files
 
 ```
-ui-world/.../mechanics/features/netherportal/NetherPortalManager.java
-ui-world/.../mechanics/features/netherportal/NetherPortalSubcommand.java
-ui-world/.../core/WorldModules.java
-ui-world/.../core/UIWorld.java
-ui-world/src/test/.../netherportal/NetherPortalConfigTest.java
-ui-core/.../core/Permissions.java
-ui-core/.../config/AddonCatalog.java
-ui-core/.../config/ConfigRules.java
-ui-core/src/main/resources/config/UI-World.toml
-ui-essentials/.../command/subcommands/HelpSubCommand.java
-ui-other/.../command/subcommands/AutorestartSubcommand.java
+ui-src/ui-world/.../mechanics/features/netherportal/NetherPortalManager.java
+ui-src/ui-world/.../mechanics/features/netherportal/NetherPortalSubcommand.java
+ui-src/ui-world/.../core/WorldModules.java
+ui-src/ui-world/.../core/UIWorld.java
+ui-src/ui-world/src/test/.../netherportal/NetherPortalConfigTest.java
+ui-src/ui-core/.../core/Permissions.java
+ui-src/ui-core/.../config/AddonCatalog.java
+ui-src/ui-core/.../config/ConfigRules.java
+ui-src/ui-core/src/main/resources/config/UI-World.toml
+ui-src/ui-essentials/.../command/subcommands/HelpSubCommand.java
+ui-src/ui-other/.../command/subcommands/AutorestartSubcommand.java
 docs/Nether-Portal-Break-Plan.md
 GUIDE.md / README.md / CHANGELOG.md
 ```

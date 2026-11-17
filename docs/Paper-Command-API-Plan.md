@@ -6,7 +6,7 @@
 
 ## Done
 
-- `ui-core/.../command/PaperCommands.java`: registers the root `ui` (alias
+- `ui-src/ui-core/.../command/PaperCommands.java`: registers the root `ui` (alias
   `ultimateimprovements`) through `getLifecycleManager().registerEventHandler(
   LifecycleEvents.COMMANDS, ...)`. The tree is now a **real Brigadier tree**:
   `literal("ui") [executes → help] .then(argument("sub", word())

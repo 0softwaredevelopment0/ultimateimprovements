@@ -4,26 +4,12 @@ plugins {
 
 rootProject.name = 'UltimateImprovements'
 
-include(
-    'ui-core',
-    'ui-shared',
-    'ui-chat',
-    'ui-clans',
-    'ui-combat',
-    'ui-energy',
-    'ui-punish',
-    'ui-anticheat',
-    'ui-essentials',
-    'ui-datapack',
-    'ui-mbs',
-    'ui-enchant',
-    'ui-auth',
-    'ui-protection',
-    'ui-display',
-    'ui-admin',
-    'ui-player',
-    'ui-guard',
-    'ui-world',
-    'ui-items',
-    'ui-other'
-)
+// All plugin modules live under ui-src/ so the repository root stays tidy.
+// The Gradle project names stay flat (`:ui-core`, `:ui-chat`, ...), so every
+// `project(':ui-xxx')` dependency, jar name and task path is unchanged.
+file('ui-src').eachDir { dir ->
+    if (file("ui-src/${dir.name}/build.gradle").exists()) {
+        include dir.name
+        project(":${dir.name}").projectDir = dir
+    }
+}

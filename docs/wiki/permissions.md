@@ -1,6 +1,6 @@
 # Permissions
 
-UltimateImprovements registers permission nodes in code. The full inventory below is extracted from the current \`ui-core/.../Permissions.java\` source file. It is a **name inventory**, not a declaration that every node is granted by default or that every command uses only one node.
+UltimateImprovements registers permission nodes in code. The full inventory below is extracted from the current \`ui-src/ui-core/.../Permissions.java\` source file. It is a **name inventory**, not a declaration that every node is granted by default or that every command uses only one node.
 
 ## Broad permission nodes
 

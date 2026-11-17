@@ -57,12 +57,12 @@
 ## 1. Current state (metrics, 2026-09-28)
 
 - `ui-other`: **~289 Java files**, 1 giant `module/SimpleModules.java` (**1760 lines**),
-  1 `ui-core/src/main/resources/config/UI-Other.toml` (**3709 lines, 32 sections**),
+  1 `ui-src/ui-core/src/main/resources/config/UI-Other.toml` (**3709 lines, 32 sections**),
   **69 registered modules**.
 - Biggest domains: `mechanics` 134, `enchantment` 56, `command` 51, `listener` 15,
   `server` 8, `op` 4, `display` 3, `economy` 5, `broadcast` 3,
   `mechanics/security` 30, `mechanics/features` 64, `mechanics/crafting` 24.
-- `ui-other/build.gradle` `implementation`-depends on **all 11** other addons.
+- `ui-src/ui-other/build.gradle` `implementation`-depends on **all 11** other addons.
 
 ## 2. Infrastructure facts (how addons work today)
 
@@ -73,12 +73,12 @@
 - **Config**: `CompositeConfig` routes every `get/set` by first path segment to the owning
   addon's `configs/UI-<Addon>.toml`; message groups routed by `messages[._en].<group>`.
   `AddonConfigManager.init()` iterates `AddonCatalog.catalog()`, generating missing files
-  from bundled fragments at `ui-core/src/main/resources/config/UI-<Addon>.toml`.
+  from bundled fragments at `ui-src/ui-core/src/main/resources/config/UI-<Addon>.toml`.
   **Adding an addon requires** (all four):
   1. `AddonCatalog.catalog()` entry (load order);
   2. `AddonCatalog.route("UI-<Addon>", <rootKeys...>)`;
   3. `AddonCatalog.routeMsg("UI-<Addon>", <msgGroups...>)`;
-  4. bundled fragment `ui-core/src/main/resources/config/UI-<Addon>.toml`.
+  4. bundled fragment `ui-src/ui-core/src/main/resources/config/UI-<Addon>.toml`.
 - **Commands**: `CommandScanner.autoRegister(registry, plugin, "com.ultimateimprovements.command.subcommands")`
   scans **the calling plugin's own JAR**. So subcommands can live in any addon as long as
   that addon's bootstrap calls autoRegister with the same package prefix (it will only see
@@ -135,13 +135,13 @@ These are used across the target boundaries. Hoist to `ui-core`/`ui-shared` firs
   bootstrap method per addon; keep shared wiring in core.
 - **Command registration (found during Phase 1 prep)**: `EnchantSubcommand` is NOT a
   `SubCommand` — it is a static utility registered manually in
-  `ui-other/.../command/PluginReloadCommand.java` (line ~286) via
+  `ui-src/ui-other/.../command/PluginReloadCommand.java` (line ~286) via
   `LegacySubCommandAdapter.of("enchant", EnchantSubcommand::execute, …)`. Phase 1 must
   move that registration into the UI-Enchant bootstrap (its own adapter) and drop it
   from `PluginReloadCommand`.
   `CommandErrors` (`com.ultimateimprovements.command.CommandErrors`) already lives in
   **ui-core** — fine. `CommandScanner`/`CommandRegistrar`/`ClassScanner` still live in
-  `ui-other/core`; hoist them to ui-core if addons should self-scan, otherwise register
+  `ui-src/ui-other/core`; hoist them to ui-core if addons should self-scan, otherwise register
   each addon's commands manually in its bootstrap (simpler, chosen for Phase 1).
 - **SimpleModules**: split into per-addon registrars (`EnchantModules`, `WorldModules`, …).
   Keep only truly cross-cutting registration in `SimpleModules` (or delete it).
@@ -156,13 +156,13 @@ These are used across the target boundaries. Hoist to `ui-core`/`ui-shared` firs
 - **Phase 1 — UI-Enchant (prove the pattern).**
   1. New Gradle module `ui-enchant` (settings.gradle, build.gradle modeled on `ui-other`
      minus sibling deps, `plugin.yml` `addon-for: UI-Core`, softdepend UI-Datapack).
-  2. `git mv` `ui-other/.../enchantment` → `ui-enchant/.../enchantment`;
-     `EnchantSubcommand` → `ui-enchant/.../command/subcommands/`.
+  2. `git mv` `ui-src/ui-other/.../enchantment` → `ui-src/ui-enchant/.../enchantment`;
+     `EnchantSubcommand` → `ui-src/ui-enchant/.../command/subcommands/`.
   3. New `UIEnchant extends JavaPlugin` bootstrap: register the enchant modules
      (moved out of `SimpleModules`), call `CommandScanner.autoRegister(..., "…command.subcommands")`,
      `reportModuleStats`.
   4. Remove the enchant `registerXxx` calls/methods from `UIOther`/`SimpleModules`.
-  5. Config: create `ui-core/.../config/UI-Enchant.toml` with `[enchant]` + `[messages.enchant]`
+  5. Config: create `ui-src/ui-core/.../config/UI-Enchant.toml` with `[enchant]` + `[messages.enchant]`
      + `[messages_en.enchant]`; delete those from `UI-Other.toml`; update `AddonCatalog`
      (`catalog()`, `route`, `routeMsg`).
   6. Build all; fix imports (`EnchantSubcommand`, `SimpleModules`, any cross refs).

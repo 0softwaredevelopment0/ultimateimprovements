@@ -159,7 +159,7 @@ Keys: `scheduled_warning` (`%action%`, `%minutes%`), `scheduled_next`
 
 ## 10. Tests
 
-- `ui-other/src/test/.../restart/RestartScheduleTest` — time parsing, interval
+- `ui-src/ui-other/src/test/.../restart/RestartScheduleTest` — time parsing, interval
   parsing (`30s`, `48h`, `7D`, invalid), next-occurrence rollover, duration
   formatting.
 - Manual in-game check: `mode = "timer"`, `timer = "2m"`, `/ui reload`, verify
@@ -170,16 +170,16 @@ Keys: `scheduled_warning` (`%action%`, `%minutes%`), `scheduled_next`
 ## 11. Files
 
 ```
-ui-other/.../restart/RestartSchedule.java
-ui-other/.../restart/ScheduledRestartManager.java
-ui-other/.../command/PowerManager.java
-ui-other/.../command/subcommands/PowerSubcommand.java
-ui-other/.../command/subcommands/AutorestartSubcommand.java
-ui-other/.../module/SimpleModules.java
-ui-other/src/test/.../restart/RestartScheduleTest.java
-ui-core/.../config/AddonCatalog.java
-ui-core/.../config/ConfigRules.java
-ui-core/.../core/Permissions.java
-ui-core/src/main/resources/config/UI-Other.toml
+ui-src/ui-other/.../restart/RestartSchedule.java
+ui-src/ui-other/.../restart/ScheduledRestartManager.java
+ui-src/ui-other/.../command/PowerManager.java
+ui-src/ui-other/.../command/subcommands/PowerSubcommand.java
+ui-src/ui-other/.../command/subcommands/AutorestartSubcommand.java
+ui-src/ui-other/.../module/SimpleModules.java
+ui-src/ui-other/src/test/.../restart/RestartScheduleTest.java
+ui-src/ui-core/.../config/AddonCatalog.java
+ui-src/ui-core/.../config/ConfigRules.java
+ui-src/ui-core/.../core/Permissions.java
+ui-src/ui-core/src/main/resources/config/UI-Other.toml
 GUIDE.md / README.md / CHANGELOG.md
 ```

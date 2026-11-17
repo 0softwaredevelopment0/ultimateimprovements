@@ -3,7 +3,7 @@
 const fs = require('fs');
 const zlib = require('zlib');
 
-const path = process.argv[2] || 'ui-mbs/src/main/resources/NBT-Files/darkfusionreactor.nbt';
+const path = process.argv[2] || 'ui-src/ui-mbs/src/main/resources/NBT-Files/darkfusionreactor.nbt';
 const buf = zlib.gunzipSync(fs.readFileSync(path));
 
 let off = 0;

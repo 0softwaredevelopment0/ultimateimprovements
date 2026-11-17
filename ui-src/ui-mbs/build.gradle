@@ -6,7 +6,6 @@ plugins {
 dependencies {
     paperweight.paperDevBundle("26.3.build.+")
     implementation project(':ui-core')
-    implementation project(':ui-shared')
 
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -22,14 +21,17 @@ tasks {
         dependsOn(shadowJar)
     }
     shadowJar {
-        archiveBaseName.set('UI-Enchant')
+        archiveBaseName.set('UI-MBS')
         archiveVersion.set(project.version.toString())
         configurations = [project.configurations.runtimeClasspath]
         // Do not bundle sibling UltimateImprovements plugin JARs (UI-Core, ...).
+        // Bundled duplicate core classes were loaded from this JAR instead of
+        // UI-Core, so static state (Main.getInstance()) was null in the module's
+        // copy and modules disabled themselves at startup.
         dependencies {
             exclude(dependency('com.ultimateimprovements:.*:.*'))
         }
-        // config.yml lives only in UI-Core (ui-core/src/main/resources)
+        // config.yml lives only in UI-Core (ui-src/ui-core/src/main/resources)
         exclude 'config.yml'
     }
 }
