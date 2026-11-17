@@ -3,6 +3,25 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.10.0-alpha.1] - 2026-11-17
+
+### Added
+- **Private messages are no longer written to the server console**
+  (`chat.hide_private_messages` in `configs/UI-Chat.toml`, on by default).
+  The Log4J filter drops the `issued server command` lines of `/msg`, `/tell`,
+  `/w`, `/whisper`, `/m`, `/t`, `/pm`, `/dm`, `/reply`, `/r`, their
+  `minecraft:` forms and `/ui chatchnl private <player>`. Ordinary chat lines
+  that merely mention those commands stay visible.
+- `[invsee] enabled` in `configs/UI-Essentials.toml` (on by default) to match
+  the existing `[endersee]` switch; both commands now honour their setting.
+
+### Changed
+- **`/ui rtp`, `/ui near`, `/ui invsee` and `/ui endersee` are enabled by
+  default** in `configs/UI-Essentials.toml`; their permissions
+  (`ui.command.rtp`, `ui.command.near`, `ui.command.invsee`,
+  `ui.command.endersee` and the RTP helper nodes) now default to OP, so
+  ordinary players still cannot use them without a permissions plugin.
+
 ## [1.9.0-alpha.2] - 2026-11-17
 
 ### Changed

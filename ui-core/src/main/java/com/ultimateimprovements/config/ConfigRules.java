@@ -537,6 +537,7 @@ final class ConfigRules {
             bool("chat.message_placeholders"),
             string("chat.bypass_permission", false, 64),
             notBlank("chat.format", 512),
+            bool("chat.hide_private_messages"),
             bool("chat.limits.enabled"),
             integer("chat.limits.max_lines", 1, 10),
             integer("chat.limits.max_chars", 16, 4096),
@@ -623,6 +624,7 @@ final class ConfigRules {
             integer("bossbar.update_interval_ticks", 1, 72000),
 
             bool("endersee.enabled"),
+            bool("invsee.enabled"),
 
             bool("maintenance.enabled"),
 

@@ -55,6 +55,11 @@ message_placeholders = true
 # Permission node.
 # Default: ""
 bypass_permission = ""
+# Hide private-message commands from the server console log.
+# Commands that send a direct message (/msg, /tell, /w, /whisper, /reply, /r)
+# and /ui chatchnl private <player> are not written to the console.
+# Default: true
+hide_private_messages = true
 
 # Chat abuse limits. Applied to every player message, even when the custom
 # chat is disabled (chat.enabled = false) — these are protections, not

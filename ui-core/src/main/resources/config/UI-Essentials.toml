@@ -34,9 +34,15 @@ expire_time = "3d"
 
 # /ui endersee — inspect other players' ender chests.
 [endersee]
-# Enable the /ui endersee command.
-# Default: false
-enabled = false
+# Enable the /ui endersee command (permission ui.command.endersee, OP by default).
+# Default: true
+enabled = true
+
+# /ui invsee — inspect other players' inventories.
+[invsee]
+# Enable the /ui invsee command (permission ui.command.invsee, OP by default).
+# Default: true
+enabled = true
 
 # /ui heal and /ui feed behaviour and amounts.
 [heal_feed]
@@ -57,9 +63,10 @@ mode = "legit"
 
 # Random teleport (/ui rtp): radius, cooldown and world rules.
 [rtp]
-# Master switch (true = feature on).
-# Default: false
-enabled = false
+# Master switch (true = feature on). Needs the ui.command.rtp permission
+# (OP by default).
+# Default: true
+enabled = true
 # Cooldown.
 # Default: 60
 cooldown_seconds = 60
@@ -106,9 +113,9 @@ void = true
 
 # /ui near — shows nearby players (staff utility).
 [near]
-# Enable the /ui near command.
-# Default: false
-enabled = false
+# Enable the /ui near command (permission ui.command.near, OP by default).
+# Default: true
+enabled = true
 # Radius in blocks.
 # Default: 128
 max_radius = 128
