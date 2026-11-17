@@ -17,7 +17,7 @@ UltimateImprovements registers permission nodes in code. The full inventory belo
 | \`ui.packetguard.bypass\` | PacketGuard bypass |
 | \`ui.gmprotect.bypass\` | Game-mode protection bypass |
 | \`ui.creative.bypass\` | Creative item validation bypass |
-| \`ui.sculk.hazards.bypass\` | Sc​​ulk hazard bypass (explicit grant rule applies; see below) |
+| \`ui.sculk.hazards.bypass\` | Sculk hazard bypass (explicit grant rule applies; see below) |
 
 A wildcard is not a universal bypass for every subsystem. Some security features intentionally require an explicit exact permission node rather than relying on \`*\`, \`ui.*\` or OP status.
 
@@ -56,7 +56,7 @@ Some command families have child permissions. Examples from source include punis
 
 ## Complete permission constant inventory
 
-The following nodes are declared as constants in the current core permissions source. Treat this list as a reference for node spelling; the code paths and default permission registration determine actual access.
+The current core source contains 204 permission-string declarations representing 203 distinct node values. The following list contains those unique nodes. Treat it as a spelling reference; code paths and default permission registration determine actual access.
 
 - `ui`
 - `ui.*`
