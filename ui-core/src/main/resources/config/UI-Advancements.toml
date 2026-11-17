@@ -162,8 +162,8 @@ enabled = true
 # Default: true
 enabled = true
 # Ender-pearl teleports required within the time limit.
-# Default: 60
-goal = 60
+# Default: 59
+goal = 59
 # Time limit, seconds.
 # Default: 60
 duration_seconds = 60
