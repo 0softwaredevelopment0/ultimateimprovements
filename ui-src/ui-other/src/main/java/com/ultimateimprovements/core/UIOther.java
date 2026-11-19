@@ -14,6 +14,11 @@ public class UIOther extends JavaPlugin {
         return instance;
     }
 
+    /** This addon's own JAR file (used by {@code CommandScanner}). */
+    public java.io.File getPluginFile() {
+        return getFile();
+    }
+
     @Override
     public void onEnable() {
         runStartup();

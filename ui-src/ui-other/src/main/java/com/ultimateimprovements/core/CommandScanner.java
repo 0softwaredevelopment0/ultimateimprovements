@@ -25,12 +25,17 @@ public final class CommandScanner {
      * Automatically finds and registers all subcommands.
      *
      * @param registry    the SubCommandRegistry
-     * @param plugin      the plugin instance
+     * @param jarFile     the JAR that OWNS the subcommands — UI-Other's own
+     *                    plugin file, not UI-Core's: the classes live in this
+     *                    addon, and scanning the host's JAR finds nothing
+     *                    (that silently dropped {@code /ui autorestart})
      * @param scanPackage the package to scan (e.g. "com.ultimateimprovements.command.subcommands")
      */
-    public static void autoRegister(SubCommandRegistry registry, Main plugin, String scanPackage) {
-        var jarFile = plugin.getPluginFile();
-        var classes = ClassScanner.findAnnotatedClasses(jarFile, SubCommandInfo.class, scanPackage);
+    public static void autoRegister(SubCommandRegistry registry, java.io.File jarFile, String scanPackage) {
+        // Load through THIS addon's loader: UI-Core's loader cannot resolve
+        // classes that live in the UI-Other JAR.
+        ClassLoader loader = CommandScanner.class.getClassLoader();
+        var classes = ClassScanner.findAnnotatedClasses(jarFile, SubCommandInfo.class, scanPackage, loader);
 
         int registered = 0;
 

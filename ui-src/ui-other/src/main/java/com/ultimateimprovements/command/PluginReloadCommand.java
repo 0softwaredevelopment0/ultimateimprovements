@@ -65,11 +65,17 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
         SubCommandRegistry registry = SubCommandRegistry.getInstance();
 
         // ── Auto-discovery of SubCommand classes via JAR scanning ──
+        // MUST scan UI-Other's own JAR: the subcommands live in this addon,
+        // while Main.getPluginFile() points at UI-Core (which has none of them).
         com.ultimateimprovements.core.CommandScanner.autoRegister(registry,
-                com.ultimateimprovements.core.Main.getInstance(),
+                com.ultimateimprovements.core.UIOther.getInstance().getPluginFile(),
                 "com/ultimateimprovements/command/subcommands");
 
         // ── SubCommand implementations (newer) ──
+        // Registered explicitly as well: the JAR scan above needs a readable
+        // plugin file (absent in some dev/exploded layouts), and a missing
+        // /ui autorestart is silent otherwise.
+        registry.register(new AutorestartSubcommand());
         registry.register(new ItemNbtSubcommand());
         registry.register(new ClanSubcommand());
         registry.register(new ClearSubcommand()); // /ui clear <chat|attributes> — replaces /ui clearchat
