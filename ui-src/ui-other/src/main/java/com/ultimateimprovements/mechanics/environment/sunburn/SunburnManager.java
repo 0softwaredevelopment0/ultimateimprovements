@@ -26,7 +26,7 @@ import java.util.UUID;
  * Every check_interval ticks (default 80 = 4s), all online players in
  * Overworld are checked. If daytime + open sky above:
  *   - No helmet => set on fire (fire_ticks duration)
- *   - Helmet => degrade helmet instead (no fire while protected)
+ *   - Helmet => spend helmet durability instead (no fire while protected)
  *
  * Minecraft naturally extinguishes fire in water, rain, etc.
  * When player leaves sun (night, underground) => extinguished on next check.
@@ -42,7 +42,7 @@ public class SunburnManager implements Listener {
     private int checkInterval;
     private int fireTicks;
     private int helmetDegradeInterval;
-    private int helmetIntegrityLoss;
+    private int helmetDurabilityLoss;
     private boolean extinguishWhenSafe;
     private Set<String> includedWorlds;
 
@@ -84,7 +84,11 @@ public class SunburnManager implements Listener {
         checkInterval = cfg.getInt("sunburn.check_interval", 80);
         fireTicks = cfg.getInt("sunburn.fire_ticks", 80);
         helmetDegradeInterval = cfg.getInt("sunburn.helmet_degrade_interval", 80);
-        helmetIntegrityLoss = cfg.getInt("sunburn.helmet_integrity_loss", 1);
+        // Renamed from helmet_integrity_loss when the custom integrity system
+        // was replaced by vanilla durability; the old key is still honoured so
+        // existing server configs keep their tuned value.
+        helmetDurabilityLoss = cfg.getInt("sunburn.helmet_durability_loss",
+                cfg.getInt("sunburn.helmet_integrity_loss", 1));
         extinguishWhenSafe = cfg.getBoolean("sunburn.extinguish_when_safe", true);
 
         includedWorlds = new HashSet<>();
@@ -100,7 +104,7 @@ public class SunburnManager implements Listener {
                 + ", checkInterval=" + checkInterval
                 + ", fireTicks=" + fireTicks
                 + ", helmetDegrade=" + helmetDegradeInterval
-                + ", helmetLoss=" + helmetIntegrityLoss
+                + ", helmetLoss=" + helmetDurabilityLoss
                 + ", extinguishWhenSafe=" + extinguishWhenSafe
                 + ", includedWorlds=" + includedWorlds);
     }
@@ -128,11 +132,17 @@ public class SunburnManager implements Listener {
         if (mainTickCounter < checkInterval) return;
         mainTickCounter = 0;
 
-        helmetTickCounter++;
-        boolean doHelmetDegrade = false;
-        if (helmetTickCounter >= helmetDegradeInterval) {
-            helmetTickCounter = 0;
-            doHelmetDegrade = true;
+        // helmet_degrade_interval is configured in TICKS, but the loop below
+        // only runs once per check_interval ticks. Accumulate the elapsed
+        // ticks instead of counting checks: otherwise the effective interval
+        // was check_interval × helmet_degrade_interval (80 × 80 ticks = 5.3
+        // minutes per point with the defaults), which looked like the helmet
+        // never wearing at all.
+        helmetTickCounter += checkInterval;
+        int helmetDegradeSteps = 0;
+        if (helmetDegradeInterval > 0) {
+            helmetDegradeSteps = helmetTickCounter / helmetDegradeInterval;
+            helmetTickCounter %= helmetDegradeInterval;
         }
 
         Set<UUID> nowExposed = new HashSet<>();
@@ -153,8 +163,10 @@ public class SunburnManager implements Listener {
                 boolean hasHelmet = helmet != null && helmet.getType() != Material.AIR;
 
                 if (hasHelmet) {
-                    if (doHelmetDegrade) {
-                        degradeHelmet(player, helmet);
+                    for (int i = 0; i < helmetDegradeSteps; i++) {
+                        ItemStack current = player.getInventory().getHelmet();
+                        if (current == null || current.getType() == Material.AIR) break;
+                        degradeHelmet(player, current);
                     }
                 } else {
                     // No helmet — set on fire
@@ -196,27 +208,26 @@ public class SunburnManager implements Listener {
 
     private void degradeHelmet(Player player, ItemStack helmet) {
         if (ItemDurabilityUtil.isEnabled() && ItemDurabilityUtil.hasItemIntegrity(helmet)) {
-            double remaining = ItemDurabilityUtil.decreaseItemIntegrity(helmet, helmetIntegrityLoss, player);
+            double remaining = ItemDurabilityUtil.decreaseItemIntegrity(helmet, helmetDurabilityLoss, player);
 
             if (remaining <= 0) {
                 player.getInventory().setHelmet(null);
             }
         } else {
-            short maxDur = helmet.getType().getMaxDurability();
+            int maxDur = ItemDurabilityUtil.getMaxDurability(helmet);
             if (maxDur <= 0) return; // No durability — passive protection
             if (ItemDurabilityUtil.isUnbreakable(helmet)) return; // minecraft:unbreakable — no wear
 
             // Plugin-side wear still rolls the vanilla Unbreaking chance
-            int loss = ItemDurabilityUtil.applyUnbreaking(helmet, 1);
+            int loss = ItemDurabilityUtil.applyUnbreaking(helmet, helmetDurabilityLoss);
             if (loss <= 0) return;
 
-            ItemMeta meta = helmet.getItemMeta();
-            int currentDmg = (meta instanceof Damageable dmg) ? dmg.getDamage() : 0;
+            int currentDmg = ItemDurabilityUtil.getVanillaDamage(helmet);
+            int after = Math.min(maxDur, currentDmg + loss);
 
-            if (currentDmg >= maxDur) {
+            helmet.editMeta(Damageable.class, dmg -> dmg.setDamage(after));
+            if (after >= maxDur) {
                 player.getInventory().setHelmet(null);
-            } else {
-                helmet.editMeta(Damageable.class, dmg -> dmg.setDamage(currentDmg + loss));
             }
         }
     }

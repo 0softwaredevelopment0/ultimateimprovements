@@ -3,6 +3,23 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.3] - 2026-11-20
+
+### Fixed
+- **Sunburn now actually wears the helmet's vanilla durability.** Two bugs
+  made the helmet look indestructible. First, `helmet_degrade_interval` was
+  counted in checks instead of ticks: with the defaults (`check_interval = 80`,
+  `helmet_degrade_interval = 80`) a point was removed every 6400 ticks — about
+  5.3 minutes of direct sunlight. The interval now accumulates the elapsed
+  ticks, so `80` really means 4 seconds. Second, the point-based wear path
+  round-tripped through a percentage and lost a point to floating-point
+  truncation for losses above 1 (and for some max-durability values), so
+  `decreaseItemIntegrity` now writes the exact number of vanilla damage points.
+- **`sunburn.helmet_integrity_loss` is renamed to
+  `sunburn.helmet_durability_loss`** — the custom integrity system it referred
+  to was removed long ago and the value is a plain vanilla durability cost.
+  Existing configs keep working: the old key is still read as a fallback.
+
 ## [1.11.0-alpha.2] - 2026-11-20
 
 ### Fixed

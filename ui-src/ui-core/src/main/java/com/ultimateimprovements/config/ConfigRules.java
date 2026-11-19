@@ -785,7 +785,7 @@ final class ConfigRules {
             integer("sunburn.fire_ticks", 1, 72000, "Fire duration in ticks"),
             bool("sunburn.extinguish_when_safe"),
             integer("sunburn.helmet_degrade_interval", 1, 72000, "Helmet degrade interval in ticks"),
-            integer("sunburn.helmet_integrity_loss", 1, 100, "Integrity uses per degrade"),
+            integer("sunburn.helmet_durability_loss", 1, 100, "Durability points lost per helmet degrade"),
             stringList("sunburn.included_worlds"),
             // Space dimension
             bool("space.enabled"),
