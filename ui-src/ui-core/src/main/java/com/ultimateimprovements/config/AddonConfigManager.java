@@ -384,6 +384,7 @@ public final class AddonConfigManager {
         if ("UI-Chat".equals(addon)) return upgradeChatFormatColors(view);
         if ("UI-Player".equals(addon)) return upgradeAttributeUnits(view);
         if ("UI-MBS".equals(addon)) return upgradeMeltdownCountdowns(view);
+        if ("UI-Guard".equals(addon)) return upgradeGuardCommandLists(view);
         if (!"UI-Core".equals(addon)) return 0;
         int upgraded = 0;
         for (String root : new String[]{"messages", "messages_en"}) {
@@ -417,6 +418,64 @@ public final class AddonConfigManager {
                     + ": inserted the \"Time remaining\" line into the block dialog template");
         }
         return upgraded;
+    }
+
+    /**
+     * Vanilla {@code /op} and {@code /deop} changed from "disabled by the
+     * command policy" to "allowed, deprecated, repeat-to-confirm". Existing
+     * installations still list them in {@code command_policy.disabled_commands}
+     * (blocked with 011) and miss them in {@code sudo.dangerous_commands}.
+     * <p>
+     * This upgrade removes {@code op}/{@code deop} from the disabled list and
+     * appends them to the sudo list once. Idempotent — a config already in the
+     * new shape is untouched.
+     *
+     * @return number of upgraded lists
+     */
+    private static int upgradeGuardCommandLists(YamlConfiguration view) {
+        int upgraded = 0;
+
+        List<String> disabled = view.getStringList("command_policy.disabled_commands");
+        if (disabled != null && !disabled.isEmpty()) {
+            List<String> filtered = disabled.stream()
+                    .filter(entry -> entry != null && !isOpToggle(entry))
+                    .toList();
+            if (filtered.size() != disabled.size()) {
+                view.set("command_policy.disabled_commands", new ArrayList<>(filtered));
+                upgraded++;
+                ConsoleLogger.info("[Config/UI-Guard] command_policy.disabled_commands: "
+                        + "removed op/deop — they are deprecated-but-allowed now");
+            }
+        }
+
+        List<String> dangerous = view.getStringList("sudo.dangerous_commands");
+        if (dangerous != null && !dangerous.isEmpty()) {
+            List<String> updated = new ArrayList<>(dangerous);
+            boolean changed = false;
+            for (String entry : new String[]{"op", "deop"}) {
+                if (updated.stream().noneMatch(existing -> entry.equalsIgnoreCase(existing.trim()))) {
+                    updated.add(entry);
+                    changed = true;
+                }
+            }
+            if (changed) {
+                view.set("sudo.dangerous_commands", updated);
+                upgraded++;
+                ConsoleLogger.info("[Config/UI-Guard] sudo.dangerous_commands: "
+                        + "added vanilla op/deop");
+            }
+        }
+
+        return upgraded;
+    }
+
+    /** Whether a command-policy entry points at the vanilla op/deop commands. */
+    private static boolean isOpToggle(String entry) {
+        String normalized = entry.trim().toLowerCase(java.util.Locale.ROOT);
+        if (normalized.startsWith("/")) normalized = normalized.substring(1);
+        return normalized.equals("op") || normalized.equals("deop")
+                || normalized.equals("minecraft:op") || normalized.equals("minecraft:deop")
+                || normalized.equals("bukkit:op") || normalized.equals("bukkit:deop");
     }
 
     /**

@@ -66,7 +66,7 @@ public final class AddonCatalog {
         // ── UI-Display ──
         route("UI-Display", "tab", "scoreboard", "bossbar");
         // ── UI-Admin ──
-        route("UI-Admin", "economy", "op_self");
+        route("UI-Admin", "economy", "op_self", "op");
         // ── UI-Player ──
         route("UI-Player", "vanish", "armor_effects", "armor_trim_effects", "elytra_wear");
         // ── UI-Guard ──

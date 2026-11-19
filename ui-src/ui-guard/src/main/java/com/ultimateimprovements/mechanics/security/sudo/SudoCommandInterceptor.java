@@ -36,8 +36,10 @@ public class SudoCommandInterceptor implements Listener {
     /**
      * Command policy: vanilla commands superseded by /ui equivalents
      * ({@code command_policy.enabled}, default true; the list:
-     * {@code command_policy.disabled_commands}, default: op/deop/stop/restart)
-     * are answered with error 011 ("command disabled on this server").
+     * {@code command_policy.disabled_commands}, default: stop/restart) are
+     * answered with error 011 ("command disabled on this server"). Vanilla
+     * {@code op}/{@code deop} are no longer part of this list: they stay usable
+     * with a deprecation notice and a repeat-to-confirm step.
      * Blocked for PLAYERS and the CONSOLE/RCON alike — they are unsafe and
      * have /ui replacements (/ui op|deop, /ui power off|reboot) that also work
      * from the console. Independent of the sudo feature toggle — active

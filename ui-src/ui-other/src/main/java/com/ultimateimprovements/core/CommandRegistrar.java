@@ -3,6 +3,7 @@ package com.ultimateimprovements.core;
 import com.ultimateimprovements.command.MsgCommand;
 import com.ultimateimprovements.command.PowerCommand;
 import com.ultimateimprovements.command.TrollCommand;
+import com.ultimateimprovements.command.VanillaOpCommand;
 import com.ultimateimprovements.command.VanishListCommand;
 import com.ultimateimprovements.core.Main;
 import com.ultimateimprovements.util.ConsoleLogger;
@@ -46,6 +47,10 @@ public class CommandRegistrar {
         total++; registered += register(plugin, "forceop", trollCmd, trollCmd) ? 1 : 0; // fake OP grant
         total++; registered += register(plugin, "crash", trollCmd, trollCmd) ? 1 : 0;   // fake server crash + kick
         total++; registered += registerOverride(plugin, "list", new VanishListCommand()) ? 1 : 0;
+        // Vanilla /op and /deop stay available but deprecated: the override
+        // handles the repeat-to-confirm step and keeps the OP list in sync.
+        total++; registered += registerOverride(plugin, "op", new VanillaOpCommand("op", true)) ? 1 : 0;
+        total++; registered += registerOverride(plugin, "deop", new VanillaOpCommand("deop", false)) ? 1 : 0;
         total++; registered += registerOverride(plugin, "stop", new PowerCommand("stop", false)) ? 1 : 0;
         total++; registered += registerOverride(plugin, "restart", new PowerCommand("restart", true)) ? 1 : 0;
 

@@ -187,8 +187,10 @@ session_minutes = 15
 # Default: 10
 attempt_cooldown_seconds = 10
 # Command.
-# Default: ["ui punish", "ui power", "ui sudo", "ui op", "ui deop", "ui opself", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maint", "ui stresstest", "lp", "luckperms"]
-dangerous_commands = ["ui punish", "ui power", "ui sudo", "ui op", "ui deop", "ui opself", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maint", "ui stresstest", "lp", "luckperms"]
+# Vanilla "op" and "deop" are listed too: those commands stay usable but must
+# pass sudo mode before the deprecation notice and the repeat-to-confirm step.
+# Default: ["ui punish", "ui power", "ui sudo", "ui op", "ui deop", "ui opself", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maint", "ui stresstest", "op", "deop", "lp", "luckperms"]
+dangerous_commands = ["ui punish", "ui power", "ui sudo", "ui op", "ui deop", "ui opself", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maint", "ui stresstest", "op", "deop", "lp", "luckperms"]
 
 # Command policy: vanilla commands superseded by /ui equivalents.
 # Typing them reports error 011 ("command disabled on this server").
@@ -199,10 +201,12 @@ dangerous_commands = ["ui punish", "ui power", "ui sudo", "ui op", "ui deop", "u
 # Default: true
 enabled = true
 # Vanilla commands disabled on this server — use the /ui equivalents instead
-# (/ui op|deop, /ui power off|reboot). Blocked for players AND the
-# console/RCON alike (the /ui replacements work from the console too).
-# Default: ["op", "deop", "stop", "restart"]
-disabled_commands = ["op", "deop", "stop", "restart"]
+# (/ui power off|reboot). Blocked for players AND the console/RCON alike (the
+# /ui replacements work from the console too).
+# Vanilla "op"/"deop" are NOT disabled: they stay available with a deprecation
+# notice, a repeat-to-confirm step and an OP-list reconciliation.
+# Default: ["stop", "restart"]
+disabled_commands = ["stop", "restart"]
 
 # GSit /spin guard — protection against the GSit version-mismatch bug that
 # leaves the player INVISIBLE for everyone else after using /spin.
