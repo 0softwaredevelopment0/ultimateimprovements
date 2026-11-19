@@ -3,6 +3,31 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.1] - 2026-11-19
+
+### Added
+- **Scheduled-restart announcements are time-based and mirrored to the
+  console.** `[scheduled_restart]` now uses `warning_times` — time values with
+  the same `s`/`m`/`h`/`d` units as `timer` — instead of the integer
+  `warning_minutes`: `["1h", "30m", "15m", "5m", "1m", "45s", "30s", "15s"]` by
+  default. A new `second_report_from` (default `"10s"`, `0`/`off` disables)
+  starts a per-second report when that much time is left. Both use the single
+  `power.scheduled_announce` template with `%action%`, `%time%` and `%unit%`;
+  the unit words are `power.unit_seconds|minutes|hours|days` (default
+  `seconds`, `minutes`, `hours`, `days`; Russian equivalents in the RU section).
+  Every announcement is now written to the console as well as to chat, with
+  the `[UI]` prefix and the same MiniMessage colors (`Broadcast.sendWithConsole`).
+  The scheduled countdown, its last seconds, the direct console restart and
+  the cancellation lines use the same path. `warning_minutes` is still honoured
+  when `warning_times` is empty.
+
+### Changed
+- **`/ui autorestart` is always registered, but answers with error `018` while
+  the module is disabled.** With `scheduled_restart.enabled = false` every
+  subcommand except `on` (which enables the module) reports "this command
+  belongs to a module that is disabled on this server" instead of its usual
+  output.
+
 ## [1.10.0-alpha.4] - 2026-11-19
 
 ### Fixed

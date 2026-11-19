@@ -53,6 +53,35 @@ class RestartScheduleTest {
     }
 
     @Test
+    @DisplayName("parseWarningTimes keeps valid units, dedupes and sorts")
+    void parseWarningTimes() {
+        List<String> invalid = new ArrayList<>();
+        List<Long> parsed = RestartSchedule.parseWarningTimes(
+                List.of("1h", "30m", "60m", "45s", "15s", "oops", "5"), invalid::add);
+
+        assertEquals(List.of(15L, 45L, 1800L, 3600L), parsed);
+        assertEquals(List.of("oops", "5"), invalid);
+    }
+
+    @Test
+    @DisplayName("splitUnits uses the largest exact unit")
+    void splitUnits() {
+        assertEquals(new RestartSchedule.TimeValue(2, RestartSchedule.Unit.DAYS),
+                RestartSchedule.splitUnits(172_800));
+        assertEquals(new RestartSchedule.TimeValue(1, RestartSchedule.Unit.HOURS),
+                RestartSchedule.splitUnits(3_600));
+        assertEquals(new RestartSchedule.TimeValue(30, RestartSchedule.Unit.MINUTES),
+                RestartSchedule.splitUnits(1_800));
+        assertEquals(new RestartSchedule.TimeValue(45, RestartSchedule.Unit.SECONDS),
+                RestartSchedule.splitUnits(45));
+        // Not an exact multiple of a larger unit — stays in seconds.
+        assertEquals(new RestartSchedule.TimeValue(3_599, RestartSchedule.Unit.SECONDS),
+                RestartSchedule.splitUnits(3_599));
+        assertEquals(new RestartSchedule.TimeValue(0, RestartSchedule.Unit.SECONDS),
+                RestartSchedule.splitUnits(-5));
+    }
+
+    @Test
     @DisplayName("parseInterval accepts s/m/h/d with an explicit unit")
     void parseIntervalValid() {
         assertEquals(Duration.ofSeconds(30), RestartSchedule.parseInterval("30s"));

@@ -72,7 +72,10 @@ public final class ScheduledRestartManager {
     private Mode mode = Mode.TIMES;
     private RequestType action = RequestType.RESTART;
     private final List<LocalTime> times = new ArrayList<>();
-    private final List<Integer> warningMinutes = new ArrayList<>();
+    /** Announcement thresholds in seconds, ascending. */
+    private final List<Long> warningSeconds = new ArrayList<>();
+    /** Per-second report start in seconds (0 = disabled). */
+    private long secondReportFrom = 10L;
     private int countdownSeconds = 60;
     private boolean skipIfEmpty;
     private boolean playerLimitEnabled;
@@ -87,7 +90,9 @@ public final class ScheduledRestartManager {
     private LocalDateTime nextRestart;
     private String lastFiredSlot;
     private boolean skipPending;
-    private final Set<Integer> sentWarnings = new LinkedHashSet<>();
+    private final Set<Long> sentWarnings = new LinkedHashSet<>();
+    /** Last second already covered by the per-second report (-1 = none). */
+    private long lastReportedSecond = -1L;
 
     private ScheduledRestartManager() {}
 
@@ -119,8 +124,8 @@ public final class ScheduledRestartManager {
         stopTask();
 
         times.clear();
-        warningMinutes.clear();
-        sentWarnings.clear();
+        warningSeconds.clear();
+        resetAnnouncements();
         nextRestart = null;
         nextFireMillis = -1L;
         interval = null;
@@ -147,12 +152,24 @@ public final class ScheduledRestartManager {
                 cfg.getString("scheduled_restart.player_limit_comparison", "above"));
         playerLimitValue = Math.max(0, cfg.getInt("scheduled_restart.player_limit_value", 1));
 
-        for (Integer minutes : cfg.getIntegerList("scheduled_restart.warning_minutes")) {
-            if (minutes != null && minutes > 0 && !warningMinutes.contains(minutes)) {
-                warningMinutes.add(minutes);
+        warningSeconds.addAll(RestartSchedule.parseWarningTimes(
+                cfg.getStringList("scheduled_restart.warning_times"),
+                raw -> ConsoleLogger.warn("[ScheduledRestart] Ignoring invalid warning time '" + raw
+                        + "' (expected a value with a unit: 45s, 5m, 1h, 1d)")));
+        if (warningSeconds.isEmpty()) {
+            // Backward compatibility with the removed integer-minutes list.
+            for (Integer minutes : cfg.getIntegerList("scheduled_restart.warning_minutes")) {
+                if (minutes != null && minutes > 0 && !warningSeconds.contains(minutes * 60L)) {
+                    warningSeconds.add(minutes * 60L);
+                }
+            }
+            warningSeconds.sort(Long::compareTo);
+            if (!warningSeconds.isEmpty()) {
+                ConsoleLogger.info("[ScheduledRestart] warning_times is empty — using legacy warning_minutes.");
             }
         }
-        warningMinutes.sort(Integer::compareTo);
+        secondReportFrom = parseSecondReportFrom(
+                cfg.getString("scheduled_restart.second_report_from", "10s"));
 
         if (mode == Mode.TIMER) {
             interval = RestartSchedule.parseInterval(cfg.getString("scheduled_restart.timer", "48h"));
@@ -189,6 +206,11 @@ public final class ScheduledRestartManager {
                 + ", action=" + action
                 + ", next=" + describeNext()
                 + ", countdown=" + countdownSeconds + "s"
+                + ", warnings=" + warningSeconds.stream()
+                        .map(RestartSchedule::splitUnits)
+                        .map(ScheduledRestartManager::describeTimeValue)
+                        .toList()
+                + (secondReportFrom > 0 ? ", per-second-from=" + secondReportFrom + "s" : ", per-second-report=off")
                 + (playerLimitEnabled ? ", player-limit " + playerLimitComparison + " " + playerLimitValue : "")
                 + (skipIfEmpty ? ", skip-if-empty" : ""));
         if (mode == Mode.TIMES && lastFiredSlot != null) {
@@ -201,8 +223,8 @@ public final class ScheduledRestartManager {
         stopTask();
         enabled = false;
         times.clear();
-        warningMinutes.clear();
-        sentWarnings.clear();
+        warningSeconds.clear();
+        resetAnnouncements();
         nextRestart = null;
         nextFireMillis = -1L;
         interval = null;
@@ -385,7 +407,7 @@ public final class ScheduledRestartManager {
         }
 
         setSkipPending(false);
-        sentWarnings.clear();
+        resetAnnouncements();
         advance(System.currentTimeMillis());
         return true;
     }
@@ -418,7 +440,7 @@ public final class ScheduledRestartManager {
             ConsoleLogger.warn("[ScheduledRestart] Slot " + RestartSchedule.slotKey(nextRestart)
                     + " was missed by more than " + (MAX_LATENESS_MILLIS / 1000) + "s — skipped.");
             computeNextClockSlot();
-            sentWarnings.clear();
+            resetAnnouncements();
         }
         if (nextFireMillis <= 0) return;
 
@@ -437,7 +459,7 @@ public final class ScheduledRestartManager {
         // A restart that completed inside the same minute must not be replayed.
         if (mode == Mode.TIMES && slotKey != null && slotKey.equals(lastFiredSlot)) {
             advance(now);
-            sentWarnings.clear();
+            resetAnnouncements();
             return;
         }
 
@@ -446,12 +468,12 @@ public final class ScheduledRestartManager {
         if (skipPending) {
             skipPending = false;
             StateStore.put(STATE_NAMESPACE, STATE_SKIP_PENDING, null);
-            Broadcast.send(MessagesManager.getString("power.autorestart_skip_cancelled",
+            Broadcast.sendWithConsole(MessagesManager.getString("power.autorestart_skip_cancelled",
                     "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled:</red> <white>%action%</white> <gray>(skip)</gray><red>.</red>")
                     .replace("%action%", actionTitle()));
             ConsoleLogger.info("[ScheduledRestart] Due action skipped by /ui autorestart skip.");
             advance(now);
-            sentWarnings.clear();
+            resetAnnouncements();
             return;
         }
 
@@ -460,20 +482,20 @@ public final class ScheduledRestartManager {
         if (skipIfEmpty && online == 0) {
             ConsoleLogger.info("[ScheduledRestart] Due action skipped: no players online.");
             advance(now);
-            sentWarnings.clear();
+            resetAnnouncements();
             return;
         }
 
         if (playerLimitEnabled && !playerLimitSatisfied(online)) {
             ConsoleLogger.info("[ScheduledRestart] Due action skipped: online " + online
                     + " does not satisfy " + playerLimitComparison + " " + playerLimitValue + ".");
-            Broadcast.send(MessagesManager.getString("power.scheduled_skipped_limit",
+            Broadcast.sendWithConsole(MessagesManager.getString("power.scheduled_skipped_limit",
                     "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled action cancelled: online player limit not met</red> <gray>(%online% online, required %comparison% %value%)</gray><red>.</red>")
                     .replace("%online%", String.valueOf(online))
                     .replace("%comparison%", comparisonSymbol())
                     .replace("%value%", String.valueOf(playerLimitValue)));
             advance(now);
-            sentWarnings.clear();
+            resetAnnouncements();
             return;
         }
 
@@ -481,7 +503,7 @@ public final class ScheduledRestartManager {
         if (power == null || power.hasPendingRequest() || power.hasActiveCountdown()) {
             ConsoleLogger.warn("[ScheduledRestart] Due action skipped: another power action is pending.");
             advance(now);
-            sentWarnings.clear();
+            resetAnnouncements();
             return;
         }
 
@@ -498,7 +520,7 @@ public final class ScheduledRestartManager {
         // The next run is persisted BEFORE the server goes down in timer mode,
         // so the interval survives a restart that happens during the countdown.
         advance(now);
-        sentWarnings.clear();
+        resetAnnouncements();
     }
 
     private boolean playerLimitSatisfied(int online) {
@@ -517,29 +539,106 @@ public final class ScheduledRestartManager {
         };
     }
 
-    /** Sends at most one warning per tick (the most urgent crossed threshold). */
+    /** Sends at most one announcement per tick (the most urgent crossed threshold). */
     private void sendDueWarnings(long remainingSeconds) {
-        if (warningMinutes.isEmpty()) return;
+        if (!sendThresholdWarning(remainingSeconds)) {
+            sendSecondReport(remainingSeconds);
+        }
+    }
 
-        Integer due = null;
-        for (Integer minutes : warningMinutes) {
-            if (sentWarnings.contains(minutes)) continue;
-            if (remainingSeconds <= minutes * 60L) {
-                if (due == null) due = minutes;
+    /**
+     * Announces the most urgent not-yet-sent threshold that the countdown has
+     * crossed, using the threshold's own configured value and unit
+     * ({@code "30m"} announces {@code 30 minutes}, not {@code 1799 seconds}).
+     *
+     * @return true when an announcement was sent this tick
+     */
+    private boolean sendThresholdWarning(long remainingSeconds) {
+        if (warningSeconds.isEmpty()) return false;
+
+        Long due = null;
+        for (Long threshold : warningSeconds) {
+            if (sentWarnings.contains(threshold)) continue;
+            if (remainingSeconds <= threshold) {
+                if (due == null) due = threshold;
                 // Larger thresholds are already in the past — don't spam them later.
-                sentWarnings.add(minutes);
+                sentWarnings.add(threshold);
             }
         }
-        if (due == null) return;
+        if (due == null) return false;
 
+        announce(due);
+        return true;
+    }
+
+    /**
+     * Per-second report once only {@code second_report_from} is left
+     * (default {@code 10s}); each remaining second is announced exactly once.
+     */
+    private void sendSecondReport(long remainingSeconds) {
+        if (secondReportFrom <= 0 || remainingSeconds <= 0 || remainingSeconds > secondReportFrom) return;
+        if (remainingSeconds == lastReportedSecond) return;
+        lastReportedSecond = remainingSeconds;
+        announce(remainingSeconds);
+    }
+
+    /** Broadcasts one "server restarts in N unit" line to players AND the console. */
+    private void announce(long seconds) {
+        RestartSchedule.TimeValue time = RestartSchedule.splitUnits(seconds);
         String actionLabel = action == RequestType.STOP
                 ? MessagesManager.getString("power.action_stop", "shutting down")
                 : MessagesManager.getString("power.action_restart", "restarting");
-        String message = MessagesManager.getString("power.scheduled_warning",
-                "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% in</red> <yellow>%minutes%</yellow> <red>min.</red>")
+        String message = MessagesManager.getString("power.scheduled_announce",
+                "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% in</red> <yellow>%time%</yellow> <red>%unit%.</red>")
                 .replace("%action%", actionLabel)
-                .replace("%minutes%", String.valueOf(due));
-        Broadcast.send(message);
+                .replace("%time%", String.valueOf(time.value()))
+                .replace("%unit%", unitWord(time.unit()));
+        Broadcast.sendWithConsole(message);
+    }
+
+    /** Localized unit word for the current language ("seconds", "минут", ...). */
+    private static String unitWord(RestartSchedule.Unit unit) {
+        return switch (unit) {
+            case DAYS -> MessagesManager.getString("power.unit_days", "days");
+            case HOURS -> MessagesManager.getString("power.unit_hours", "hours");
+            case MINUTES -> MessagesManager.getString("power.unit_minutes", "minutes");
+            case SECONDS -> MessagesManager.getString("power.unit_seconds", "seconds");
+        };
+    }
+
+    /** "{@code 30m}" for the startup log line. */
+    private static String describeTimeValue(RestartSchedule.TimeValue time) {
+        return time.value() + switch (time.unit()) {
+            case DAYS -> "d";
+            case HOURS -> "h";
+            case MINUTES -> "m";
+            case SECONDS -> "s";
+        };
+    }
+
+    /**
+     * Parses {@code second_report_from}: a value with a unit (default {@code 10s});
+     * {@code 0}, {@code 0s} or {@code off} disables the per-second report.
+     */
+    private long parseSecondReportFrom(String raw) {
+        if (raw == null || raw.isBlank()) return 10L;
+        String value = raw.trim();
+        if (value.equalsIgnoreCase("off") || value.equals("0") || value.equalsIgnoreCase("0s")) {
+            return 0L;
+        }
+        Duration parsed = RestartSchedule.parseInterval(value);
+        if (parsed == null) {
+            ConsoleLogger.warn("[ScheduledRestart] Invalid second_report_from '" + raw
+                    + "' — using 10s (expected 10s, 5m or 0/off)");
+            return 10L;
+        }
+        return parsed.getSeconds();
+    }
+
+    /** Clears the "already announced" guards (new slot / new countdown). */
+    private void resetAnnouncements() {
+        sentWarnings.clear();
+        lastReportedSecond = -1L;
     }
 
     /** Moves to the next run: clock mode -> next configured time, timer -> now + interval. */

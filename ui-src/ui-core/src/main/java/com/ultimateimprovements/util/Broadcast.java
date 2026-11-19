@@ -57,6 +57,27 @@ public final class Broadcast {
         sendRaw(miniMessage);
     }
 
+    /**
+     * Sends a MiniMessage string to all online players AND the server console
+     * (colored, prefixed with {@code "[UI] "}) — for announcements that staff
+     * watching the console must see too (scheduled restart countdown, ...).
+     *
+     * @param miniMessage the MiniMessage-format string
+     */
+    public static void sendWithConsole(String miniMessage) {
+        if (miniMessage == null) return;
+        String full = miniMessage.isBlank() ? miniMessage : MessageUtil.PREFIX + miniMessage;
+        var parsed = MessageUtil.parse(full);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.sendMessage(parsed);
+        }
+        try {
+            Bukkit.getConsoleSender().sendMessage(parsed);
+        } catch (RuntimeException ignored) {
+            // Server not running (unit tests / early startup) — players get it later.
+        }
+    }
+
     /** Low-level send — no prefix, no checks. */
     private static void sendRaw(String miniMessage) {
         if (miniMessage == null) return;

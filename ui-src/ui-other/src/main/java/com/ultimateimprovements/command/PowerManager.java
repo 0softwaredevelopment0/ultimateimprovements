@@ -226,7 +226,7 @@ public class PowerManager {
         }
 
         // --- Initial broadcast ---
-        Broadcast.send(MessagesManager.getString("power.countdown_broadcast",
+        Broadcast.sendWithConsole(MessagesManager.getString("power.countdown_broadcast",
                 "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% in</red> <white>%seconds%</white> <red>seconds!</red>")
                 .replace("%action%", action)
                 .replace("%seconds%", String.valueOf(duration)));
@@ -246,7 +246,7 @@ public class PowerManager {
                 // --- Last tick — execute ---
                 if (currentSecond < 0) {
                     try {
-                        Broadcast.send(MessagesManager.getString("power.executing",
+                        Broadcast.sendWithConsole(MessagesManager.getString("power.executing",
                                 "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action%...</red>")
                                 .replace("%action%", actionMsg));
                         playBeepToAll(countdownSoundPitchMax);
@@ -275,7 +275,7 @@ public class PowerManager {
                         String secWord;
                         if (currentSecond == 1) secWord = "second";
                         else secWord = "seconds";
-                        Broadcast.send(MessagesManager.getString("power.countdown_seconds",
+                        Broadcast.sendWithConsole(MessagesManager.getString("power.countdown_seconds",
                                 "<red>Server %action% in</red> <white>%seconds%</white> <red>%unit%...</red>")
                                 .replace("%action%", actionMsg)
                                 .replace("%seconds%", String.valueOf(currentSecond))
@@ -405,7 +405,7 @@ public class PowerManager {
         String actionTitle = cancelledType == RequestType.STOP
                 ? MessagesManager.getString("power.action_stop_title", "Shutdown")
                 : MessagesManager.getString("power.action_restart_title", "Restart");
-        Broadcast.send(MessagesManager.getString("power.scheduled_cancelled",
+        Broadcast.sendWithConsole(MessagesManager.getString("power.scheduled_cancelled",
                 "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Scheduled %action% cancelled</red> <white>%by%</white><red>.</red>")
                 .replace("%action%", actionTitle)
                 .replace("%by%", by));
@@ -564,7 +564,7 @@ public class PowerManager {
      */
     public void executeDirect(boolean isRestart) {
         if (isRestart) {
-            Broadcast.send(MessagesManager.getString("power.direct_restart",
+            Broadcast.sendWithConsole(MessagesManager.getString("power.direct_restart",
                     "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server restarting (console command)...</red>"));
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
                 // "We're shutting down!" — award to everyone online before the power action
@@ -572,7 +572,7 @@ public class PowerManager {
                 Bukkit.getServer().restart();
             }, 20);
         } else {
-            Broadcast.send(MessagesManager.getString("power.direct_stop",
+            Broadcast.sendWithConsole(MessagesManager.getString("power.direct_stop",
                     "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server shutting down (console command)...</red>"));
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
                 // "We're shutting down!" — award to everyone online before the power action

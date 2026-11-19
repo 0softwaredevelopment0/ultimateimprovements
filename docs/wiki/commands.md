@@ -154,7 +154,7 @@ Offline \`invsee\`/ \`endersee\` edits touch the player data file and make a bac
 | \`/ui autorestart undoskip\` | Clear skip |
 | \`/ui autorestart reset\` | Reset the timer |
 
-The scheduled restart system is configured in \`UI-Essentials.toml\`. See [Configuration](configuration.md).
+The scheduled restart system is configured in \`UI-Essentials.toml\`. See [Configuration](configuration.md). When the module is disabled in the config, \`/ui autorestart\` stays registered but every action except \`on\` answers with error \`018\` ("the command belongs to a disabled module").
 
 ## Console versus player execution
 
