@@ -28,6 +28,12 @@ public final class RestartSchedule {
     private static final Pattern INTERVAL = Pattern.compile("^\\s*(\\d{1,7})\\s*([smhd])\\s*$",
             Pattern.CASE_INSENSITIVE);
 
+    /** Time unit of an announcement value ({@code 45} + {@code SECONDS}). */
+    public enum Unit { SECONDS, MINUTES, HOURS, DAYS }
+
+    /** A duration split into a value and its largest exact unit. */
+    public record TimeValue(long value, Unit unit) {}
+
     private RestartSchedule() {}
 
     /**
@@ -98,6 +104,49 @@ public final class RestartSchedule {
         };
         if (seconds <= 0) return null;
         return Duration.ofSeconds(seconds);
+    }
+
+    /**
+     * Parses announcement thresholds configured as time values with a unit
+     * ({@code "1h"}, {@code "30m"}, {@code "45s"}), dropping malformed entries
+     * through {@code onInvalid}, collapsing duplicates and sorting ascending.
+     *
+     * @return immutable list of distinct thresholds in seconds
+     */
+    public static List<Long> parseWarningTimes(Collection<String> raw, Consumer<String> onInvalid) {
+        if (raw == null || raw.isEmpty()) return List.of();
+
+        List<Long> parsed = new ArrayList<>();
+        for (String entry : raw) {
+            Duration duration = parseInterval(entry);
+            if (duration == null) {
+                if (onInvalid != null) onInvalid.accept(entry);
+                continue;
+            }
+            long seconds = duration.getSeconds();
+            if (!parsed.contains(seconds)) parsed.add(seconds);
+        }
+        Collections.sort(parsed);
+        return List.copyOf(parsed);
+    }
+
+    /**
+     * Splits seconds into the largest exact unit for announcements:
+     * {@code 3600 -> 1 hours}, {@code 1800 -> 30 minutes}, {@code 45 -> 45 seconds}.
+     * A value that is not an exact multiple of a larger unit stays in seconds.
+     */
+    public static TimeValue splitUnits(long totalSeconds) {
+        long seconds = Math.max(0, totalSeconds);
+        if (seconds >= 86_400 && seconds % 86_400 == 0) {
+            return new TimeValue(seconds / 86_400, Unit.DAYS);
+        }
+        if (seconds >= 3_600 && seconds % 3_600 == 0) {
+            return new TimeValue(seconds / 3_600, Unit.HOURS);
+        }
+        if (seconds >= 60 && seconds % 60 == 0) {
+            return new TimeValue(seconds / 60, Unit.MINUTES);
+        }
+        return new TimeValue(seconds, Unit.SECONDS);
     }
 
     /**

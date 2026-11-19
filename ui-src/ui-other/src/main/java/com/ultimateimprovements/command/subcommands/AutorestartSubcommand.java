@@ -20,6 +20,11 @@ import java.util.Locale;
  * {@code /ui autorestart on|off|status|skip|undoskip|reset} — in-game control of
  * the automatic restart schedule.
  * <p>
+ * The command is registered unconditionally (also when
+ * {@code scheduled_restart.enabled = false}); while the module is off every
+ * action except {@code on} answers with error {@code 018} ("the command belongs
+ * to a disabled module").
+ * <p>
  * The command itself is exposed through the existing {@code /ui} root, which is
  * registered with the modern Paper/Brigadier command API
  * ({@code PaperCommands} + {@code LifecycleEvents.COMMANDS}); this class plugs
@@ -47,6 +52,16 @@ public final class AutorestartSubcommand implements SubCommand {
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
+        // The command stays registered even when the module is off, but every
+        // action except "on" (which enables the module) reports error 018 —
+        // "the command belongs to a disabled module".
+        ScheduledRestartManager schedule = ScheduledRestartManager.getInstance();
+        boolean enableRequest = args.length >= 2 && args[1].equalsIgnoreCase("on");
+        if (schedule == null || (!schedule.isEnabled() && !enableRequest)) {
+            CommandErrors.moduleDisabled(sender, "scheduled_restart");
+            return true;
+        }
+
         if (args.length < 2) {
             CommandErrors.syntaxError(sender);
             send(sender, USAGE);

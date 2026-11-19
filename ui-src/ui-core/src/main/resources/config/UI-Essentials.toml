@@ -325,9 +325,15 @@ timer = "48h"
 # Action at the scheduled moment: "restart" or "shutdown".
 # Default: "restart"
 action = "restart"
-# Chat warnings, in minutes before the action. Sorted automatically; empty list removes warnings.
-# Default: [30, 15, 10, 5, 1]
-warning_minutes = [30, 15, 10, 5, 1]
+# Announcements before the action, as time values with an explicit unit:
+# s = seconds, m = minutes, h = hours, d = days. Sorted automatically;
+# an empty list disables the announcements.
+# Default: ["1h", "30m", "15m", "5m", "1m", "45s", "30s", "15s"]
+warning_times = ["1h", "30m", "15m", "5m", "1m", "45s", "30s", "15s"]
+# Per-second countdown report: starts when this much time is left
+# ("0", "0s" or "off" disables the per-second report).
+# Default: "10s"
+second_report_from = "10s"
 # Countdown length in seconds between the scheduled trigger and the actual action.
 # Default: 60
 countdown_seconds = 60
@@ -491,9 +497,22 @@ executing = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер
 direct_stop = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер выключается (команда консоли)...</red>"
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер перезагружается (команда консоли)...</red>
 direct_restart = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер перезагружается (команда консоли)...</red>"
-# Chat warning before the action (%action%, %minutes%).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <yellow>%minutes%</yellow> <red>мин.</red>
-scheduled_warning = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <yellow>%minutes%</yellow> <red>мин.</red>"
+# Announcement before the scheduled action: %action%, %time%, %unit%
+# (used both for warning_times thresholds and the per-second report).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <yellow>%time%</yellow> <red>%unit%.</red>
+scheduled_announce = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <yellow>%time%</yellow> <red>%unit%.</red>"
+# Unit word for %unit% when the value is in seconds.
+# Default: секунд
+unit_seconds = "секунд"
+# Unit word for %unit% when the value is in minutes.
+# Default: минут
+unit_minutes = "минут"
+# Unit word for %unit% when the value is in hours.
+# Default: часов
+unit_hours = "часов"
+# Unit word for %unit% when the value is in days.
+# Default: дней
+unit_days = "дней"
 # Next scheduled run (%time%, %remaining%).
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Следующее плановое событие:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>
 scheduled_next = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Следующее плановое событие:</gray> <white>%time%</white> <gray>(через</gray> <yellow>%remaining%</yellow><gray>)</gray>"
@@ -848,9 +867,22 @@ executing = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %acti
 direct_stop = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server shutting down (console command)...</red>"
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server restarting (console command)...</red>
 direct_restart = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server restarting (console command)...</red>"
-# Chat warning before the action (%action%, %minutes%).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% in</red> <yellow>%minutes%</yellow> <red>min.</red>
-scheduled_warning = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% in</red> <yellow>%minutes%</yellow> <red>min.</red>"
+# Announcement before the scheduled action: %action%, %time%, %unit%
+# (used both for warning_times thresholds and the per-second report).
+# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% in</red> <yellow>%time%</yellow> <red>%unit%.</red>
+scheduled_announce = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action% in</red> <yellow>%time%</yellow> <red>%unit%.</red>"
+# Unit word for %unit% when the value is in seconds.
+# Default: seconds
+unit_seconds = "seconds"
+# Unit word for %unit% when the value is in minutes.
+# Default: minutes
+unit_minutes = "minutes"
+# Unit word for %unit% when the value is in hours.
+# Default: hours
+unit_hours = "hours"
+# Unit word for %unit% when the value is in days.
+# Default: days
+unit_days = "days"
 # Next scheduled run (%time%, %remaining%).
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Next scheduled action:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>
 scheduled_next = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <gray>Next scheduled action:</gray> <white>%time%</white> <gray>(in</gray> <yellow>%remaining%</yellow><gray>)</gray>"
