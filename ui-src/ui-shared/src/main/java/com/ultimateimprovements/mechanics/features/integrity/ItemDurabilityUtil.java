@@ -221,10 +221,13 @@ public final class ItemDurabilityUtil {
     /**
      * Applies {@code iterations} points of vanilla damage to the item.
      * Vanilla-unbreakable items ({@code minecraft:unbreakable}) never lose
-     * durability. Every point is rolled through the vanilla Unbreaking chance
-     * table first (tools: consumed with probability {@code 1/(level+1)},
-     * armor: with probability {@code 0.6 + 0.4/(level+1)}), so an item with
-     * Unbreaking keeps its vanilla durability-save chance on plugin wear too.
+     * durability. With Unbreaking enabled this delegates to Paper's
+     * {@link ItemStack#damage(int, org.bukkit.entity.LivingEntity)}, which runs
+     * the whole vanilla pipeline: per-point Unbreaking rolls, the
+     * {@code PlayerItemDamageEvent} (consumed by
+     * {@link LowDurabilityWarningListener}), stat changes and the break
+     * event/sound. With {@code features.integrity.unbreaking.enabled = false}
+     * the raw path writes the exact points itself and ignores Unbreaking.
      * Returns the actual integrity % after the deduction.
      */
     public static double decreaseItemIntegrity(ItemStack item, int iterations, Player owner) {
@@ -232,6 +235,27 @@ public final class ItemDurabilityUtil {
         if (isUnbreakable(item)) return getItemIntegrityPercent(item);
         int max = getMaxDurability(item);
         if (max <= 0) return getItemIntegrityPercent(item);
+
+        if (unbreakingEnabled && owner != null) {
+            ItemStack damaged = item.damage(iterations, owner);
+            if (damaged != item) {
+                // Plain (non-mirror) stack: the API may return another instance.
+                // Copy the result back so callers holding the original see it.
+                if (damaged.isEmpty()) {
+                    ItemMeta brokenMeta = item.getItemMeta();
+                    if (brokenMeta instanceof Damageable dmg) {
+                        dmg.setDamage(max);
+                        item.setItemMeta(brokenMeta);
+                    }
+                    item.setAmount(0);
+                } else {
+                    item.setItemMeta(damaged.getItemMeta());
+                    item.setAmount(damaged.getAmount());
+                }
+            }
+            return getItemIntegrityPercent(item);
+        }
+
         int effective = applyUnbreaking(item, iterations);
         if (effective <= 0) return getItemIntegrityPercent(item);
         return wearPoints(item, effective, owner);
