@@ -288,6 +288,71 @@ public final class OpManager {
         return SyncResult.LISTED;
     }
 
+    /**
+     * Result of {@link #reconcileAll()}.
+     *
+     * @param added    real OPs that were missing from the plugin list
+     * @param removed  stale list entries whose player no longer has real OP
+     * @param failed   {@code true} when the database could not be read
+     */
+    public record ReconcileResult(int added, int removed, boolean failed) {}
+
+    /**
+     * Full reconciliation between the real server operator set
+     * ({@code Bukkit.getOperators()} / {@code ops.json}) and the plugin's
+     * {@code op_list} table.
+     * <p>
+     * Both drift directions are repaired because the vanilla {@code /op} and
+     * {@code /deop} commands write only to {@code ops.json}:
+     * <ul>
+     *   <li>a real OP missing from the list is added (author {@value #SYNC_AUTHOR});</li>
+     *   <li>a list entry without real OP is dropped (the OP whitelist/blacklist
+     *       revoke through {@link #revoke}, so such an entry is genuinely stale).</li>
+     * </ul>
+     * Called right after a confirmed vanilla {@code /op} or {@code /deop}.
+     *
+     * @return counts of repaired entries; {@code failed} when the DB is unavailable
+     */
+    public static ReconcileResult reconcileAll() {
+        ensureTable();
+        Connection probe = DatabaseManager.getConnection();
+        if (probe == null) {
+            warnDb("reconcile failed — connection unavailable");
+            return new ReconcileResult(0, 0, true);
+        }
+        try {
+            probe.close();
+        } catch (SQLException ignored) {
+            // Read-only probe — closing failure does not matter.
+        }
+
+        Set<String> real = new HashSet<>();
+        for (OfflinePlayer op : org.bukkit.Bukkit.getOperators()) {
+            String name = op.getName();
+            if (name != null) real.add(name.toLowerCase(Locale.ROOT).trim());
+        }
+        List<String> listed = getList();
+        Set<String> listedSet = new HashSet<>(listed);
+
+        int added = 0;
+        for (String name : real) {
+            if (listedSet.contains(name)) continue;
+            if (add(name, SYNC_AUTHOR)) added++;
+        }
+
+        int removed = 0;
+        for (String name : listed) {
+            if (real.contains(name)) continue;
+            if (remove(name)) removed++;
+        }
+
+        if (added > 0 || removed > 0) {
+            ConsoleLogger.info("[OpManager] OP list reconciled: added " + added
+                    + ", removed " + removed + " (real OPs: " + real.size() + ").");
+        }
+        return new ReconcileResult(added, removed, false);
+    }
+
     // ════════════════════════════════════════
     // CONFIRMATION SYSTEM
     // ════════════════════════════════════════

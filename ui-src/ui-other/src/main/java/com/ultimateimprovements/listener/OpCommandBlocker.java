@@ -1,64 +1,105 @@
 package com.ultimateimprovements.listener;
 
-import com.ultimateimprovements.util.MessageUtil;
+import com.ultimateimprovements.command.VanillaOpCommand;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 
+import java.util.Locale;
+
 /**
- * 🚫 OpCommandBlocker — blocks the vanilla /op and /deop commands,
- * because UltimateImprovements uses its own interface (/ui op, /ui deop).
+ * Routes the <b>namespaced</b> vanilla {@code /op} and {@code /deop} variants
+ * ({@code /minecraft:op}, {@code /bukkit:deop}, …) into
+ * {@link VanillaOpCommand}.
  * <p>
- * Intercepts:
- * <ul>
- *   <li>{@code /op}, {@code /deop} (with any arguments)</li>
- *   <li>{@code /minecraft:op}, {@code /minecraft:deop}</li>
- *   <li>{@code /bukkit:op}, {@code /bukkit:deop}</li>
- *   <li>Both from players (PlayerCommandPreprocessEvent) and from the console (ServerCommandEvent)</li>
- * </ul>
+ * The bare labels are registered through the CommandMap
+ * ({@code CommandRegistrar}), so they are covered on every dispatch path
+ * including the sudo re-run. Namespaced labels bypass the Bukkit CommandMap and
+ * would otherwise reach the unmodified vanilla implementation — this listener
+ * cancels them and hands the call to the same handler.
+ * <p>
+ * Events cancelled by another plugin (the sudo dialog, for example) are left
+ * untouched.
  */
 public class OpCommandBlocker implements Listener {
 
-    private static final String BLOCK_MESSAGE =
-            "<red>Vanilla /op and /deop are disabled.</red> <gray>Use:</gray> <white>/ui op</white><gray> | </gray><white>/ui deop</white><gray> | </gray><white>/ui oplist</white>";
+    public OpCommandBlocker() {
+        // A soft reload creates a new listener — pending confirmations must not
+        // survive it.
+        VanillaOpCommand.resetPending();
+    }
+
+    // =========================
+    // PLAYER
+    // =========================
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
+        if (event.isCancelled()) return;
+        Parsed parsed = parse(event.getMessage());
+        if (parsed == null) return;
+
+        event.setCancelled(true);
+        VanillaOpCommand.handle(event.getPlayer(), parsed.grant(), parsed.args(), parsed.display());
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        VanillaOpCommand.clearPending(event.getPlayer().getUniqueId());
+    }
+
+    // =========================
+    // CONSOLE
+    // =========================
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onConsoleCommand(ServerCommandEvent event) {
+        if (event.isCancelled()) return;
+        Parsed parsed = parse("/" + event.getCommand());
+        if (parsed == null) return;
+
+        event.setCancelled(true);
+        CommandSender sender = event.getSender();
+        VanillaOpCommand.handle(sender, parsed.grant(), parsed.args(), parsed.display());
+    }
+
+    // =========================
+    // PARSING
+    // =========================
+    private record Parsed(boolean grant, String[] args, String display) {}
 
     /**
-     * Checks whether the command is a variant of /op or /deop (considering namespaces and arguments).
+     * Parses only namespaced {@code minecraft:}/{@code bukkit:} op/deop forms.
+     *
+     * @return {@code null} for anything else (bare labels are handled by the
+     *         CommandMap override)
      */
-    private static boolean isOpCommand(String msg) {
-        return msg.equals("/op")
-                || msg.startsWith("/op ")
-                || msg.equals("/deop")
-                || msg.startsWith("/deop ")
-                || msg.equals("/minecraft:op")
-                || msg.startsWith("/minecraft:op ")
-                || msg.equals("/minecraft:deop")
-                || msg.startsWith("/minecraft:deop ")
-                || msg.equals("/bukkit:op")
-                || msg.startsWith("/bukkit:op ")
-                || msg.equals("/bukkit:deop")
-                || msg.startsWith("/bukkit:deop ");
-    }
+    private static Parsed parse(String raw) {
+        String text = raw == null ? "" : raw.trim();
+        if (text.startsWith("/")) text = text.substring(1);
+        String[] parts = text.split("\\s+");
+        if (parts.length == 0) return null;
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
-        String msg = event.getMessage().toLowerCase().trim();
+        String head = parts[0].toLowerCase(Locale.ROOT);
+        int colon = head.indexOf(':');
+        if (colon < 0) return null;
+        String namespace = head.substring(0, colon);
+        if (!namespace.equals("minecraft") && !namespace.equals("bukkit")) return null;
 
-        if (isOpCommand(msg)) {
-            event.setCancelled(true);
-            event.getPlayer().sendMessage(MessageUtil.parse(BLOCK_MESSAGE));
+        String label = head.substring(colon + 1);
+        boolean grant;
+        if (label.equals("op")) {
+            grant = true;
+        } else if (label.equals("deop")) {
+            grant = false;
+        } else {
+            return null;
         }
-    }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onConsoleCommand(ServerCommandEvent event) {
-        String command = event.getCommand().toLowerCase().trim();
-
-        if (isOpCommand("/" + command)) {
-            event.setCancelled(true);
-            event.getSender().sendMessage(MessageUtil.parse(BLOCK_MESSAGE));
-        }
+        String[] args = new String[Math.max(0, parts.length - 1)];
+        System.arraycopy(parts, 1, args, 0, args.length);
+        return new Parsed(grant, args, "/" + namespace + ":" + label);
     }
 }

@@ -72,6 +72,8 @@ The vanilla `/whitelist` command keeps working, but every execution prints a dep
 
 Because these controls affect operator privileges and login access, test their behavior with a controlled account before enabling them on a production server. Use the in-game help for exact commands and temporary-operation flags.
 
+Vanilla `/op` and `/deop` remain available but are deprecated. They use the same permissions as `/ui op` / `/ui deop` (`ui.command.op`, `ui.command.deop`; OP-only by default), print a deprecation notice with clickable `/ui op` / `/ui deop` suggestions, and players must repeat the exact command within `op.vanilla_confirm_seconds` (default 15 s) or the action is cancelled. The console is not asked to confirm. Both commands are in the sudo dangerous-command list by default and reconcile the plugin's OP list against the real `ops.json` set after every execution.
+
 ## Anti-cheat and server guards
 
 The family includes multiple layers:
