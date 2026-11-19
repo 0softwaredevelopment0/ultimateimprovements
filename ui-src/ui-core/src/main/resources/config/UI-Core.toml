@@ -154,6 +154,9 @@ vanished_count = "<gray>(%count% в ванише)</gray>"
 # Permission node.
 # Default: <dark_red>❌</dark_red> <red>Ошибка: <gray>У вас нет прав!</gray></red>
 no_permission = "<dark_red>❌</dark_red> <red>Ошибка: <gray>У вас нет прав!</gray></red>"
+# Deprecation notice shown on every vanilla /whitelist execution.
+# Default: <yellow>⚠</yellow> <gray>Команда <white>/whitelist</white> устарела и может конфликтовать с системами плагина.</gray>\n<gray>Используйте <white>/ui whitelist</white> <dark_gray>|</dark_gray> <white>/ui blacklist</white>.</gray>
+whitelist_deprecated = "<yellow>⚠</yellow> <gray>Команда <white>/whitelist</white> устарела и может конфликтовать с системами плагина.</gray>\n<gray>Используйте <white>/ui whitelist</white> <dark_gray>|</dark_gray> <white>/ui blacklist</white>.</gray>"
 
 # fishing section.
 [messages.fishing]
@@ -909,6 +912,9 @@ vanished_count = "<gray>(%count% vanished)</gray>"
 # Permission node.
 # Default: <dark_red>❌</dark_red> <red>Error: <gray>You don't have permission!</gray></red>
 no_permission = "<dark_red>❌</dark_red> <red>Error: <gray>You don't have permission!</gray></red>"
+# Deprecation notice shown on every vanilla /whitelist execution.
+# Default: <yellow>⚠</yellow> <gray>The <white>/whitelist</white> command is deprecated and may conflict with the plugin's access systems.</gray>\n<gray>Use <white>/ui whitelist</white> <dark_gray>|</dark_gray> <white>/ui blacklist</white> instead.</gray>
+whitelist_deprecated = "<yellow>⚠</yellow> <gray>The <white>/whitelist</white> command is deprecated and may conflict with the plugin's access systems.</gray>\n<gray>Use <white>/ui whitelist</white> <dark_gray>|</dark_gray> <white>/ui blacklist</white> instead.</gray>"
 
 # fishing section.
 [messages_en.fishing]
