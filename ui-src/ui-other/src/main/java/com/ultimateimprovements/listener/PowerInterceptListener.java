@@ -1,136 +1,67 @@
 package com.ultimateimprovements.listener;
 
-import com.ultimateimprovements.core.Main;
-import com.ultimateimprovements.config.MessagesManager;
-import com.ultimateimprovements.util.MessageUtil;
-import org.bukkit.configuration.file.FileConfiguration;
+import com.ultimateimprovements.command.VanillaPowerCommand;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 
+import java.util.Locale;
+
 /**
- * Intercepts the /stop and /restart commands at the earliest stage.
- *
- * Why: In Paper the /restart command is handled by DedicatedServer's internal code
- * before the Bukkit CommandMap gets control. So the usual override
- * via CommandMap (registerOverride) does not work for /restart, although it works for /stop.
- *
- * PlayerCommandPreprocessEvent fires at the network packet level (PlayerConnection),
- * BEFORE any command processing by Paper — so it reliably intercepts /restart.
- *
- * ServerCommandEvent intercepts commands from the console.
- *
- * Settings are read from config.yml -> power:
+ * Routes the <b>namespaced</b> vanilla {@code /stop}/{@code /restart} variants
+ * ({@code /minecraft:stop}, {@code /bukkit:restart}, …) into
+ * {@link VanillaPowerCommand}.
+ * <p>
+ * The bare labels are CommandMap overrides (see
+ * {@code CommandRegistrar}), so they already work for players, the console and
+ * the sudo re-run. Namespaced labels bypass that override and would otherwise
+ * reach the unmodified vanilla implementation without the console confirmation
+ * flow — this listener cancels them and hands the call to the same handler.
  */
 public class PowerInterceptListener implements Listener {
 
-    private static PowerInterceptListener instance;
-
-    private String stopMessage;
-    private String restartMessage;
-    private boolean interceptEnabled;
-
-    public PowerInterceptListener() {
-        instance = this;
-        reloadConfig();
-    }
-
-    /**
-     * Allows updating settings on /ui reload without recreating the listener.
-     */
-    public static void reloadConfigStatic() {
-        if (instance != null) {
-            instance.reloadConfig();
-        }
-    }
-
-    /**
-     * Reloads settings from config.yml.
-     */
-    public void reloadConfig() {
-        FileConfiguration cfg = Main.getInstance().getConfig();
-        interceptEnabled = cfg.getBoolean("power.intercept_commands", true);
-        stopMessage = MessagesManager.getString("power.stop_message",
-                "<dark_gray>[<dark_red>⚠</dark_red>] <red>Команда /stop отключена. Используйте: <white>/ui power off</white></dark_gray>");
-        restartMessage = MessagesManager.getString("power.restart_message",
-                "<dark_gray>[<dark_red>⚠</dark_red>] <red>Команда /restart отключена. Используйте: <white>/ui power reboot</white></dark_gray>");
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
-        if (!interceptEnabled) return;
+        if (event.isCancelled()) return;
+        Parsed parsed = parse(event.getMessage());
+        if (parsed == null) return;
 
-        String msg = event.getMessage().toLowerCase().trim();
-
-        // =========================
-        // BLOCK /RESTART (player)
-        // =========================
-        // Check exact match and prefix (to catch /restart with arguments)
-        // Also variants with minecraft: and bukkit: namespaces:
-        if (isRestartCommand(msg)) {
-            event.setCancelled(true);
-            event.getPlayer().sendMessage(MessageUtil.parse(restartMessage));
-            return;
-        }
-
-        // =========================
-        // BLOCK /STOP (player) — duplicate interception in case
-        // the CommandMap override does not fire for some reason
-        // =========================
-        if (isStopCommand(msg)) {
-            event.setCancelled(true);
-            event.getPlayer().sendMessage(MessageUtil.parse(stopMessage));
-        }
+        event.setCancelled(true);
+        VanillaPowerCommand.handle(event.getPlayer(), parsed.restart(), parsed.display());
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onConsoleCommand(ServerCommandEvent event) {
-        if (!interceptEnabled) return;
+        if (event.isCancelled()) return;
+        Parsed parsed = parse("/" + event.getCommand());
+        if (parsed == null) return;
 
-        String command = event.getCommand().toLowerCase().trim();
-
-        // =========================
-        // BLOCK /RESTART (console)
-        // =========================
-        if (isRestartCommand("/" + command)) {
-            event.setCancelled(true);
-            event.getSender().sendMessage(MessageUtil.parse(restartMessage));
-            return;
-        }
-
-        // =========================
-        // BLOCK /STOP (console)
-        // =========================
-        if (isStopCommand("/" + command)) {
-            event.setCancelled(true);
-            event.getSender().sendMessage(MessageUtil.parse(stopMessage));
-            return;
-        }
+        event.setCancelled(true);
+        CommandSender sender = event.getSender();
+        VanillaPowerCommand.handle(sender, parsed.restart(), parsed.display());
     }
 
-    /**
-     * Checks whether the message is a /restart command (considering namespaces and arguments).
-     */
-    private boolean isRestartCommand(String msg) {
-        return msg.equals("/restart")
-                || msg.startsWith("/restart ")
-                || msg.equals("/minecraft:restart")
-                || msg.startsWith("/minecraft:restart ")
-                || msg.equals("/bukkit:restart")
-                || msg.startsWith("/bukkit:restart ");
-    }
+    private record Parsed(boolean restart, String display) {}
 
     /**
-     * Checks whether the message is a /stop command (considering namespaces and arguments).
+     * Parses only namespaced {@code minecraft:}/{@code bukkit:} stop/restart
+     * forms; bare labels are handled by the CommandMap override.
      */
-    private boolean isStopCommand(String msg) {
-        return msg.equals("/stop")
-                || msg.startsWith("/stop ")
-                || msg.equals("/minecraft:stop")
-                || msg.startsWith("/minecraft:stop ")
-                || msg.equals("/bukkit:stop")
-                || msg.startsWith("/bukkit:stop ");
+    private static Parsed parse(String raw) {
+        String text = raw == null ? "" : raw.trim();
+        if (text.startsWith("/")) text = text.substring(1);
+        String head = text.split("\\s+", 2)[0].toLowerCase(Locale.ROOT);
+        int colon = head.indexOf(':');
+        if (colon < 0) return null;
+        String namespace = head.substring(0, colon);
+        if (!namespace.equals("minecraft") && !namespace.equals("bukkit")) return null;
+
+        String label = head.substring(colon + 1);
+        if (label.equals("stop")) return new Parsed(false, "/" + namespace + ":stop");
+        if (label.equals("restart")) return new Parsed(true, "/" + namespace + ":restart");
+        return null;
     }
 }

@@ -34,12 +34,13 @@ import java.util.List;
 public class SudoCommandInterceptor implements Listener {
 
     /**
-     * Command policy: vanilla commands superseded by /ui equivalents
-     * ({@code command_policy.enabled}, default true; the list:
-     * {@code command_policy.disabled_commands}, default: stop/restart) are
-     * answered with error 011 ("command disabled on this server"). Vanilla
-     * {@code op}/{@code deop} are no longer part of this list: they stay usable
-     * with a deprecation notice and a repeat-to-confirm step.
+     * Command policy: a configurable list of blocked command prefixes
+     * ({@code command_policy.enabled}, default false; the list:
+     * {@code command_policy.disabled_commands}, default empty) is answered with
+     * error 011 ("command disabled on this server"). Vanilla
+     * {@code op}/{@code deop}/{@code stop}/{@code restart} are not part of the
+     * default list: they stay usable with a deprecation notice and their own
+     * confirmation flows.
      * Blocked for PLAYERS and the CONSOLE/RCON alike — they are unsafe and
      * have /ui replacements (/ui op|deop, /ui power off|reboot) that also work
      * from the console. Independent of the sudo feature toggle — active
