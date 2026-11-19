@@ -195,6 +195,38 @@ public class PowerManager {
     }
 
     /**
+     * Performs a schedule-triggered action with no extra countdown
+     * ({@code [scheduled_restart] delay = "0s"}): announces it once and
+     * restarts/stops on the next tick. The pre-warnings and the per-second
+     * report already counted down to this moment.
+     *
+     * @return false when another power action is already running
+     */
+    public boolean executeScheduledNow(RequestType type) {
+        if (currentRequest != null || countdownActive) return false;
+
+        RequestType effective = type == null ? RequestType.RESTART : type;
+        String actionMsg = effective == RequestType.STOP
+                ? MessagesManager.getString("power.action_stop", "shutting down")
+                : MessagesManager.getString("power.action_restart", "restarting");
+
+        Broadcast.sendWithConsole(MessagesManager.getString("power.executing",
+                "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Server %action%...</red>")
+                .replace("%action%", actionMsg));
+
+        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+            // "We're shutting down!" — award to everyone online before the power action
+            CoreHooks.grantShutdownToAllOnline();
+            if (effective == RequestType.STOP) {
+                Bukkit.getServer().shutdown();
+            } else {
+                Bukkit.getServer().restart();
+            }
+        }, 1L);
+        return true;
+    }
+
+    /**
      * Runs the shared countdown (BossBar/ActionBar/chat/beeps) and performs the
      * requested action when it reaches zero.
      *
