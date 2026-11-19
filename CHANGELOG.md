@@ -3,6 +3,19 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.10.0-alpha.4] - 2026-11-19
+
+### Fixed
+- **`/ui autorestart` is registered again.** The subcommand class lives in
+  UI-Other, but the auto-discovery pass scanned UI-Core's JAR (and loaded the
+  classes through UI-Core's class loader), so it found nothing and the command
+  silently never existed — even with `[scheduled_restart] enabled = true`.
+  `CommandScanner` now scans UI-Other's own plugin file with UI-Other's class
+  loader (`ClassScanner.findAnnotatedClasses` gained an explicit-loader
+  overload), and `AutorestartSubcommand` is additionally registered explicitly
+  in `PluginReloadCommand.init()` next to the other subcommands, so a missing
+  JAR scan can no longer drop it.
+
 ## [1.10.0-alpha.2] - 2026-11-17
 
 ### Fixed

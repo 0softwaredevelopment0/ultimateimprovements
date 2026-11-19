@@ -34,10 +34,29 @@ public final class ClassScanner {
      * @param <A>           the annotation type
      * @return list of classes bearing the annotation
      */
-    @SuppressWarnings("unchecked")
     public static <A extends Annotation> List<Class<?>> findAnnotatedClasses(
             File jarFile, Class<A> annotation, String packagePrefix) {
+        return findAnnotatedClasses(jarFile, annotation, packagePrefix,
+                ClassScanner.class.getClassLoader());
+    }
 
+    /**
+     * Same as {@link #findAnnotatedClasses(File, Class, String)} but loads the
+     * discovered classes through an explicit class loader.
+     * <p>
+     * Required when one addon scans a JAR whose classes are loaded by a
+     * <em>different</em> {@code PluginClassLoader} (e.g. UI-Other scanning its
+     * own JAR): UI-Core's loader cannot see addon classes, so the default
+     * loader would silently skip every entry.
+     *
+     * @param loader        the class loader that can resolve the scanned classes
+     * @param <A>           the annotation type
+     * @return list of classes bearing the annotation
+     */
+    public static <A extends Annotation> List<Class<?>> findAnnotatedClasses(
+            File jarFile, Class<A> annotation, String packagePrefix, ClassLoader loader) {
+
+        ClassLoader classLoader = loader != null ? loader : ClassScanner.class.getClassLoader();
         List<Class<?>> result = new ArrayList<>();
 
         if (jarFile == null || !jarFile.exists()) {
@@ -66,7 +85,7 @@ public final class ClassScanner {
                         .substring(0, name.length() - ".class".length());
 
                 try {
-                    Class<?> clazz = Class.forName(className, false, ClassScanner.class.getClassLoader());
+                    Class<?> clazz = Class.forName(className, false, classLoader);
 
                     if (clazz.isAnnotationPresent(annotation)) {
                         // Check that it is not an abstract class and not an interface
@@ -80,7 +99,7 @@ public final class ClassScanner {
             }
         } catch (Exception e) {
             // In a dev environment (IDE) the JAR may not exist — scan the classpath
-            return findAnnotatedClassesClasspath(annotation, packagePrefix);
+            return findAnnotatedClassesClasspath(annotation, packagePrefix, classLoader);
         }
 
         return result;
@@ -90,18 +109,18 @@ public final class ClassScanner {
      * Fallback: scans the classpath for a dev environment without a JAR.
      */
     private static <A extends Annotation> List<Class<?>> findAnnotatedClassesClasspath(
-            Class<A> annotation, String packagePrefix) {
+            Class<A> annotation, String packagePrefix, ClassLoader loader) {
 
         List<Class<?>> result = new ArrayList<>();
         String packagePath = packagePrefix.replace('.', '/');
 
-        ClassLoader cl = ClassScanner.class.getClassLoader();
+        ClassLoader cl = loader;
         if (!(cl instanceof URLClassLoader ucl)) return result;
 
         for (URL url : ucl.getURLs()) {
             File file = new File(url.getFile());
             if (file.isDirectory()) {
-                scanDirectory(file, file, packagePath, annotation, result);
+                scanDirectory(file, file, packagePath, annotation, result, loader);
             }
         }
 
@@ -110,14 +129,14 @@ public final class ClassScanner {
 
     private static <A extends Annotation> void scanDirectory(
             File root, File dir, String packagePath,
-            Class<A> annotation, List<Class<?>> result) {
+            Class<A> annotation, List<Class<?>> result, ClassLoader loader) {
 
         File[] files = dir.listFiles();
         if (files == null) return;
 
         for (File file : files) {
             if (file.isDirectory()) {
-                scanDirectory(root, file, packagePath, annotation, result);
+                scanDirectory(root, file, packagePath, annotation, result, loader);
             } else if (file.getName().endsWith(".class") && !file.getName().contains("$")) {
                 // Compute the full class name from the path
                 String relativePath = file.getAbsolutePath()
@@ -128,7 +147,7 @@ public final class ClassScanner {
                 if (!relativePath.startsWith(packagePath.replace('/', '.'))) continue;
 
                 try {
-                    Class<?> clazz = Class.forName(relativePath, false, ClassScanner.class.getClassLoader());
+                    Class<?> clazz = Class.forName(relativePath, false, loader);
                     if (clazz.isAnnotationPresent(annotation)
                             && !clazz.isInterface()
                             && !java.lang.reflect.Modifier.isAbstract(clazz.getModifiers())) {
