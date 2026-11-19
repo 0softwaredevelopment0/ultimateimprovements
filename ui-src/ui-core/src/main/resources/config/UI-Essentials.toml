@@ -334,9 +334,12 @@ warning_times = ["1h", "30m", "15m", "5m", "1m", "45s", "30s", "15s"]
 # ("0", "0s" or "off" disables the per-second report).
 # Default: "10s"
 second_report_from = "10s"
-# Countdown length in seconds between the scheduled trigger and the actual action.
-# Default: 60
-countdown_seconds = 60
+# Delay between the scheduled moment and the actual action, as a time value
+# with an explicit unit: s = seconds, m = minutes, h = hours, d = days.
+# "0s" (default) performs the action immediately on the scheduled moment —
+# warning_times and the per-second report already count down to it.
+# Default: "0s"
+delay = "0s"
 # Skip the action when no players are online (the run is still consumed).
 # Default: false
 skip_if_empty = false

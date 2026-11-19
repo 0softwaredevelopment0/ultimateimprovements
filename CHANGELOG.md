@@ -3,6 +3,19 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.2] - 2026-11-20
+
+### Fixed
+- **The scheduled restart no longer jumps from "1 second" to a 60-second
+  countdown.** The trigger used to start a separate `countdown_seconds`
+  countdown (60s by default) right after the announcements reached zero. That
+  key is replaced by `[scheduled_restart] delay` — a time value with the same
+  `s`/`m`/`h`/`d` units, default `"0s"`: the action is performed at the
+  scheduled moment, because `warning_times` and the per-second report already
+  counted down to it. A positive value (`"60s"`, `"5m"`) starts the usual
+  BossBar/ActionBar countdown before the action, matching `/ui power off`.
+  Configs without `delay` fall back to the legacy `countdown_seconds`.
+
 ## [1.11.0-alpha.1] - 2026-11-19
 
 ### Added

@@ -76,7 +76,8 @@ public final class ScheduledRestartManager {
     private final List<Long> warningSeconds = new ArrayList<>();
     /** Per-second report start in seconds (0 = disabled). */
     private long secondReportFrom = 10L;
-    private int countdownSeconds = 60;
+    /** Delay between the scheduled moment and the actual action (0 = immediate). */
+    private Duration delay = Duration.ZERO;
     private boolean skipIfEmpty;
     private boolean playerLimitEnabled;
     private PlayerLimitComparison playerLimitComparison = PlayerLimitComparison.ABOVE;
@@ -145,7 +146,7 @@ public final class ScheduledRestartManager {
         zone = resolveZone(cfg.getString("scheduled_restart.timezone", ""));
         mode = parseMode(cfg.getString("scheduled_restart.mode", "times"));
         action = parseAction(cfg.getString("scheduled_restart.action", "restart"));
-        countdownSeconds = Math.max(1, cfg.getInt("scheduled_restart.countdown_seconds", 60));
+        delay = parseDelay(cfg);
         skipIfEmpty = cfg.getBoolean("scheduled_restart.skip_if_empty", false);
         playerLimitEnabled = cfg.getBoolean("scheduled_restart.player_limit_enabled", false);
         playerLimitComparison = parseComparison(
@@ -205,7 +206,7 @@ public final class ScheduledRestartManager {
                 + (mode == Mode.TIMER ? ", interval=" + interval : ", times=" + times + ", zone=" + zone)
                 + ", action=" + action
                 + ", next=" + describeNext()
-                + ", countdown=" + countdownSeconds + "s"
+                + ", delay=" + (delay.isZero() ? "0s (immediate)" : delay.getSeconds() + "s")
                 + ", warnings=" + warningSeconds.stream()
                         .map(RestartSchedule::splitUnits)
                         .map(ScheduledRestartManager::describeTimeValue)
@@ -311,6 +312,39 @@ public final class ScheduledRestartManager {
                 yield RequestType.RESTART;
             }
         };
+    }
+
+    /**
+     * Parses {@code scheduled_restart.delay}: a time value with an explicit unit
+     * ({@code s/m/h/d}), default {@code 0s} — the action is performed at the
+     * scheduled moment because {@code warning_times} already counts down to it.
+     * The removed {@code countdown_seconds} integer is honoured as a fallback
+     * when {@code delay} is absent.
+     */
+    private Duration parseDelay(FileConfiguration cfg) {
+        String raw = cfg.getString("scheduled_restart.delay", null);
+        if (raw == null) {
+            int legacy = cfg.getInt("scheduled_restart.countdown_seconds", 0);
+            if (legacy > 0) {
+                ConsoleLogger.info("[ScheduledRestart] delay is absent — using legacy countdown_seconds="
+                        + legacy + "s.");
+                return Duration.ofSeconds(legacy);
+            }
+            return Duration.ZERO;
+        }
+
+        String value = raw.trim();
+        if (value.isEmpty() || value.equalsIgnoreCase("off")
+                || value.equals("0") || value.equalsIgnoreCase("0s")) {
+            return Duration.ZERO;
+        }
+        Duration parsed = RestartSchedule.parseInterval(value);
+        if (parsed == null) {
+            ConsoleLogger.warn("[ScheduledRestart] Invalid delay '" + raw
+                    + "' — using 0s (expected 0s, 30s, 5m)");
+            return Duration.ZERO;
+        }
+        return parsed;
     }
 
     private PlayerLimitComparison parseComparison(String raw) {
@@ -509,12 +543,17 @@ public final class ScheduledRestartManager {
 
         if (mode == Mode.TIMES) markFired(slotKey);
 
-        boolean started = power.startScheduledPowerAction(action, countdownSeconds);
+        long delaySeconds = delay.getSeconds();
+        boolean started = delaySeconds > 0
+                ? power.startScheduledPowerAction(action, (int) Math.min(Integer.MAX_VALUE, delaySeconds))
+                : power.executeScheduledNow(action);
         if (started) {
-            ConsoleLogger.info("[ScheduledRestart] " + action + " triggered: countdown "
-                    + countdownSeconds + "s.");
+            ConsoleLogger.info("[ScheduledRestart] " + action + " triggered: "
+                    + (delaySeconds > 0
+                        ? "delay " + delaySeconds + "s."
+                        : "immediate action (delay = 0s)."));
         } else {
-            ConsoleLogger.warn("[ScheduledRestart] Could not start the scheduled " + action + " countdown.");
+            ConsoleLogger.warn("[ScheduledRestart] Could not start the scheduled " + action + " action.");
         }
 
         // The next run is persisted BEFORE the server goes down in timer mode,

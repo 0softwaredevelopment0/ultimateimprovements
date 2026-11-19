@@ -461,7 +461,7 @@ final class ConfigRules {
             notBlank("scheduled_restart.action", 16),
             stringList("scheduled_restart.warning_times"),
             notBlank("scheduled_restart.second_report_from", 16),
-            integer("scheduled_restart.countdown_seconds", 1, 3600),
+            notBlank("scheduled_restart.delay", 16),
             bool("scheduled_restart.skip_if_empty"),
             bool("scheduled_restart.player_limit_enabled"),
             notBlank("scheduled_restart.player_limit_comparison", 16),
