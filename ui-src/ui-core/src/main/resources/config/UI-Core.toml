@@ -155,8 +155,10 @@ vanished_count = "<gray>(%count% в ванише)</gray>"
 # Default: <dark_red>❌</dark_red> <red>Ошибка: <gray>У вас нет прав!</gray></red>
 no_permission = "<dark_red>❌</dark_red> <red>Ошибка: <gray>У вас нет прав!</gray></red>"
 # Deprecation notice shown on every vanilla /whitelist execution.
-# Default: <yellow>⚠</yellow> <gray>Команда <white>/whitelist</white> устарела и может конфликтовать с системами плагина.</gray>\n<gray>Используйте <white>/ui whitelist</white> <dark_gray>|</dark_gray> <white>/ui blacklist</white>.</gray>
-whitelist_deprecated = "<yellow>⚠</yellow> <gray>Команда <white>/whitelist</white> устарела и может конфликтовать с системами плагина.</gray>\n<gray>Используйте <white>/ui whitelist</white> <dark_gray>|</dark_gray> <white>/ui blacklist</white>.</gray>"
+# The command names are clickable for players: hover shows a hint, click inserts the command into chat.
+# Console receives the same text without the click/hover effects.
+# Default: <yellow>⚠</yellow> <gray>Команда <white>/whitelist</white> устарела и может конфликтовать с системами плагина.</gray>\n<gray>Используйте <hover:show_text:'<gray>Нажмите, чтобы вставить /ui whitelist в чат</gray>'><click:suggest_command:'/ui whitelist'><white>/ui whitelist</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Нажмите, чтобы вставить /ui blacklist в чат</gray>'><click:suggest_command:'/ui blacklist'><white>/ui blacklist</white></click></hover>.</gray>
+whitelist_deprecated = "<yellow>⚠</yellow> <gray>Команда <white>/whitelist</white> устарела и может конфликтовать с системами плагина.</gray>\n<gray>Используйте <hover:show_text:'<gray>Нажмите, чтобы вставить /ui whitelist в чат</gray>'><click:suggest_command:'/ui whitelist'><white>/ui whitelist</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Нажмите, чтобы вставить /ui blacklist в чат</gray>'><click:suggest_command:'/ui blacklist'><white>/ui blacklist</white></click></hover>.</gray>"
 
 # fishing section.
 [messages.fishing]
@@ -913,8 +915,10 @@ vanished_count = "<gray>(%count% vanished)</gray>"
 # Default: <dark_red>❌</dark_red> <red>Error: <gray>You don't have permission!</gray></red>
 no_permission = "<dark_red>❌</dark_red> <red>Error: <gray>You don't have permission!</gray></red>"
 # Deprecation notice shown on every vanilla /whitelist execution.
-# Default: <yellow>⚠</yellow> <gray>The <white>/whitelist</white> command is deprecated and may conflict with the plugin's access systems.</gray>\n<gray>Use <white>/ui whitelist</white> <dark_gray>|</dark_gray> <white>/ui blacklist</white> instead.</gray>
-whitelist_deprecated = "<yellow>⚠</yellow> <gray>The <white>/whitelist</white> command is deprecated and may conflict with the plugin's access systems.</gray>\n<gray>Use <white>/ui whitelist</white> <dark_gray>|</dark_gray> <white>/ui blacklist</white> instead.</gray>"
+# The command names are clickable for players: hover shows a hint, click inserts the command into chat.
+# Console receives the same text without the click/hover effects.
+# Default: <yellow>⚠</yellow> <gray>The <white>/whitelist</white> command is deprecated and may conflict with the plugin's access systems.</gray>\n<gray>Use <hover:show_text:'<gray>Click to insert /ui whitelist into chat</gray>'><click:suggest_command:'/ui whitelist'><white>/ui whitelist</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Click to insert /ui blacklist into chat</gray>'><click:suggest_command:'/ui blacklist'><white>/ui blacklist</white></click></hover> instead.</gray>
+whitelist_deprecated = "<yellow>⚠</yellow> <gray>The <white>/whitelist</white> command is deprecated and may conflict with the plugin's access systems.</gray>\n<gray>Use <hover:show_text:'<gray>Click to insert /ui whitelist into chat</gray>'><click:suggest_command:'/ui whitelist'><white>/ui whitelist</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Click to insert /ui blacklist into chat</gray>'><click:suggest_command:'/ui blacklist'><white>/ui blacklist</white></click></hover> instead.</gray>"
 
 # fishing section.
 [messages_en.fishing]
