@@ -32,7 +32,11 @@ public class WhitelistCommandBlocker implements Listener {
 
     private static final String DEFAULT_MESSAGE =
             "<yellow>⚠</yellow> <gray>The <white>/whitelist</white> command is deprecated and may conflict with the plugin's access systems.</gray>\n"
-            + "<gray>Use <white>/ui whitelist</white> <dark_gray>|</dark_gray> <white>/ui blacklist</white> instead.</gray>";
+            + "<gray>Use "
+            + "<hover:show_text:'<gray>Click to insert /ui whitelist into chat</gray>'><click:suggest_command:'/ui whitelist'><white>/ui whitelist</white></click></hover>"
+            + " <dark_gray>|</dark_gray> "
+            + "<hover:show_text:'<gray>Click to insert /ui blacklist into chat</gray>'><click:suggest_command:'/ui blacklist'><white>/ui blacklist</white></click></hover>"
+            + " instead.</gray>";
 
     /**
      * Checks whether the command is a variant of /whitelist (considering namespaces and arguments).
