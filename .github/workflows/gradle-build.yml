@@ -33,4 +33,4 @@ jobs:
         run: ./gradlew --no-daemon clean build
 
       - name: Verify release JAR packaging
-        run: bash Scripts/build/package_jars.sh --no-build
+        run: bash scripts/build/package_jars.sh --no-build
