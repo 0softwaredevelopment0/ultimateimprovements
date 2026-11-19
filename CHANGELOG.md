@@ -3,6 +3,20 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.5] - 2026-11-20
+
+### Changed
+- **Custom-enchant wear now uses the Paper damage API as well.**
+  `ItemDurabilityUtil.decreaseItemIntegrity` delegates to
+  `ItemStack#damage(int, LivingEntity)` (which calls
+  `LivingEntity#damageItemStack`), so every enchant use runs vanilla's
+  `hurtAndBreak`: per-point Unbreaking rolls, a real `PlayerItemDamageEvent`,
+  stat changes and the break event/sound. Low-durability warnings still work
+  unchanged — `LowDurabilityWarningListener` listens to that event and sees the
+  post-Unbreaking damage. Hand-rolled rolls remain only for
+  `features.integrity.unbreaking.enabled = false` (raw wear) and for the
+  percentage/editor methods, which deliberately do not emit vanilla events.
+
 ## [1.11.0-alpha.4] - 2026-11-20
 
 ### Changed
