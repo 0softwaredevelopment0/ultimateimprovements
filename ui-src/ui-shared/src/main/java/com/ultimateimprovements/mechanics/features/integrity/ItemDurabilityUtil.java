@@ -234,7 +234,32 @@ public final class ItemDurabilityUtil {
         if (max <= 0) return getItemIntegrityPercent(item);
         int effective = applyUnbreaking(item, iterations);
         if (effective <= 0) return getItemIntegrityPercent(item);
-        return wearPercent(item, 100.0 * effective / max, owner);
+        return wearPoints(item, effective, owner);
+    }
+
+    /**
+     * Applies exactly {@code points} vanilla damage points. The point API must
+     * not round-trip through a percentage: for a 363-point helmet two points
+     * are 0.5509641…%, and {@code floor(363 × 0.5509641… / 100)} loses a point
+     * to floating-point truncation.
+     */
+    private static double wearPoints(ItemStack item, int points, Player owner) {
+        int max = getMaxDurability(item);
+        if (max <= 0 || points <= 0) return getItemIntegrityPercent(item);
+
+        ItemMeta meta = item.getItemMeta();
+        if (!(meta instanceof Damageable dmg)) return getItemIntegrityPercent(item);
+        int before = dmg.hasDamage() ? dmg.getDamage() : 0;
+        int after = Math.min(max, before + points);
+        dmg.setDamage(after);
+        item.setItemMeta(meta);
+
+        if (after >= max) {
+            breakItem(item, owner);
+            return 0.0;
+        }
+        warnOnWear(owner, item, max, before, after);
+        return getItemIntegrityPercent(item);
     }
 
     /**

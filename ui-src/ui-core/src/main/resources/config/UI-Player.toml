@@ -897,7 +897,7 @@ speed_amplifier = 1
 # Default: 20
 interval_ticks = 20
 
-# Sunburn: players burn in daylight (helmet integrity degrades).
+# Sunburn: players burn in daylight (the helmet spends durability instead).
 [sunburn]
 # Master switch (true = feature on).
 # Default: true
@@ -912,8 +912,9 @@ extinguish_when_safe = true
 # Interval in ticks (20 ticks = 1 second).
 # Default: 80
 helmet_degrade_interval = 80
+# Durability points the helmet loses per degrade.
 # Default: 1
-helmet_integrity_loss = 1
+helmet_durability_loss = 1
 # World name.
 # Default: ["world"]
 included_worlds = ["world"]
