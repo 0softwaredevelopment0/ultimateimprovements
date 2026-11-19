@@ -1,9 +1,9 @@
 package com.ultimateimprovements.core;
 
 import com.ultimateimprovements.command.MsgCommand;
-import com.ultimateimprovements.command.PowerCommand;
 import com.ultimateimprovements.command.TrollCommand;
 import com.ultimateimprovements.command.VanillaOpCommand;
+import com.ultimateimprovements.command.VanillaPowerCommand;
 import com.ultimateimprovements.command.VanishListCommand;
 import com.ultimateimprovements.core.Main;
 import com.ultimateimprovements.util.ConsoleLogger;
@@ -51,8 +51,11 @@ public class CommandRegistrar {
         // handles the repeat-to-confirm step and keeps the OP list in sync.
         total++; registered += registerOverride(plugin, "op", new VanillaOpCommand("op", true)) ? 1 : 0;
         total++; registered += registerOverride(plugin, "deop", new VanillaOpCommand("deop", false)) ? 1 : 0;
-        total++; registered += registerOverride(plugin, "stop", new PowerCommand("stop", false)) ? 1 : 0;
-        total++; registered += registerOverride(plugin, "restart", new PowerCommand("restart", true)) ? 1 : 0;
+        // Vanilla /stop and /restart stay available but deprecated: the override
+        // asks the console to confirm by typing the same command again.
+        VanillaPowerCommand.reset();
+        total++; registered += registerOverride(plugin, "stop", new VanillaPowerCommand("stop", false)) ? 1 : 0;
+        total++; registered += registerOverride(plugin, "restart", new VanillaPowerCommand("restart", true)) ? 1 : 0;
 
         // Override vanilla /msg /tell /w /reply /r with the custom PM format
         total++; registered += registerOverride(plugin, "msg", new MsgCommand("msg", false)) ? 1 : 0;

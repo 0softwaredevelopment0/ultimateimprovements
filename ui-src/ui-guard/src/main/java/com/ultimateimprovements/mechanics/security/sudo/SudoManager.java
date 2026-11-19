@@ -147,14 +147,14 @@ public class SudoManager {
 
     /**
      * Checks whether a command is disabled by the command policy
-     * ({@code command_policy.enabled}, default true +
-     * {@code command_policy.disabled_commands}, default: stop/restart —
-     * vanilla commands superseded by /ui equivalents; vanilla op/deop are
-     * allowed with a deprecation/confirmation flow instead). Same prefix matching as
+     * ({@code command_policy.enabled}, default false +
+     * {@code command_policy.disabled_commands}, default empty). Blocked
+     * commands answer with error 011; vanilla op/deop/stop/restart have their
+     * own deprecated-but-allowed flows and are not listed by default. Same prefix matching as
      * {@link #isDangerous(String)}. Independent of the sudo feature toggle.
      */
     public static boolean isCommandDisabled(String message) {
-        if (!cfg().getBoolean("command_policy.enabled", true)) return false;
+        if (!cfg().getBoolean("command_policy.enabled", false)) return false;
         List<String> disabled = cfg().getStringList("command_policy.disabled_commands");
         String normalized = normalize(message);
         for (String prefix : disabled) {
@@ -184,9 +184,11 @@ public class SudoManager {
         if (colon >= 0 && (head.startsWith("minecraft:") || head.startsWith("bukkit:"))) {
             head = head.substring(colon + 1);
         }
-        // Vanilla /op and /deop share the permission of their /ui counterparts.
+        // Vanilla commands share the permission of their /ui counterparts.
         if (head.equals("op")) return List.of(Permissions.CMD_OP);
         if (head.equals("deop")) return List.of(Permissions.CMD_DEOP);
+        if (head.equals("stop")) return List.of(Permissions.CMD_POWER_OFF);
+        if (head.equals("restart")) return List.of(Permissions.CMD_POWER_REBOOT);
         if (!normalized.startsWith("ui ")) return List.of();
         String rest = normalized.substring(3).trim();
         if (rest.isEmpty()) return List.of();

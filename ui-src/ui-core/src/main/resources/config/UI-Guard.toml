@@ -189,24 +189,24 @@ attempt_cooldown_seconds = 10
 # Command.
 # Vanilla "op" and "deop" are listed too: those commands stay usable but must
 # pass sudo mode before the deprecation notice and the repeat-to-confirm step.
-# Default: ["ui punish", "ui power", "ui sudo", "ui op", "ui deop", "ui opself", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maint", "ui stresstest", "op", "deop", "lp", "luckperms"]
-dangerous_commands = ["ui punish", "ui power", "ui sudo", "ui op", "ui deop", "ui opself", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maint", "ui stresstest", "op", "deop", "lp", "luckperms"]
+# Default: ["ui punish", "ui power", "ui sudo", "ui op", "ui deop", "ui opself", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maint", "ui stresstest", "op", "deop", "stop", "restart", "lp", "luckperms"]
+dangerous_commands = ["ui punish", "ui power", "ui sudo", "ui op", "ui deop", "ui opself", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maint", "ui stresstest", "op", "deop", "stop", "restart", "lp", "luckperms"]
 
 # Command policy: vanilla commands superseded by /ui equivalents.
 # Typing them reports error 011 ("command disabled on this server").
 
 [command_policy]
-# Master switch for the policy: true = the vanilla commands listed in
-# disabled_commands are blocked (error 011) so their /ui equivalents are used.
-# Default: true
-enabled = true
-# Vanilla commands disabled on this server — use the /ui equivalents instead
-# (/ui power off|reboot). Blocked for players AND the console/RCON alike (the
-# /ui replacements work from the console too).
-# Vanilla "op"/"deop" are NOT disabled: they stay available with a deprecation
-# notice, a repeat-to-confirm step and an OP-list reconciliation.
-# Default: ["stop", "restart"]
-disabled_commands = ["stop", "restart"]
+# Master switch for the policy: true = the commands listed in disabled_commands
+# are rejected with error 011 ("This command is disabled on this server").
+# Blocked for players AND the console/RCON alike. Off by default.
+# Default: false
+enabled = false
+# Command prefixes disabled on this server (without the leading slash).
+# Prefix matching: an entry "save" also blocks "save-all".
+# Vanilla "op"/"deop"/"stop"/"restart" have dedicated deprecated-but-allowed
+# flows and should not be listed here unless you really want error 011.
+# Default: []
+disabled_commands = []
 
 # GSit /spin guard — protection against the GSit version-mismatch bug that
 # leaves the player INVISIBLE for everyone else after using /spin.

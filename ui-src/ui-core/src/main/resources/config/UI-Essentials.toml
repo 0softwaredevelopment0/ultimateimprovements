@@ -246,9 +246,13 @@ custom_brand = "Paper"
 
 # Server power actions (/stop, /restart) and their countdown UI.
 [power]
-# Command.
-# Default: true
-intercept_commands = true
+# Vanilla /stop and /restart — how long the console has to type the same
+# command again to confirm a request (seconds).
+# Default: 15
+vanilla_confirm_seconds = 15
+# Delay before a confirmed vanilla /stop or /restart runs (ticks).
+# Default: 20
+vanilla_execute_delay_ticks = 20
 # Timeout.
 # Default: 30
 request_timeout = 30
@@ -468,12 +472,25 @@ op_list_title = "<gold>  ✦ </gold><white>Дома игрока </white><yellow
 # power section.
 # Placeholders: %action%, %seconds%, %unit%, %by_player%, %reason%, %by%, %from%
 [messages.power]
-# Message text (MiniMessage).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Команда /stop отключена. Используйте:</red> <white>/ui power off</white>
-stop_message = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Команда /stop отключена. Используйте:</red> <white>/ui power off</white>"
-# Message text (MiniMessage).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Команда /restart отключена. Используйте:</red> <white>/ui power reboot</white>
-restart_message = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Команда /restart отключена. Используйте:</red> <white>/ui power reboot</white>"
+# ── Vanilla /stop and /restart (deprecated, console confirmation) ──
+# %command%
+vanilla_deprecated = "<yellow>⚠</yellow> <gray>Команда <white>%command%</white> устарела. Используйте <hover:show_text:'<gray>Нажмите, чтобы вставить /ui power off в чат</gray>'><click:suggest_command:'/ui power off'><white>/ui power off</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Нажмите, чтобы вставить /ui power reboot в чат</gray>'><click:suggest_command:'/ui power reboot'><white>/ui power reboot</white></click></hover>.</gray>"
+# %player%, %command%, %seconds%
+vanilla_console_request = "<yellow>%player%</yellow> <gray>запросил</gray> <white>%command%</white><gray>. Введите ту же команду в течение</gray> <white>%seconds% сек</white><gray>, чтобы подтвердить.</gray>"
+# %command%, %seconds%
+vanilla_player_request_sent = "<gray>Запрос отправлен в консоль. У неё <white>%seconds% сек</white>, чтобы подтвердить командой <white>%command%</white>.</gray>"
+# %command%, %seconds%
+vanilla_console_confirm = "<gray>Введите <white>%command%</white> ещё раз в течение <white>%seconds% сек</white>, чтобы подтвердить. Иначе действие будет отменено.</gray>"
+# %command%
+vanilla_already_pending = "<yellow>⚠</yellow> <gray>Уже есть активный запрос (<white>%command%</white>) — дождитесь его выполнения или истечения.</gray>"
+vanilla_already_submitted = "<yellow>⚠</yellow> <gray>Запрос уже подан — подтвердить его может только консоль.</gray>"
+# %ticks%
+vanilla_confirmed_console = "<green>✔</green> <gray>Подтверждено. Сервер выполнит действие через <white>%ticks% тиков</white>.</gray>"
+# %ticks%
+vanilla_confirmed_player = "<green>✔</green> <gray>Консоль подтвердила запрос — сервер выполнит действие через <white>%ticks% тиков</white>.</gray>"
+# %command%
+vanilla_timeout = "<red>⌛</red> <gray>Время подтверждения для <white>%command%</white> истекло — действие отменено.</gray>"
+vanilla_already_scheduled = "<yellow>⚠</yellow> <gray>Подтверждённое действие уже запланировано к выполнению.</gray>"
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <white>%seconds%</white> <red>секунд!</red>
 countdown_broadcast = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>Сервер %action% через</red> <white>%seconds%</white> <red>секунд!</red>"
 # Default: <red>Сервер %action% через</red> <white>%seconds%</white> <red>%unit%...</red>
@@ -838,12 +855,20 @@ op_list_title = "<gold>  ✦ </gold><white>Player's Homes </white><yellow>%playe
 # power section.
 # Placeholders: %action%, %seconds%, %unit%, %by_player%, %reason%, %by%, %from%
 [messages_en.power]
+# ── Vanilla /stop and /restart (deprecated, console confirmation) ──
+# %command%
+vanilla_deprecated = "<yellow>⚠</yellow> <gray>The <white>%command%</white> command is deprecated. Use <hover:show_text:'<gray>Click to insert /ui power off into chat</gray>'><click:suggest_command:'/ui power off'><white>/ui power off</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Click to insert /ui power reboot into chat</gray>'><click:suggest_command:'/ui power reboot'><white>/ui power reboot</white></click></hover> instead.</gray>"
+vanilla_console_request = "<yellow>%player%</yellow> <gray>requested</gray> <white>%command%</white><gray>. Type the same command within</gray> <white>%seconds% s</white> <gray>to confirm.</gray>"
+vanilla_player_request_sent = "<gray>Request sent to the console. It has <white>%seconds% s</white> to confirm with <white>%command%</white>.</gray>"
+vanilla_console_confirm = "<gray>Type <white>%command%</white> again within <white>%seconds% s</white> to confirm. Otherwise the action is cancelled.</gray>"
+vanilla_already_pending = "<yellow>⚠</yellow> <gray>Another power request (<white>%command%</white>) is already pending — wait for it to finish or expire.</gray>"
+vanilla_already_submitted = "<yellow>⚠</yellow> <gray>The request is already submitted — only the console can confirm it.</gray>"
+vanilla_confirmed_console = "<green>✔</green> <gray>Confirmed. The server action will run in <white>%ticks% ticks</white>.</gray>"
+vanilla_confirmed_player = "<green>✔</green> <gray>The console confirmed the request — the server action will run in <white>%ticks% ticks</white>.</gray>"
+vanilla_timeout = "<red>⌛</red> <gray>Confirmation for <white>%command%</white> expired — the action was cancelled.</gray>"
+vanilla_already_scheduled = "<yellow>⚠</yellow> <gray>A confirmed power action is already scheduled to run.</gray>"
 # Message text (MiniMessage).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>The /stop command is disabled. Use:</red> <white>/ui pow…
-stop_message = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>The /stop command is disabled. Use:</red> <white>/ui power off</white>"
-# Message text (MiniMessage).
-# Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>The /restart command is disabled. Use:</red> <white>/ui …
-restart_message = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>The /restart command is disabled. Use:</red> <white>/ui power reboot</white>"
+
 # Default: <dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% in</red> <white>%seconds%</white> <red>seconds!…
 countdown_broadcast = "<dark_gray>[<dark_red>⚠</dark_red>]</dark_gray> <red>%action% in</red> <white>%seconds%</white> <red>seconds!</red>"
 # Default: <red>Server %action% in</red> <white>%seconds%</white> <red>%unit%...</red>

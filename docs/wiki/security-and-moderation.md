@@ -72,6 +72,10 @@ The vanilla `/whitelist` command keeps working, but every execution prints a dep
 
 Because these controls affect operator privileges and login access, test their behavior with a controlled account before enabling them on a production server. Use the in-game help for exact commands and temporary-operation flags.
 
+Vanilla `/stop` and `/restart` also remain available but are deprecated. A player request is forwarded to the console: the console must type the same command within `power.vanilla_confirm_seconds` (default 15 s); the player cannot self-confirm. On confirmation the player is notified and the action runs after `power.vanilla_execute_delay_ticks` (default 20 ticks). A console-initiated command needs the same repeat-within-the-window confirmation. Without confirmation both sides receive a timeout notice. Both commands are in the sudo dangerous-command list by default and use `ui.command.power.off` / `ui.command.power.reboot` (OP-only by default).
+
+The generic command policy (`command_policy.enabled`, off by default) blocks every prefix listed in `command_policy.disabled_commands` (empty by default) with error 011. It applies to players and the console/RCON equally; the list is fully configurable.
+
 Vanilla `/op` and `/deop` remain available but are deprecated. They use the same permissions as `/ui op` / `/ui deop` (`ui.command.op`, `ui.command.deop`; OP-only by default), print a deprecation notice with clickable `/ui op` / `/ui deop` suggestions, and players must repeat the exact command within `op.vanilla_confirm_seconds` (default 15 s) or the action is cancelled. The console is not asked to confirm. Both commands are in the sudo dangerous-command list by default and reconcile the plugin's OP list against the real `ops.json` set after every execution.
 
 ## Anti-cheat and server guards

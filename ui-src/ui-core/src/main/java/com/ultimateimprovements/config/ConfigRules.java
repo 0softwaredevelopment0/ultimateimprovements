@@ -438,7 +438,10 @@ final class ConfigRules {
             bool("death_logger.enabled"),
             bool("death_logger.log_to_console"),
 
-            bool("power.intercept_commands"),
+            integer("power.vanilla_confirm_seconds", 1, 3600,
+                    "Сколько секунд консоль может подтвердить ванильные /stop или /restart повторным вводом"),
+            integer("power.vanilla_execute_delay_ticks", 1, 1200,
+                    "Задержка перед выполнением подтверждённых ванильных /stop или /restart (тики)"),
             integer("power.request_timeout", 1, 3600),
             integer("power.countdown_duration", 0, 3600),
             bool("power.actionbar.enabled"),
