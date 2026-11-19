@@ -163,10 +163,10 @@ public class HelpSubCommand implements SubCommand {
 
         // ── Essentials: player state ──
         cmd("heal", "Heal a player").u("[player]", "defaults to yourself");
-        cmd("feed", "Feed a player").u("[player]", "restores hunger");
+        cmd("feed", "Feed a player").u("<hunger|saturation|all> <player|all>", "restores hunger, saturation or both");
         cmd("fly", "Toggle fly").u("[player]", "");
         cmd("flyspeed", "Set fly speed").u("<0-10>", "0.1 steps, 1 = normal");
-        cmd("god", "Toggle god mode").u("[player]", "");
+        cmd("god", "Toggle god mode").u("<on|off> [player|all]", "");
         cmd("suicide", "Commit suicide").u("", "kills your character");
         cmd("forcesuicide", "Force-suicide a player").u("<player>", "");
         cmd("expsplit", "Split experience").u("", "packs your XP into an experience bottle");

@@ -65,10 +65,10 @@ public final class UIEssentials extends JavaPlugin {
             // Heal/Feed
             registry.register(LegacySubCommandAdapter.of("heal",
                     (s, a) -> { HealFeedSubcommand.heal(s, a); return true; },
-                    LegacySubCommandAdapter.tc((s, a) -> HealFeedSubcommand.tabComplete(a))));
+                    LegacySubCommandAdapter.tc((s, a) -> HealFeedSubcommand.tabCompleteHeal(a))));
             registry.register(LegacySubCommandAdapter.of("feed",
                     (s, a) -> { HealFeedSubcommand.feed(s, a); return true; },
-                    LegacySubCommandAdapter.tc((s, a) -> HealFeedSubcommand.tabComplete(a))));
+                    LegacySubCommandAdapter.tc((s, a) -> HealFeedSubcommand.tabCompleteFeed(a))));
 
             // Teleport
             registry.register(LegacySubCommandAdapter.of("rtp", RtpSubcommand::execute));
