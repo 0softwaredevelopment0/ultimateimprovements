@@ -73,8 +73,12 @@ public final class HealFeedSubcommand {
     }
 
     // =========================
-    // FEED
+    // FEED — /ui feed <hunger|saturation|all> <player|all>
     // =========================
+    private static final String FEED_USAGE =
+            "<red>❌ Usage: </red><white>/ui feed <hunger|saturation|all> <player|all></white>";
+    private static final List<String> FEED_MODES = List.of("hunger", "saturation", "all");
+
     public static boolean feed(CommandSender sender, String[] args) {
         if (!isEnabled()) {
             CommandErrors.moduleDisabled(sender, "healfeed");
@@ -86,35 +90,106 @@ public final class HealFeedSubcommand {
         }
 
         if (args.length < 2) {
-            sender.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui feed <player></white>"));
+            sender.sendMessage(MessageUtil.parse(FEED_USAGE));
             return true;
         }
 
-        Player target = Bukkit.getPlayerExact(args[1]);
+        String mode;
+        String targetArg;
+        if (isFeedMode(args[1])) {
+            if (args.length < 3) {
+                sender.sendMessage(MessageUtil.parse(FEED_USAGE));
+                return true;
+            }
+            mode = args[1].toLowerCase(java.util.Locale.ROOT);
+            targetArg = args[2];
+        } else if (args.length == 2) {
+            // Backwards compatibility: /ui feed <player> means all scales.
+            mode = "all";
+            targetArg = args[1];
+        } else {
+            sender.sendMessage(MessageUtil.parse(FEED_USAGE));
+            return true;
+        }
+
+        if (targetArg.equalsIgnoreCase("all")) {
+            List<Player> targets = new java.util.ArrayList<>(Bukkit.getOnlinePlayers());
+            if (targets.isEmpty()) {
+                sender.sendMessage(MessageUtil.parse("<red>❌ There are no players online!</red>"));
+                return true;
+            }
+            for (Player target : targets) {
+                feedPlayer(target, mode);
+                if (!sender.equals(target)) {
+                    target.sendMessage(MessageUtil.parse("<green>✔</green> <white>You have been fed by</white> <yellow>"
+                            + sender.getName() + "</yellow><white>.</white>"));
+                }
+            }
+            String who = targets.size() == 1
+                    ? targets.get(0).getName()
+                    : Integer.toString(targets.size());
+            sender.sendMessage(MessageUtil.parse("<green>✔</green> <white>" + feedDescription(mode)
+                    + " for</white> <yellow>" + who + "</yellow><white>.</white>"));
+            return true;
+        }
+
+        Player target = Bukkit.getPlayerExact(targetArg);
         if (target == null) {
             sender.sendMessage(MessageUtil.parse(MessagesManager.getString("misc.vanish_player_not_found",
                     "<red>❌ Player</red> <yellow>%player%</yellow> <red>not found!</red>")
-                    .replace("%player%", args[1])));
+                    .replace("%player%", targetArg)));
             return true;
         }
 
-        double amount = getFeedAmount();
-        if (amount <= 0) {
-            // Full saturation
-            target.setFoodLevel(20);
-            target.setSaturation(20);
-            target.setExhaustion(0);
-        } else {
-            int newFood = Math.min((int) (target.getFoodLevel() + amount), 20);
-            target.setFoodLevel(newFood);
-        }
+        feedPlayer(target, mode);
 
-        String confirm = "<green>✔</green> <white>Player</white> <yellow>" + target.getName() + "</yellow> <white>has been fed.</white>";
+        String confirm = "<green>✔</green> <white>" + feedDescription(mode) + " for</white> <yellow>"
+                + target.getName() + "</yellow><white>.</white>";
         sender.sendMessage(MessageUtil.parse(confirm));
         if (!sender.equals(target)) {
             target.sendMessage(MessageUtil.parse("<green>✔</green> <white>You have been fed by</white> <yellow>" + sender.getName() + "</yellow><white>.</white>"));
         }
         return true;
+    }
+
+    private static boolean isFeedMode(String arg) {
+        for (String mode : FEED_MODES) {
+            if (mode.equalsIgnoreCase(arg)) return true;
+        }
+        return false;
+    }
+
+    private static String feedDescription(String mode) {
+        return switch (mode) {
+            case "hunger" -> "Hunger restored";
+            case "saturation" -> "Saturation restored";
+            default -> "Hunger and saturation restored";
+        };
+    }
+
+    /** Applies the requested feed mode to one player. */
+    private static void feedPlayer(Player target, String mode) {
+        boolean hunger = mode.equals("hunger") || mode.equals("all");
+        boolean saturation = mode.equals("saturation") || mode.equals("all");
+        double amount = getFeedAmount();
+
+        if (hunger) {
+            if (amount <= 0) {
+                target.setFoodLevel(20);
+            } else {
+                target.setFoodLevel(Math.min((int) (target.getFoodLevel() + amount), 20));
+            }
+        }
+        if (saturation) {
+            if (amount <= 0) {
+                target.setSaturation(20f);
+            } else {
+                target.setSaturation((float) Math.min(target.getSaturation() + amount, 20f));
+            }
+        }
+        if (hunger && saturation && amount <= 0) {
+            target.setExhaustion(0);
+        }
     }
 
     // =========================
@@ -157,15 +232,39 @@ public final class HealFeedSubcommand {
     }
 
     /**
-     * Tab-completion: suggests player names.
+     * Tab-completion for /ui heal: suggests player names.
      */
-    public static List<String> tabComplete(String[] args) {
+    public static List<String> tabCompleteHeal(String[] args) {
         if (args.length == 2) {
-            return Bukkit.getOnlinePlayers().stream()
-                    .map(Player::getName)
-                    .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
-                    .collect(Collectors.toList());
+            return onlinePlayers(args[1], false);
         }
         return List.of();
+    }
+
+    /**
+     * Tab-completion for /ui feed: modes first, then players plus {@code all}.
+     */
+    public static List<String> tabCompleteFeed(String[] args) {
+        if (args.length == 2) {
+            String prefix = args[1].toLowerCase();
+            return FEED_MODES.stream()
+                    .filter(mode -> mode.startsWith(prefix))
+                    .collect(Collectors.toList());
+        }
+        if (args.length == 3) {
+            return onlinePlayers(args[2], true);
+        }
+        return List.of();
+    }
+
+    private static List<String> onlinePlayers(String prefix, boolean includeAll) {
+        List<String> names = Bukkit.getOnlinePlayers().stream()
+                .map(Player::getName)
+                .filter(name -> name.toLowerCase().startsWith(prefix.toLowerCase()))
+                .collect(Collectors.toList());
+        if (includeAll && "all".startsWith(prefix.toLowerCase())) {
+            names.add("all");
+        }
+        return names;
     }
 }

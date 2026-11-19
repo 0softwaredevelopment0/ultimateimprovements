@@ -3,6 +3,23 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.6] - 2026-11-20
+
+### Added
+- **`/ui feed` now has three modes:** `/ui feed <hunger|saturation|all> <player|all>`.
+  `hunger` restores only the food bar, `saturation` only the saturation bar,
+  `all` both. The target may be `all` for every online player; the confirmation
+  shows the nickname for a single player and the count for several.
+- **`/ui god` accepts `all` as a target:** `/ui god <on|off> [player|all]` applies
+  the state to every online player, reporting a nickname for one player and the
+  number of affected players for many.
+
+### Fixed
+- `/ui god` tab completion now suggests `on|off` and then players plus `all`
+  instead of only player names.
+- Tab completion for `/ui feed` suggests the three modes and then
+  `<player|all>`; `/ui heal` completion is unchanged.
+
 ## [1.11.0-alpha.5] - 2026-11-20
 
 ### Changed

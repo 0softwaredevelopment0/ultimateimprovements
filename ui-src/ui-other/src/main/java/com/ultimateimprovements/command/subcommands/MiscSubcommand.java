@@ -282,11 +282,13 @@ public final class MiscSubcommand {
 
     // =========================
     // GOD — enables/disables invulnerability
-    // /ui god on|off [player]
+    // /ui god <on|off> [player|all]
     // =========================
+    private static final String GOD_USAGE = "<red>❌ Usage: </red><white>/ui god <on|off> [player|all]</white>";
+
     public static boolean god(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui god <on|off> [player]</white>"));
+            sender.sendMessage(MessageUtil.parse(GOD_USAGE));
             return true;
         }
 
@@ -295,36 +297,59 @@ public final class MiscSubcommand {
             case "on" -> enable = true;
             case "off" -> enable = false;
             default -> {
-                sender.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui god <on|off> [player]</white>"));
+                sender.sendMessage(MessageUtil.parse(GOD_USAGE));
                 return true;
             }
         }
 
-        Player target;
         if (args.length >= 3) {
-            // Apply to another player
+            // Apply to another player or to every online player
             if (!sender.hasPermission("ui.command.god.other")) {
                 CommandErrors.noPermission(sender, "ui.command.god.other");
                 return true;
             }
-            target = Bukkit.getPlayerExact(args[2]);
+
+            if (args[2].equalsIgnoreCase("all")) {
+                var targets = new java.util.ArrayList<>(Bukkit.getOnlinePlayers());
+                if (targets.isEmpty()) {
+                    sender.sendMessage(MessageUtil.parse("<red>❌ There are no players online!</red>"));
+                    return true;
+                }
+                for (Player target : targets) {
+                    applyGod(sender, target, enable);
+                }
+                String who = targets.size() == 1
+                        ? targets.get(0).getName()
+                        : Integer.toString(targets.size());
+                String state = enable ? "<green>ON</green>" : "<red>OFF</red>";
+                sender.sendMessage(MessageUtil.parse("<green>✔</green> <white>God mode</white> " + state
+                        + " <white>for</white> <yellow>" + who + "</yellow>"));
+                return true;
+            }
+
+            Player target = Bukkit.getPlayerExact(args[2]);
             if (target == null) {
                 sender.sendMessage(MessageUtil.parse("<red>❌ Player</red> <yellow>" + args[2] + "</yellow> <red>not found!</red>"));
                 return true;
             }
-        } else {
-            // Apply to self
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage(MessageUtil.parse("<red>❌ Only players can use this command on themselves!</red>"));
-                return true;
-            }
-            if (!player.hasPermission("ui.command.god")) {
-                CommandErrors.noPermission(player, "ui.command.god");
-                return true;
-            }
-            target = player;
+            applyGod(sender, target, enable);
+            return true;
         }
 
+        // Apply to self
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(MessageUtil.parse("<red>❌ Only players can use this command on themselves!</red>"));
+            return true;
+        }
+        if (!player.hasPermission("ui.command.god")) {
+            CommandErrors.noPermission(player, "ui.command.god");
+            return true;
+        }
+        applyGod(sender, player, enable);
+        return true;
+    }
+
+    private static void applyGod(CommandSender sender, Player target, boolean enable) {
         target.setInvulnerable(enable);
 
         // Guarantees the flag is really gone from the player's persisted data
@@ -354,7 +379,6 @@ public final class MiscSubcommand {
         if (!sender.equals(target)) {
             target.sendMessage(MessageUtil.parse("<white>Your god mode has been toggled:</white> " + state));
         }
-        return true;
     }
 
     // =========================

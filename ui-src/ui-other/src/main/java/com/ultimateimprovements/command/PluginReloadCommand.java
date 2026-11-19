@@ -154,12 +154,19 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
         registry.register(LegacySubCommandAdapter.of("fly",
                 (s, a) -> { MiscSubcommand.fly(s, a); return true; }));
         registry.register(LegacySubCommandAdapter.of("god",
-                (s, a) -> { MiscSubcommand.god(s, a); return true; }));
+                (s, a) -> { MiscSubcommand.god(s, a); return true; },
+                tc((s, a) -> {
+                    if (a.length == 2) return List.of("on", "off");
+                    if (a.length == 3) {
+                        var names = new java.util.ArrayList<String>();
+                        for (Player p : Bukkit.getOnlinePlayers()) names.add(p.getName());
+                        if ("all".startsWith(a[2].toLowerCase())) names.add("all");
+                        return names;
+                    }
+                    return List.of();
+                })));
         registry.register(LegacySubCommandAdapter.of("execchat", ExecChatSubcommand::execute,
                 tc((s, a) -> ExecChatSubcommand.tabComplete(a))));
-
-        // ── Heal/Feed with tab-complete ──
-        var healTc = tc((s, a) -> HealFeedSubcommand.tabComplete(a));
 
         // ── Home — consolidated (1 command, 6 aliases) ──
 
