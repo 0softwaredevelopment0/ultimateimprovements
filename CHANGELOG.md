@@ -3,6 +3,19 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.4] - 2026-11-20
+
+### Changed
+- **Sunburn wears the helmet through the Paper API instead of a private
+  damage path.** `SunburnManager` now calls
+  `Player#damageItemStack(EquipmentSlot.HEAD, amount)`, which runs the whole
+  vanilla wear pipeline: Unbreaking rolls, `PlayerItemDamageEvent`, stat
+  changes, the `PlayerItemBreakEvent`/break sound and the equipment-slot
+  update. The hand-rolled `degradeHelmet` helper and its
+  `ItemDurabilityUtil` fallback are gone — no need to reimplement vanilla
+  durability. The `helmet_durability_loss` value is passed straight to the
+  API.
+
 ## [1.11.0-alpha.3] - 2026-11-20
 
 ### Fixed

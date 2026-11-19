@@ -1,7 +1,6 @@
 package com.ultimateimprovements.mechanics.environment.sunburn;
 
 import com.ultimateimprovements.core.Main;
-import com.ultimateimprovements.mechanics.features.integrity.ItemDurabilityUtil;
 import com.ultimateimprovements.util.ConsoleLogger;
 
 import org.bukkit.*;
@@ -11,10 +10,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -164,9 +162,7 @@ public class SunburnManager implements Listener {
 
                 if (hasHelmet) {
                     for (int i = 0; i < helmetDegradeSteps; i++) {
-                        ItemStack current = player.getInventory().getHelmet();
-                        if (current == null || current.getType() == Material.AIR) break;
-                        degradeHelmet(player, current);
+                        player.damageItemStack(EquipmentSlot.HEAD, helmetDurabilityLoss);
                     }
                 } else {
                     // No helmet — set on fire
@@ -200,36 +196,6 @@ public class SunburnManager implements Listener {
         if (player.getLocation().getBlock().getLightFromSky() < 15) return false;
 
         return true;
-    }
-
-    // =========================
-    // HELMET DEGRADATION
-    // =========================
-
-    private void degradeHelmet(Player player, ItemStack helmet) {
-        if (ItemDurabilityUtil.isEnabled() && ItemDurabilityUtil.hasItemIntegrity(helmet)) {
-            double remaining = ItemDurabilityUtil.decreaseItemIntegrity(helmet, helmetDurabilityLoss, player);
-
-            if (remaining <= 0) {
-                player.getInventory().setHelmet(null);
-            }
-        } else {
-            int maxDur = ItemDurabilityUtil.getMaxDurability(helmet);
-            if (maxDur <= 0) return; // No durability — passive protection
-            if (ItemDurabilityUtil.isUnbreakable(helmet)) return; // minecraft:unbreakable — no wear
-
-            // Plugin-side wear still rolls the vanilla Unbreaking chance
-            int loss = ItemDurabilityUtil.applyUnbreaking(helmet, helmetDurabilityLoss);
-            if (loss <= 0) return;
-
-            int currentDmg = ItemDurabilityUtil.getVanillaDamage(helmet);
-            int after = Math.min(maxDur, currentDmg + loss);
-
-            helmet.editMeta(Damageable.class, dmg -> dmg.setDamage(after));
-            if (after >= maxDur) {
-                player.getInventory().setHelmet(null);
-            }
-        }
     }
 
     // =========================
