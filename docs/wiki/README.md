@@ -24,11 +24,12 @@ Welcome to the documentation for **UltimateImprovements**, a modular gameplay, a
 ### Server owners
 
 1. [Installation and updates](installation.md)
-2. [Architecture and modules](architecture.md)
-3. [Commands reference](commands.md)
-4. [Permissions](permissions.md)
-5. [Configuration](configuration.md)
-6. [Built-in placeholders](placeholders.md)
+2. [Architecture and addons](architecture.md)
+3. [Runtime module reference](module-reference.md)
+4. [Commands reference](commands.md)
+5. [Permissions](permissions.md)
+6. [Configuration](configuration.md)
+7. [Built-in placeholders](placeholders.md)
 
 ### Feature guides
 
@@ -50,7 +51,7 @@ The repository contains **21 Gradle plugin projects/JARs**: UI-Core and 20 addon
 The suite has two levels of modularity:
 
 - **Addons** are independently loaded Paper plugins. UI-Core is required; addons provide feature domains.
-- **Modules** are feature units registered by the suite and managed at runtime through \`/ui modules\`. A module is not the same thing as an addon JAR.
+- **Modules** are feature units registered by the suite and managed at runtime through \`/ui modules list|enable|disable\`. A module is not the same thing as an addon JAR.
 
 ## Documentation conventions
 
@@ -63,7 +64,6 @@ The suite has two levels of modularity:
 ## Canonical sources
 
 - [README](../../README.md) — short project overview and quick install.
-- [GUIDE.md](../../GUIDE.md) — broad existing feature guide.
 - [CHANGELOG.md](../../CHANGELOG.md) — historical changes.
 - [Releases](https://github.com/0softwaredevelopment0/ultimateimprovements/releases) — versioned artifacts.
 - [Source tree](https://github.com/0softwaredevelopment0/ultimateimprovements/tree/main) — implementation and bundled defaults.

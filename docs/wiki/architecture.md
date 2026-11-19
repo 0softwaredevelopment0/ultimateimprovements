@@ -43,12 +43,14 @@ An **addon** is a separately loaded Paper plugin/JAR, such as UI-Energy.
 A **module** is an independently initialized feature unit inside the family. Examples include optional display, gameplay, protection or world mechanics. Modules are registered with the module manager and can be listed or toggled at runtime:
 
 \`\`\`text
-/ui modules
-/ui modules enable <module>
-/ui modules disable <module>
+/ui modules list
+/ui modules enable <path>
+/ui modules disable <path>
 \`\`\`
 
-The module manager guards initialization and shutdown of each module. A failure in one optional module is intended not to prevent unrelated modules from starting. A failed essential module is logged as a high-severity condition and can leave the suite partially functional.
+The module manager guards initialization and shutdown of each module. A failure in one optional module is intended not to prevent unrelated modules from starting. A failed essential module is logged as a high-severity condition and can leave the suite partially functional. The command implementation refuses to disable modules marked essential.
+
+For the current module catalog, exact command syntax, permission checks, runtime-only toggle behavior and datapack integration, see [Runtime module reference](module-reference.md).
 
 Some modules are essential to the suite's operation (for example Core, Database, Auth, Crafting, Energy, Reactor and Radiation). They are not equivalent to ordinary optional feature switches. Check the live module list for the names and state in the release you run.
 

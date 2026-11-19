@@ -13,13 +13,15 @@ All primary commands use the \`/ui\` root (also available as \`/ultimateimprovem
 | \`/ui help <command>\` | Detailed usage for a command |
 | \`/ui help <command> <subcommand>\` | Detailed help for a subcommand |
 | \`/ui reload\` | Reload the family's configs, messages and reloadable modules |
-| \`/ui modules\` | List modules and their states |
-| \`/ui modules enable <name>\` | Enable an optional module |
-| \`/ui modules disable <name>\` | Disable an optional module |
+| \`/ui modules list\` | Show the hierarchical module tree and current states |
+| \`/ui modules enable <path>\` | Enable a registered module by path or name |
+| \`/ui modules disable <path>\` | Disable a non-essential module by path or name |
 | \`/ui addon list\` | List addon presence/status |
 | \`/ui lang [ru\|en]\` | View or change the UI language |
 | \`/ui config regen <UI-Addon.toml>\` | Back up and regenerate a config |
 | \`/ui config reset <addon\|all>\` | Back up and reset an addon config |
+
+Module mutations are restricted to operators or senders with the literal \`*\` permission. Essential modules cannot be disabled. Module toggles are runtime actions; they do not edit TOML settings or save a persistent enabled/disabled preference. Use [Runtime module reference](module-reference.md) for path matching, module groups and datapack gates.
 
 Config regeneration/reset requires the relevant permission, the config-command feature gate and a confirmation step. See [Configuration](configuration.md).
 

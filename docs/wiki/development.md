@@ -29,7 +29,7 @@ The current root Gradle build sets:
 
 - Java toolchain: 26;
 - group: com.ultimateimprovements;
-- version in the current build file: 1.10.0-alpha.2;
+- version in the current build file: 1.10.0-alpha.3;
 - Shadow plugin: com.gradleup.shadow.
 
 Use a JDK 26 installation and the included Gradle Wrapper.
@@ -77,15 +77,17 @@ Use the existing /ui help source metadata as a standard for command descriptions
 
 ## Module development
 
-Feature modules are managed by the core ModuleManager. A module should:
+Feature modules extend \`PluginModule\` and are managed by the core \`ModuleManager\`. Each module has a display name, a slash-separated path and an \`essential\` flag. The lifecycle contract is:
 
-- initialize only the resources it owns;
-- release listeners/tasks/resources during disable;
-- handle initialization failures without corrupting unrelated modules;
-- mark itself essential only when the server cannot function safely without it;
-- support config reload when its settings are meant to be reloadable.
+- \`onInit(JavaPlugin)\` allocates the module's listeners, tasks, hooks and managers;
+- \`onDisable(JavaPlugin)\` must release those resources and unregister/clear owned state;
+- \`onReloadConfig(JavaPlugin)\` is optional and is called only for enabled modules during supported config reloads;
+- initialization and shutdown are guarded so one module failure is logged rather than automatically aborting every other module;
+- mark a module essential only when disabling it would leave required infrastructure unsafe or unusable.
 
-Metadata can be provided through the module metadata annotation. The module scanner and registration code should be reviewed before introducing new discovery behavior.
+Modules can be registered explicitly by an addon registrar or discovered by the core scanner. The scanner looks for \`PluginModule\` implementations in the configured package and instantiates discoverable classes through a no-argument constructor; the \`@ModuleInfo\` annotation provides module metadata, but manually registered anonymous modules remain the responsibility of their registrar.
+
+The in-game \`/ui modules list\` command builds its tree from the module's registered path, not from the source directory structure. A path is therefore a public admin-facing identifier: keep it stable and unique where possible. See [Runtime module reference](module-reference.md) for command behavior and the current module groups.
 
 ## Configuration development
 

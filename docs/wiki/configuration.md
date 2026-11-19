@@ -93,7 +93,7 @@ Usually reloadable through \`/ui reload\`:
 
 - ordinary TOML values;
 - messages and formatting;
-- module states and settings that the relevant module reload implementation supports.
+- settings explicitly handled by the owning module's reload implementation.
 
 Restart required:
 
@@ -127,7 +127,22 @@ A reset/regeneration backs up the affected live config before replacing it. Use 
 
 ### Datapack
 
-\`UI-Datapack.toml\` contains \`datapack.enabled\`, \`datapack.lang\`, \`datapack.position\` and feature switches under \`datapack.modules.*\`. Discovery is startup-time.
+\`UI-Datapack.toml\` controls the bundled pack. The current template defaults are:
+
+| Key | Default | Effect |
+|---|---:|---|
+| \`datapack.enabled\` | \`true\` | Master switch; when false, the pack and its parts are not registered. |
+| \`datapack.lang\` | \`auto\` | \`en\`, \`ru\` or \`auto\` (follows \`messages.lang\`). |
+| \`datapack.position\` | \`top\` | \`top\` makes this pack win conflicts; \`bottom\` lets world/other packs win. |
+| \`datapack.modules.custom_recipes\` | \`true\` | Custom item recipes. |
+| \`datapack.modules.vanilla_recipes\` | \`true\` | Vanilla recipe overrides. |
+| \`datapack.modules.loot_tables\` | \`true\` | Loot-table overrides. |
+| \`datapack.modules.structures\` | \`true\` | Custom structures and their loot tables. |
+| \`datapack.modules.worldgen\` | \`true\` | Biomes, dimensions, features and structure generation; affects new chunks only. |
+| \`datapack.modules.dimension_limits\` | \`true\` | Dimension build-height/type data; applies to worlds using that dimension type. |
+| \`datapack.modules.vanilla_tags\` | \`true\` | Overrides vanilla item/mineable tags. |
+
+These options are consumed during startup bootstrap. Restart after changing the master switch, language, pack position or any part switch. Custom enchantments and achievements are intentionally configured separately in \`UI-Enchantments.toml\` and \`UI-Advancements.toml\`; they are not toggled by the datapack part switches.
 
 ### Advancements
 
