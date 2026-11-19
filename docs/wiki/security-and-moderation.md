@@ -68,6 +68,8 @@ Punishment messages are MiniMessage templates in **UI-Punish.toml**; documented 
 
 The plugin maintains its own database-backed whitelist and blacklist systems, separate from the vanilla whitelist. There are also OP whitelist and OP blacklist controls.
 
+The vanilla `/whitelist` command keeps working, but every execution prints a deprecation notice asking to use `/ui whitelist | /ui blacklist` instead: running two independent whitelists side by side can cause confusing access conflicts. The notice text is `messages.plugin_hide.whitelist_deprecated` in **UI-Core.toml**.
+
 Because these controls affect operator privileges and login access, test their behavior with a controlled account before enabling them on a production server. Use the in-game help for exact commands and temporary-operation flags.
 
 ## Anti-cheat and server guards
