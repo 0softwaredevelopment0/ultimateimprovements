@@ -915,6 +915,29 @@ helmet_degrade_interval = 80
 # Durability points the helmet loses per degrade.
 # Default: 1
 helmet_durability_loss = 1
+# Blocks that shield from the sun: when the first non-air block above the
+# player's head is one of these, the player is not sunburned (no fire without
+# a helmet, no helmet wear). Empty list disables the shield.
+# Default: every vanilla glass block and pane
+block_blacklist = [
+    "glass", "tinted_glass", "glass_pane",
+    "white_stained_glass", "white_stained_glass_pane",
+    "orange_stained_glass", "orange_stained_glass_pane",
+    "magenta_stained_glass", "magenta_stained_glass_pane",
+    "light_blue_stained_glass", "light_blue_stained_glass_pane",
+    "yellow_stained_glass", "yellow_stained_glass_pane",
+    "lime_stained_glass", "lime_stained_glass_pane",
+    "pink_stained_glass", "pink_stained_glass_pane",
+    "gray_stained_glass", "gray_stained_glass_pane",
+    "light_gray_stained_glass", "light_gray_stained_glass_pane",
+    "cyan_stained_glass", "cyan_stained_glass_pane",
+    "purple_stained_glass", "purple_stained_glass_pane",
+    "blue_stained_glass", "blue_stained_glass_pane",
+    "brown_stained_glass", "brown_stained_glass_pane",
+    "green_stained_glass", "green_stained_glass_pane",
+    "red_stained_glass", "red_stained_glass_pane",
+    "black_stained_glass", "black_stained_glass_pane",
+]
 # World name.
 # Default: ["world"]
 included_worlds = ["world"]
