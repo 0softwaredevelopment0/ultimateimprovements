@@ -949,6 +949,12 @@ block_blacklist = [
     "waxed_weathered_copper_grate", "waxed_oxidized_copper_grate",
     "iron_bars", "beacon",
 ]
+# Skip non-solid blocks while scanning upward: when true (default) only a
+# solid block counts as a roof, so torches, plants and other passable blocks
+# are ignored. Set to false to let any non-air block above the head shelter
+# the player. The blacklist above is applied after this check.
+# Default: true
+skip_non_solid_blocks = true
 # World name.
 # Default: ["world"]
 included_worlds = ["world"]
