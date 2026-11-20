@@ -32,11 +32,12 @@ import java.util.UUID;
  *
  * The plugin does its own sky check: it scans the block column upward from
  * the player (no vanilla sky-light test). Air is skipped; passable blocks are
- * skipped too while {@code sunburn.skip_non_solid_blocks} is on (default);
- * blocks from {@code sunburn.block_blacklist} are skipped because sunlight
- * passes through them. The first remaining block shelters the player from the
- * sun. With no such block up to the world height the player is sun-exposed:
- * fire without a helmet, helmet wear with one.
+ * skipped too while {@code sunburn.skip_non_solid_blocks} is on (default),
+ * and solid blocks are skipped while {@code sunburn.skip_solid_blocks} is on
+ * (off by default); blocks from {@code sunburn.block_blacklist} are skipped
+ * because sunlight passes through them. The first remaining block shelters
+ * the player from the sun. With no such block up to the world height the
+ * player is sun-exposed: fire without a helmet, helmet wear with one.
  *
  * Minecraft naturally extinguishes fire in water, rain, etc.
  * When player leaves sun (night, underground) => extinguished on next check.
@@ -68,6 +69,12 @@ public class SunburnManager implements Listener {
      * {@code sunburn.skip_non_solid_blocks}.
      */
     private boolean skipNonSolidBlocks;
+    /**
+     * When true, the upward scan skips solid blocks, so only passable blocks
+     * (and anything not covered by the other skip flag) can shelter. Off by
+     * default. Configured as {@code sunburn.skip_solid_blocks}.
+     */
+    private boolean skipSolidBlocks;
 
     /** Vanilla glass colours used to build the default blacklist. */
     private static final String[] GLASS_COLORS = {
@@ -165,6 +172,11 @@ public class SunburnManager implements Listener {
             blacklistedBlocks.add(material);
         }
         skipNonSolidBlocks = cfg.getBoolean("sunburn.skip_non_solid_blocks", true);
+        skipSolidBlocks = cfg.getBoolean("sunburn.skip_solid_blocks", false);
+        if (skipNonSolidBlocks && skipSolidBlocks) {
+            ConsoleLogger.warn("[SunburnModule] skip_non_solid_blocks and skip_solid_blocks are both on — "
+                    + "no block can shelter from the sun; every exposed player will burn.");
+        }
 
         includedWorlds = new HashSet<>();
         if (cfg.isList("sunburn.included_worlds")) {
@@ -183,6 +195,7 @@ public class SunburnManager implements Listener {
                 + ", extinguishWhenSafe=" + extinguishWhenSafe
                 + ", blacklistedBlocks=" + blacklistedBlocks.size()
                 + ", skipNonSolidBlocks=" + skipNonSolidBlocks
+                + ", skipSolidBlocks=" + skipSolidBlocks
                 + ", includedWorlds=" + includedWorlds);
     }
 
@@ -274,12 +287,14 @@ public class SunburnManager implements Listener {
     /**
      * Whether a solid roof above the player's head shelters from the sun.
      * <p>
-     * The block column is scanned upward from the head. Air is always skipped;
-     * with {@code sunburn.skip_non_solid_blocks} (default) passable blocks such
-     * as torches and plants are skipped too, so only a solid block counts as a
-     * roof. Blocks listed in {@code sunburn.block_blacklist} are skipped as
-     * well (sunlight passes through them). The first other cover block shelters
-     * the player; reaching the world top without one means direct sunlight.
+     * The block column is scanned upward from the head. Air is always skipped.
+     * {@code sunburn.skip_non_solid_blocks} (default on) skips passable blocks
+     * such as torches and plants, so only a solid block counts as a roof;
+     * {@code sunburn.skip_solid_blocks} (default off) does the opposite and
+     * skips solid blocks. Blocks listed in {@code sunburn.block_blacklist} are
+     * skipped as well (sunlight passes through them). The first other cover
+     * block shelters the player; reaching the world top without one means
+     * direct sunlight.
      */
     private boolean isShelteredFromSun(Player player) {
         World world = player.getWorld();
@@ -300,7 +315,9 @@ public class SunburnManager implements Listener {
     /** Whether the material counts as a roof under the current config. */
     private boolean isCover(Material type) {
         if (type.isAir()) return false;
-        return !skipNonSolidBlocks || type.isSolid();
+        boolean solid = type.isSolid();
+        if (skipSolidBlocks && solid) return false;
+        return !skipNonSolidBlocks || solid;
     }
 
     // =========================

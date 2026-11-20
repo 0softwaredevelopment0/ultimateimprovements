@@ -3,6 +3,16 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.15] - 2026-11-21
+
+### Added
+- **New `sunburn.skip_solid_blocks` option** (`UI-Player.toml`, next to
+  `skip_non_solid_blocks`, default `false`): the opposite switch — when on,
+  solid blocks no longer count as a roof and the upward scan passes through
+  them, leaving only passable blocks as possible shelter (subject to
+  `skip_non_solid_blocks`). Enabling both skip flags leaves no block able to
+  shelter; the manager logs a warning at load in that case.
+
 ## [1.11.0-alpha.14] - 2026-11-21
 
 ### Added

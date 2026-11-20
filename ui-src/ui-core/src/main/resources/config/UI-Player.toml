@@ -955,6 +955,13 @@ block_blacklist = [
 # the player. The blacklist above is applied after this check.
 # Default: true
 skip_non_solid_blocks = true
+# Skip solid blocks while scanning upward (the opposite switch): when true,
+# solid blocks no longer count as a roof and the scan passes through them, so
+# only passable blocks shelter (subject to skip_non_solid_blocks). Off by
+# default. Turning both skip flags on means no block can shelter and every
+# player in daylight burns.
+# Default: false
+skip_solid_blocks = false
 # World name.
 # Default: ["world"]
 included_worlds = ["world"]
