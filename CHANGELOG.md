@@ -3,6 +3,25 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.13] - 2026-11-21
+
+### Changed
+- **Sunburn now does its own sky check instead of the vanilla sky-light test.**
+  `SunburnManager` scans the block column upward from the player's head: air,
+  liquids and passable blocks are not cover, and every block from
+  `sunburn.block_blacklist` is skipped because sunlight passes through it. The
+  first remaining solid block shelters the player; reaching the world top
+  without one means direct sunlight. This makes the blacklist authoritative
+  and independent of how vanilla computes sky light (previously `TINTED_GLASS`
+  and similar light-blocking entries could never matter).
+
+### Added
+- The default `sunburn.block_blacklist` now covers the other light-passing
+  blocks besides glass: `ice`, `packed_ice`, `blue_ice`, `frosted_ice`,
+  `slime_block`, `honey_block`, all eight copper grate variants (plain,
+  exposed, weathered, oxidized and their waxed forms), `iron_bars` and
+  `beacon`.
+
 ## [1.11.0-alpha.12] - 2026-11-21
 
 ### Added
