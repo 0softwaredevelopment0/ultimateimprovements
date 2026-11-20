@@ -3,17 +3,19 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
-## [1.11.0-alpha.11] - 2026-11-21
+## [1.11.0-alpha.12] - 2026-11-21
 
 ### Added
-- **New `sunburn.block_blacklist` option** (`UI-Player.toml`): blocks above
-  the player's head that shield from the sun. When the first non-air block
-  above the head is in the list, the player is not sun-exposed at all — no fire
-  without a helmet and no helmet wear with one. This makes transparent roofs
-  (glass, panes) count as shade even though they still pass sky light. The
-  default covers every vanilla glass block and pane (plain, tinted and stained
-  glass plus stained panes); an empty list disables the shield, unknown
-  material names are logged and skipped.
+- **New `sunburn.block_blacklist` option** (`UI-Player.toml`): a true
+  blacklist — every solid block above the player's head shelters from the sun
+  **except** the listed ones. Air, liquids and other passable blocks never
+  count as cover (the same rule the radiation open-sky check uses). The
+  default lists every vanilla glass block and pane (plain, tinted and all 16
+  stained colours plus stained panes), because transparent roofs still pass
+  sky light 15 and kept the player sunburned. Under a blacklisted block the
+  player burns without a helmet and wears the helmet with one; under any
+  other cover neither happens. An empty list means every cover block shelters;
+  unknown material names are logged and skipped.
 
 ## [1.11.0-alpha.6] - 2026-11-20
 

@@ -915,9 +915,11 @@ helmet_degrade_interval = 80
 # Durability points the helmet loses per degrade.
 # Default: 1
 helmet_durability_loss = 1
-# Blocks that shield from the sun: when the first non-air block above the
-# player's head is one of these, the player is not sunburned (no fire without
-# a helmet, no helmet wear). Empty list disables the shield.
+# Blacklist of blocks that do NOT shelter from the sun. Every other solid
+# block above the player's head counts as shade (air, liquids and passable
+# blocks never do). Listed blocks let the sunlight through: under them the
+# player burns without a helmet and wears the helmet with one. Glass and its
+# panes are listed by default because they are transparent.
 # Default: every vanilla glass block and pane
 block_blacklist = [
     "glass", "tinted_glass", "glass_pane",

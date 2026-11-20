@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Guards the default {@code sunburn.block_blacklist}: it must cover exactly
- * every vanilla glass block and pane, so a glass roof really shields players
- * from sunburn without touching the config.
+ * every vanilla glass block and pane, so a glass roof does <b>not</b> shelter
+ * players from sunburn without touching the config.
  * <p>
  * The check is name-based on purpose: touching {@link org.bukkit.Material}
  * outside a running server fails its static initializer, and the keys

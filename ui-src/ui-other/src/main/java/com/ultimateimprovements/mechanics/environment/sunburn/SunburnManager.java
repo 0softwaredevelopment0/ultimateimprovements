@@ -30,10 +30,12 @@ import java.util.UUID;
  *   - No helmet => set on fire (fire_ticks duration)
  *   - Helmet => spend helmet durability instead (no fire while protected)
  *
- * A block from {@code sunburn.block_blacklist} as the first non-air block
- * above the player's head counts as shade: the player is not sun-exposed at
- * all, so neither fire nor helmet wear happens. The default list covers every
- * glass block and pane.
+ * Every solid block above the player's head shelters from the sun — except
+ * the ones listed in {@code sunburn.block_blacklist}. A listed block (glass
+ * and its panes by default) lets the sun through, so the player stays
+ * sun-exposed: fire without a helmet, helmet wear with one. Air, liquids and
+ * other passable blocks never count as cover (same rule as the radiation
+ * open-sky check).
  *
  * Minecraft naturally extinguishes fire in water, rain, etc.
  * When player leaves sun (night, underground) => extinguished on next check.
@@ -53,13 +55,13 @@ public class SunburnManager implements Listener {
     private boolean extinguishWhenSafe;
     private Set<String> includedWorlds;
     /**
-     * Blocks that shield the player from the sun. When the first non-air block
-     * above the player's head is one of these, the player is considered shaded
-     * and never sunburned. Configured as {@code sunburn.block_blacklist}.
+     * Blocks that do NOT shelter from the sun. Every other cover block above
+     * the player's head counts as shade. Configured as
+     * {@code sunburn.block_blacklist}.
      */
-    private Set<Material> sunShieldingBlocks;
+    private Set<Material> blacklistedBlocks;
 
-    /** Vanilla glass colours used to build the default shielding list. */
+    /** Vanilla glass colours used to build the default blacklist. */
     private static final String[] GLASS_COLORS = {
             "white", "orange", "magenta", "light_blue", "yellow", "lime", "pink",
             "gray", "light_gray", "cyan", "purple", "blue", "brown", "green",
@@ -69,7 +71,8 @@ public class SunburnManager implements Listener {
     /**
      * Default {@code sunburn.block_blacklist}: every vanilla glass block and
      * pane — plain and tinted glass, the 16 stained glass variants and the 16
-     * stained glass panes.
+     * stained glass panes. These let sunlight through, so they are the only
+     * cover blocks that must not shelter the player out of the box.
      */
     static List<String> defaultBlockBlacklist() {
         List<String> names = new ArrayList<>();
@@ -128,11 +131,11 @@ public class SunburnManager implements Listener {
                 cfg.getInt("sunburn.helmet_integrity_loss", 1));
         extinguishWhenSafe = cfg.getBoolean("sunburn.extinguish_when_safe", true);
 
-        sunShieldingBlocks = EnumSet.noneOf(Material.class);
-        List<String> shieldingNames = cfg.isList("sunburn.block_blacklist")
+        blacklistedBlocks = EnumSet.noneOf(Material.class);
+        List<String> blacklistNames = cfg.isList("sunburn.block_blacklist")
                 ? cfg.getStringList("sunburn.block_blacklist")
                 : defaultBlockBlacklist();
-        for (String name : shieldingNames) {
+        for (String name : blacklistNames) {
             if (name == null || name.isBlank()) continue;
             Material material = Material.matchMaterial(name.trim().toLowerCase(Locale.ROOT));
             if (material == null || !material.isBlock()) {
@@ -140,7 +143,7 @@ public class SunburnManager implements Listener {
                         + "' in sunburn.block_blacklist — ignored.");
                 continue;
             }
-            sunShieldingBlocks.add(material);
+            blacklistedBlocks.add(material);
         }
 
         includedWorlds = new HashSet<>();
@@ -158,7 +161,7 @@ public class SunburnManager implements Listener {
                 + ", helmetDegrade=" + helmetDegradeInterval
                 + ", helmetLoss=" + helmetDurabilityLoss
                 + ", extinguishWhenSafe=" + extinguishWhenSafe
-                + ", shieldingBlocks=" + sunShieldingBlocks.size()
+                + ", blacklistedBlocks=" + blacklistedBlocks.size()
                 + ", includedWorlds=" + includedWorlds);
     }
 
@@ -206,7 +209,7 @@ public class SunburnManager implements Listener {
             if (player.getGameMode() != GameMode.SURVIVAL && player.getGameMode() != GameMode.ADVENTURE) continue;
             if (player.isDead() || player.getHealth() <= 0) continue;
 
-            boolean exposed = isExposedToSun(player) && !isShadedByBlock(player);
+            boolean exposed = isExposedToSun(player) && !isShelteredFromSun(player);
 
             if (exposed) {
                 nowExposed.add(player.getUniqueId());
@@ -254,14 +257,15 @@ public class SunburnManager implements Listener {
     }
 
     /**
-     * Whether a configured shielding block (glass and panes by default) is the
-     * first non-air block above the player's head. Such a block still lets sky
-     * light through, so the vanilla light check alone keeps calling the player
-     * exposed; the blacklist lets transparent roofs act as real shade.
+     * Whether a cover block above the player's head shelters from the sun.
+     * <p>
+     * The column is scanned upward from the head; air, liquids and other
+     * passable blocks are ignored (they are not a roof — the same rule the
+     * radiation open-sky check uses). The first real cover block decides:
+     * every block shelters <b>except</b> those listed in
+     * {@code sunburn.block_blacklist}, so glass keeps the player in the sun.
      */
-    private boolean isShadedByBlock(Player player) {
-        if (sunShieldingBlocks.isEmpty()) return false;
-
+    private boolean isShelteredFromSun(Player player) {
         World world = player.getWorld();
         Location location = player.getLocation();
         int x = location.getBlockX();
@@ -270,10 +274,15 @@ public class SunburnManager implements Listener {
         int startY = Math.max(world.getMinHeight(), location.getBlockY() + 2);
         for (int y = startY; y < world.getMaxHeight(); y++) {
             Material type = world.getBlockAt(x, y, z).getType();
-            if (type.isAir()) continue;
-            return sunShieldingBlocks.contains(type);
+            if (!isCover(type)) continue;
+            return !blacklistedBlocks.contains(type);
         }
         return false;
+    }
+
+    /** Whether the material is a roof: a non-air solid block (liquids are not solid). */
+    private static boolean isCover(Material type) {
+        return !type.isAir() && type.isSolid();
     }
 
     // =========================
