@@ -3,6 +3,17 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.14] - 2026-11-21
+
+### Added
+- **New `sunburn.skip_non_solid_blocks` option** (`UI-Player.toml`, right after
+  `block_blacklist`, default `true`): exposes the solidity check of the upward
+  sun scan. With `true` only a solid block counts as a roof, so torches,
+  plants and other passable blocks are skipped (previous behaviour); with
+  `false` any non-air block above the head shelters the player. The
+  `block_blacklist` is applied after this check, so listed blocks never
+  shelter in either mode.
+
 ## [1.11.0-alpha.13] - 2026-11-21
 
 ### Changed

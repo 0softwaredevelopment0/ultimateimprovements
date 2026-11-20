@@ -794,6 +794,7 @@ final class ConfigRules {
             integer("sunburn.helmet_degrade_interval", 1, 72000, "Helmet degrade interval in ticks"),
             integer("sunburn.helmet_durability_loss", 1, 100, "Durability points lost per helmet degrade"),
             stringList("sunburn.block_blacklist"),
+            bool("sunburn.skip_non_solid_blocks"),
             stringList("sunburn.included_worlds"),
             // Space dimension
             bool("space.enabled"),

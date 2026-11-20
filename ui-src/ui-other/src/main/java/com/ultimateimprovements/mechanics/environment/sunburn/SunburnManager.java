@@ -31,11 +31,12 @@ import java.util.UUID;
  *   - Helmet => spend helmet durability instead (no fire while protected)
  *
  * The plugin does its own sky check: it scans the block column upward from
- * the player (no vanilla sky-light test). Air, liquids and passable blocks are
- * not cover; blocks from {@code sunburn.block_blacklist} are skipped because
- * sunlight passes through them. The first remaining solid block shelters the
- * player from the sun. With no such block up to the world height the player
- * is sun-exposed: fire without a helmet, helmet wear with one.
+ * the player (no vanilla sky-light test). Air is skipped; passable blocks are
+ * skipped too while {@code sunburn.skip_non_solid_blocks} is on (default);
+ * blocks from {@code sunburn.block_blacklist} are skipped because sunlight
+ * passes through them. The first remaining block shelters the player from the
+ * sun. With no such block up to the world height the player is sun-exposed:
+ * fire without a helmet, helmet wear with one.
  *
  * Minecraft naturally extinguishes fire in water, rain, etc.
  * When player leaves sun (night, underground) => extinguished on next check.
@@ -60,6 +61,13 @@ public class SunburnManager implements Listener {
      * {@code sunburn.block_blacklist}.
      */
     private Set<Material> blacklistedBlocks;
+    /**
+     * When true (default), the upward scan only counts solid blocks as cover
+     * and skips torches, plants and other passable blocks. When false, any
+     * non-air block above the head shelters the player. Configured as
+     * {@code sunburn.skip_non_solid_blocks}.
+     */
+    private boolean skipNonSolidBlocks;
 
     /** Vanilla glass colours used to build the default blacklist. */
     private static final String[] GLASS_COLORS = {
@@ -156,6 +164,7 @@ public class SunburnManager implements Listener {
             }
             blacklistedBlocks.add(material);
         }
+        skipNonSolidBlocks = cfg.getBoolean("sunburn.skip_non_solid_blocks", true);
 
         includedWorlds = new HashSet<>();
         if (cfg.isList("sunburn.included_worlds")) {
@@ -173,6 +182,7 @@ public class SunburnManager implements Listener {
                 + ", helmetLoss=" + helmetDurabilityLoss
                 + ", extinguishWhenSafe=" + extinguishWhenSafe
                 + ", blacklistedBlocks=" + blacklistedBlocks.size()
+                + ", skipNonSolidBlocks=" + skipNonSolidBlocks
                 + ", includedWorlds=" + includedWorlds);
     }
 
@@ -264,11 +274,12 @@ public class SunburnManager implements Listener {
     /**
      * Whether a solid roof above the player's head shelters from the sun.
      * <p>
-     * The block column is scanned upward from the head. Air, liquids and other
-     * passable blocks are skipped, and so are the blocks listed in
-     * {@code sunburn.block_blacklist} (sunlight passes through them). The
-     * first other solid block shelters the player; reaching the world top
-     * without one means direct sunlight.
+     * The block column is scanned upward from the head. Air is always skipped;
+     * with {@code sunburn.skip_non_solid_blocks} (default) passable blocks such
+     * as torches and plants are skipped too, so only a solid block counts as a
+     * roof. Blocks listed in {@code sunburn.block_blacklist} are skipped as
+     * well (sunlight passes through them). The first other cover block shelters
+     * the player; reaching the world top without one means direct sunlight.
      */
     private boolean isShelteredFromSun(Player player) {
         World world = player.getWorld();
@@ -279,16 +290,17 @@ public class SunburnManager implements Listener {
         int startY = Math.max(world.getMinHeight(), location.getBlockY() + 2);
         for (int y = startY; y < world.getMaxHeight(); y++) {
             Material type = world.getBlockAt(x, y, z).getType();
-            if (!isCover(type)) continue;                    // air / liquid / passable
+            if (!isCover(type)) continue;                    // air / passable block
             if (blacklistedBlocks.contains(type)) continue;  // sun shines through
             return true;
         }
         return false;
     }
 
-    /** Whether the material is a roof: a non-air solid block (liquids are not solid). */
-    private static boolean isCover(Material type) {
-        return !type.isAir() && type.isSolid();
+    /** Whether the material counts as a roof under the current config. */
+    private boolean isCover(Material type) {
+        if (type.isAir()) return false;
+        return !skipNonSolidBlocks || type.isSolid();
     }
 
     // =========================
