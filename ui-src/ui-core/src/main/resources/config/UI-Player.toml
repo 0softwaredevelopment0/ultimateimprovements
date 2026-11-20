@@ -915,12 +915,15 @@ helmet_degrade_interval = 80
 # Durability points the helmet loses per degrade.
 # Default: 1
 helmet_durability_loss = 1
-# Blacklist of blocks that do NOT shelter from the sun. Every other solid
-# block above the player's head counts as shade (air, liquids and passable
-# blocks never do). Listed blocks let the sunlight through: under them the
-# player burns without a helmet and wears the helmet with one. Glass and its
-# panes are listed by default because they are transparent.
-# Default: every vanilla glass block and pane
+# Blacklist of transparent blocks that do NOT shelter from the sun. The
+# plugin scans the block column above the player's head itself: air, liquids
+# and passable blocks are skipped, listed blocks are ignored (sunlight passes
+# through them), and the first remaining solid block counts as shade. No such
+# block up to the world top means direct sunlight: the player burns without a
+# helmet and wears the helmet with one. Glass and other light-passing blocks
+# are listed by default.
+# Default: all glass blocks/panes, ice, slime, honey, copper grates,
+# iron bars and beacon
 block_blacklist = [
     "glass", "tinted_glass", "glass_pane",
     "white_stained_glass", "white_stained_glass_pane",
@@ -939,6 +942,12 @@ block_blacklist = [
     "green_stained_glass", "green_stained_glass_pane",
     "red_stained_glass", "red_stained_glass_pane",
     "black_stained_glass", "black_stained_glass_pane",
+    "ice", "packed_ice", "blue_ice", "frosted_ice",
+    "slime_block", "honey_block",
+    "copper_grate", "exposed_copper_grate", "weathered_copper_grate",
+    "oxidized_copper_grate", "waxed_copper_grate", "waxed_exposed_copper_grate",
+    "waxed_weathered_copper_grate", "waxed_oxidized_copper_grate",
+    "iron_bars", "beacon",
 ]
 # World name.
 # Default: ["world"]

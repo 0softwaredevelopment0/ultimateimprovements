@@ -30,12 +30,12 @@ import java.util.UUID;
  *   - No helmet => set on fire (fire_ticks duration)
  *   - Helmet => spend helmet durability instead (no fire while protected)
  *
- * Every solid block above the player's head shelters from the sun — except
- * the ones listed in {@code sunburn.block_blacklist}. A listed block (glass
- * and its panes by default) lets the sun through, so the player stays
- * sun-exposed: fire without a helmet, helmet wear with one. Air, liquids and
- * other passable blocks never count as cover (same rule as the radiation
- * open-sky check).
+ * The plugin does its own sky check: it scans the block column upward from
+ * the player (no vanilla sky-light test). Air, liquids and passable blocks are
+ * not cover; blocks from {@code sunburn.block_blacklist} are skipped because
+ * sunlight passes through them. The first remaining solid block shelters the
+ * player from the sun. With no such block up to the world height the player
+ * is sun-exposed: fire without a helmet, helmet wear with one.
  *
  * Minecraft naturally extinguishes fire in water, rain, etc.
  * When player leaves sun (night, underground) => extinguished on next check.
@@ -55,8 +55,8 @@ public class SunburnManager implements Listener {
     private boolean extinguishWhenSafe;
     private Set<String> includedWorlds;
     /**
-     * Blocks that do NOT shelter from the sun. Every other cover block above
-     * the player's head counts as shade. Configured as
+     * Transparent blocks that do NOT shelter from the sun; the upward scan
+     * skips them and keeps looking for a real roof. Configured as
      * {@code sunburn.block_blacklist}.
      */
     private Set<Material> blacklistedBlocks;
@@ -70,9 +70,9 @@ public class SunburnManager implements Listener {
 
     /**
      * Default {@code sunburn.block_blacklist}: every vanilla glass block and
-     * pane — plain and tinted glass, the 16 stained glass variants and the 16
-     * stained glass panes. These let sunlight through, so they are the only
-     * cover blocks that must not shelter the player out of the box.
+     * pane (plain, tinted, 16 stained glass variants and 16 stained panes) plus
+     * the other transparent solids that still let sunlight through — ice,
+     * slime, honey, copper grates, iron bars and the beacon.
      */
     static List<String> defaultBlockBlacklist() {
         List<String> names = new ArrayList<>();
@@ -83,6 +83,17 @@ public class SunburnManager implements Listener {
             names.add(color + "_stained_glass");
             names.add(color + "_stained_glass_pane");
         }
+        names.addAll(List.of(
+                // Ice family — translucent, sunlight passes.
+                "ice", "packed_ice", "blue_ice", "frosted_ice",
+                // Slime and honey — see-through blocks light passes through.
+                "slime_block", "honey_block",
+                // Copper grates (1.21) — all oxidation and waxed variants.
+                "copper_grate", "exposed_copper_grate", "weathered_copper_grate",
+                "oxidized_copper_grate", "waxed_copper_grate", "waxed_exposed_copper_grate",
+                "waxed_weathered_copper_grate", "waxed_oxidized_copper_grate",
+                // Bars and beacon have a glass-like, light-passing body.
+                "iron_bars", "beacon"));
         return names;
     }
 
@@ -244,26 +255,20 @@ public class SunburnManager implements Listener {
     // =========================
 
     private boolean isExposedToSun(Player player) {
-        World world = player.getWorld();
-
-        // Daytime only (time 0-12000)
-        long time = world.getTime();
-        if (time < 0 || time >= 12000) return false;
-
-        // Open sky above (light from sky >= 15)
-        if (player.getLocation().getBlock().getLightFromSky() < 15) return false;
-
-        return true;
+        // Daytime only (time 0-12000). No vanilla sky-light check: the plugin
+        // walks the block column itself, so the blacklist is authoritative.
+        long time = player.getWorld().getTime();
+        return time >= 0 && time < 12000;
     }
 
     /**
-     * Whether a cover block above the player's head shelters from the sun.
+     * Whether a solid roof above the player's head shelters from the sun.
      * <p>
-     * The column is scanned upward from the head; air, liquids and other
-     * passable blocks are ignored (they are not a roof — the same rule the
-     * radiation open-sky check uses). The first real cover block decides:
-     * every block shelters <b>except</b> those listed in
-     * {@code sunburn.block_blacklist}, so glass keeps the player in the sun.
+     * The block column is scanned upward from the head. Air, liquids and other
+     * passable blocks are skipped, and so are the blocks listed in
+     * {@code sunburn.block_blacklist} (sunlight passes through them). The
+     * first other solid block shelters the player; reaching the world top
+     * without one means direct sunlight.
      */
     private boolean isShelteredFromSun(Player player) {
         World world = player.getWorld();
@@ -274,8 +279,9 @@ public class SunburnManager implements Listener {
         int startY = Math.max(world.getMinHeight(), location.getBlockY() + 2);
         for (int y = startY; y < world.getMaxHeight(); y++) {
             Material type = world.getBlockAt(x, y, z).getType();
-            if (!isCover(type)) continue;
-            return !blacklistedBlocks.contains(type);
+            if (!isCover(type)) continue;                    // air / liquid / passable
+            if (blacklistedBlocks.contains(type)) continue;  // sun shines through
+            return true;
         }
         return false;
     }
