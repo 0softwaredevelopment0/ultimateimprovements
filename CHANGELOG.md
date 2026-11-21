@@ -3,6 +3,18 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.21] - 2026-11-21
+
+### Fixed
+- **Meteors no longer hang in the air above their own crater.** The impact is
+  now split into three stages: the explosion fires the moment the falling
+  sphere's lower edge touches the ground, the sphere keeps sinking to the
+  freshly carved crater floor, and only there does it turn into the solid
+  meteorite structure. Previously the structure was placed at the contact
+  point, one block above the old surface, so after the explosion removed the
+  terrain it was left floating above the hole. The Marker and BlockDisplays
+  are invulnerable so they survive the blast they trigger.
+
 ## [1.11.0-alpha.20] - 2026-11-21
 
 ### Changed
