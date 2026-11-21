@@ -42,8 +42,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Movement is deliberately <b>not</b> such a signal: paused dialogs do not stop
  * server-side physics, so a falling player produced a cancelled move every tick and
  * every one of them re-sent the screen. {@link AuthListener#onPlayerMove} cancels
- * movement without prompting, and the freeze keeps the player hovering so no
- * move is generated at all.
+ * movement without prompting, so the screen is never re-sent because the frozen
+ * player is still falling or being set back.
  */
 public final class AuthPrompt {
 

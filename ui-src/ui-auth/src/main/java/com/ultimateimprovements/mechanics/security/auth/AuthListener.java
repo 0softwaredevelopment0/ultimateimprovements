@@ -154,7 +154,8 @@ public class AuthListener implements Listener {
     // does not freeze server-side physics, so gravity (or knockback) keeps producing
     // move events while the player is still typing their password. Treating those as
     // "the dialog is gone" re-sent the screen every few seconds and wiped the input.
-    // The freeze itself now keeps the player hovering (see AuthAuthenticator#freezePlayer).
+    // The freeze itself is unchanged (the player may still fall and be setback);
+    // only the dialog re-open is decoupled from movement.
     // =========================
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerMove(PlayerMoveEvent event) {
@@ -164,13 +165,6 @@ public class AuthListener implements Listener {
                 || event.getFrom().getBlockY() != event.getTo().getBlockY()
                 || event.getFrom().getBlockZ() != event.getTo().getBlockZ()) {
             event.setCancelled(true);
-            // Re-assert the hover freeze. Should anything reset the flight flags
-            // (another plugin, a game-mode change), gravity would pull the player
-            // down again and the server would keep setbacking them while they type.
-            if (!player.isFlying()) {
-                player.setAllowFlight(true);
-                player.setFlying(true);
-            }
         }
     }
 

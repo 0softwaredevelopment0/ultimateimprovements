@@ -3,6 +3,19 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.18] - 2026-11-21
+
+### Changed
+- **The auth freeze no longer forces the player to hover.** `alpha.17` made a
+  frozen player fly in place to stop the fall/setback loop, but granting flight
+  to unauthenticated players can interact badly with other flight-related
+  mechanics. The freeze flags are back to the previous behaviour (ADVENTURE,
+  zero walk/fly speed, flight not granted). The actual dialog fix is unchanged:
+  a cancelled move never re-opens the auth screen, so a player who joins or
+  logs out in the air can still finish typing the password — the server may
+  keep setting them back until login, but the window stays put and its contents
+  are not wiped.
+
 ## [1.11.0-alpha.17] - 2026-11-21
 
 ### Fixed
