@@ -28,8 +28,11 @@ import java.util.Random;
  * MeteorTask — vertical meteor fall (Marker entity).
  *
  * <p>The Marker spawns high in the sky and is teleported down every tick.
- * On ground impact: a real explosion + a meteor structure made of the specified
- * blocks with ore in the center spawns at the impact point.</p>
+ * The impact has two stages: the explosion fires the moment the sphere's lower
+ * edge touches the ground, then the meteor keeps sinking into the freshly made
+ * crater and only there does it turn into the meteorite structure. Placing the
+ * structure at the contact point used to leave it hovering above the crater
+ * floor the explosion had just carved out.</p>
  *
  * <p>Everything the players actually see comes from the BlockDisplay sphere and
  * from particles/sounds sent by hand: the meteor falls ~80-120 blocks above the
@@ -49,6 +52,13 @@ public class MeteorTask extends BukkitRunnable {
 
     /** Squared distance within which players receive the trail particles and sounds. */
     private static final double EFFECT_RADIUS_SQR = Math.pow(VIEW_RANGE * 64.0, 2);
+
+    /** Bounds of the sink animation into the crater, in ticks. */
+    private static final int DESCENT_MIN_TICKS = 4;
+    private static final int DESCENT_MAX_TICKS = 20;
+
+    /** How deep the meteor probes for the crater floor below the contact point. */
+    private static final int MAX_DESCENT_DEPTH = 16;
 
     // ──────────── Fields ────────────
     private final Plugin plugin;
@@ -73,6 +83,16 @@ public class MeteorTask extends BukkitRunnable {
 
     private Marker marker;
     private boolean impactDone = false;
+
+    // ── Two-stage impact state ──
+    /** Explosion already fired at the ground contact point. */
+    private boolean impactStarted = false;
+    /** Meteor is currently sinking from the contact point to the crater floor. */
+    private boolean descentPhase = false;
+    private double descentFromY;
+    private double descentToY;
+    private int descentTicks;
+    private int descentTick;
 
     private final Random random;
 
@@ -116,6 +136,9 @@ public class MeteorTask extends BukkitRunnable {
             Location startLoc = new Location(world, targetX, startY, targetZ);
             this.marker = (Marker) world.spawnEntity(startLoc, EntityType.MARKER);
             this.marker.setPersistent(false);
+            // The explosion fires while the meteor is still falling into the
+            // crater — it must survive its own blast until the structure is placed.
+            this.marker.setInvulnerable(true);
 
             // ── Spawn the falling block visualizers (a glowing sphere of blocks) ──
             spawnBlockVisualizers(startLoc);
@@ -135,9 +158,32 @@ public class MeteorTask extends BukkitRunnable {
             return;
         }
 
+        if (descentPhase) {
+            try {
+                tickDescent();
+            } catch (Exception e) {
+                ConsoleLogger.warn("[Meteor] Exception during crater descent: " + e.getMessage());
+                safeCleanup();
+                if (onComplete != null) onComplete.run();
+                cancel();
+            }
+            return;
+        }
+
         if (tick >= totalTicks) {
             try {
-                impact();
+                if (!impactStarted) {
+                    // Safety net: a very short/fast fall can jump past the
+                    // touchdown check in tickAnimation().
+                    tick = totalTicks;
+                    currentY = targetY;
+                    Location loc = new Location(world, targetX, currentY, targetZ);
+                    if (marker != null) marker.teleport(loc);
+                    moveDisplays(loc);
+                    explodeAtGround();
+                } else {
+                    finishImpact();
+                }
             } catch (Exception e) {
                 ConsoleLogger.warn("[Meteor] Exception during impact: " + e.getMessage());
                 // Marker AND every BlockDisplay must go — the display entities are
@@ -178,6 +224,21 @@ public class MeteorTask extends BukkitRunnable {
         // ── Move the block visualizers with the marker ──
         moveDisplays(loc);
 
+        // ── Touchdown ──
+        // targetY is the first air block above the surface, so the sphere's lower
+        // edge (center - radius) rests on the ground when currentY == targetY + r.
+        // The explosion fires there; the meteor then sinks into the fresh crater
+        // and only becomes solid blocks at its bottom (see tickDescent).
+        if (!impactStarted && currentY - sphereRadius <= targetY) {
+            explodeAtGround();
+            return;
+        }
+
+        applyFallVisuals(loc, progress);
+    }
+
+    /** Trail particles and the approach sound for the falling sphere. */
+    private void applyFallVisuals(Location loc, double progress) {
         // World#spawnParticle/playSound only reach ~32/16 blocks, so the fall is
         // broadcast to the players who can actually see the meteor instead.
         List<Player> viewers = viewersNear(loc);
@@ -227,13 +288,16 @@ public class MeteorTask extends BukkitRunnable {
     }
 
     // ──────────── Impact ────────────
-    private void impact() {
-        impactDone = true;
 
-        // Remove the Marker and the falling visualizers (real blocks replace them)
-        removeMarker();
-        removeDisplays();
+    /**
+     * Stage 1 — the moment the sphere touches the ground: the explosion, its
+     * particles/sounds and the crater decoration. The Marker and the displays
+     * stay alive; the meteor keeps sinking into the hole it just made.
+     */
+    private void explodeAtGround() {
+        impactStarted = true;
 
+        // The contact point is the first air block above the surface.
         Location impactLoc = new Location(world, targetX, targetY, targetZ);
 
         // Same reason as the fall: the impact point is up to ~120 blocks away
@@ -264,23 +328,96 @@ public class MeteorTask extends BukkitRunnable {
         sound(viewers, Sound.ENTITY_FIREWORK_ROCKET_BLAST, impactLoc, 2.0f, 0.4f);
         sound(viewers, Sound.ENTITY_DRAGON_FIREBALL_EXPLODE, impactLoc, 2.0f, 0.8f);
 
-        // ── Crater first, meteorite last ──
-        // The crater decoration (magma/obsidian/fire) must not overwrite the
-        // meteorite blocks and the central ore, so it is carved before the
-        // structure is placed.
+        // ── Crater ──
+        // Carved while the meteor is still falling into it, so the decoration
+        // never overwrites the meteorite blocks that are placed at the bottom
+        // afterwards (see finishImpact).
         spawnCrater(impactLoc);
 
+        // ── Stage 2: keep falling to the crater floor ──
+        descentFromY = currentY;
+        descentToY = findCraterBottomY(impactLoc);
+        descentTick = 0;
+        int depth = (int) Math.round(Math.max(0.0, descentFromY - descentToY));
+        descentTicks = Math.max(DESCENT_MIN_TICKS,
+                Math.min(DESCENT_MAX_TICKS, depth * 2));
+        descentPhase = true;
+    }
+
+    /**
+     * Stage 2 — the meteor sinks from the touchdown point to the crater floor.
+     * The structure is placed only here, which is what stops the meteorite from
+     * hanging in the air above the hole its own explosion carved.
+     */
+    private void tickDescent() {
+        descentTick++;
+
+        double progress = Math.min(1.0, (double) descentTick / descentTicks);
+        currentY = lerp(descentFromY, descentToY, progress);
+
+        Location loc = new Location(world, targetX, currentY, targetZ);
+        if (marker != null) marker.teleport(loc);
+        moveDisplays(loc);
+
+        List<Player> viewers = viewersNear(loc);
+        particle(viewers, Particle.CAMPFIRE_SIGNAL_SMOKE, loc, 6, 1.5, 1.0, 1.5, 0.03);
+        particle(viewers, Particle.LAVA, loc, 3, 1.2, 0.8, 1.2, 0);
+        sound(viewers, Sound.BLOCK_LAVA_AMBIENT, loc, 0.6f, 0.3f);
+
+        if (progress >= 1.0) {
+            finishImpact();
+        }
+    }
+
+    /**
+     * Stage 3 — the meteor has reached the bottom of the crater: the solid
+     * meteorite structure replaces the falling visualizers.
+     */
+    private void finishImpact() {
+        impactDone = true;
+
+        Location restLoc = new Location(world, targetX, currentY, targetZ);
+
         // ── Spawn the meteor structure (block sphere + central ore) ──
-        spawnMeteorStructure(impactLoc);
+        spawnMeteorStructure(restLoc);
+
+        // Remove the Marker and the falling visualizers (real blocks replace them)
+        removeMarker();
+        removeDisplays();
 
         // The chunk ticket is only needed while the meteor is on screen.
         releaseChunkTicket();
 
-        ConsoleLogger.info("[Meteor] Impact at " + impactLoc.getBlockX() + " " + impactLoc.getBlockY() + " " + impactLoc.getBlockZ()
+        ConsoleLogger.info("[Meteor] Impact at " + restLoc.getBlockX() + " " + restLoc.getBlockY() + " " + restLoc.getBlockZ()
                 + " in " + world.getName());
 
         if (onComplete != null) onComplete.run();
         cancel();
+    }
+
+    /**
+     * Finds where the meteor comes to rest after the explosion: the first air
+     * block above the crater floor under the contact point. When the explosion
+     * was too weak to carve anything, the contact point itself is returned.
+     *
+     * @param impactLoc contact point (first air block above the old surface).
+     * @return Y the meteor sinks to.
+     */
+    private double findCraterBottomY(Location impactLoc) {
+        int startY = impactLoc.getBlockY();
+        int maxDepth = Math.min(MAX_DESCENT_DEPTH, sphereRadius * 2 + 4);
+
+        Block probe = world.getBlockAt(impactLoc.getBlockX(), startY, impactLoc.getBlockZ());
+        for (int i = 0; i <= maxDepth; i++) {
+            if (!isInsideWorld(probe)) break;
+            if (!probe.isEmpty() && !probe.isLiquid() && probe.getType().isSolid()) {
+                // Rest just above the solid block, mirroring the original
+                // "first air block above the surface" contact convention.
+                return Math.min(probe.getY() + 1, startY);
+            }
+            probe = probe.getRelative(BlockFace.DOWN);
+        }
+        return startY;
     }
 
     /**
@@ -474,6 +611,9 @@ public class MeteorTask extends BukkitRunnable {
                     Location loc = center.clone().add(dx, dy, dz);
                     BlockDisplay display = world.spawn(loc, BlockDisplay.class, d -> d.setBlock(data));
                     display.setPersistent(false);
+                    // Same as the marker: the sphere outlives the explosion it
+                    // triggers, so it must not be destroyed by its own blast.
+                    display.setInvulnerable(true);
                     // Fullbright — makes the rock look molten/burning
                     display.setBrightness(new Display.Brightness(15, 15));
                     // Render far enough: the default 1.0 (=64 blocks) culled the
