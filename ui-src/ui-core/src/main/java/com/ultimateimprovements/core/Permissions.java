@@ -201,6 +201,14 @@ public final class Permissions {
     public static final String CMD_ENCHANT = "ui.command.enchant";
     public static final String CMD_SETRAD = "ui.command.setrad";
     public static final String CMD_METEOR_SPAWN = "ui.command.meteor.spawn";
+    /** /ui meteor status — time until the next meteor (everyone by default). */
+    public static final String CMD_METEOR_STATUS = "ui.command.meteor.status";
+    /** /ui meteor skip — skip the next due meteor. */
+    public static final String CMD_METEOR_SKIP = "ui.command.meteor.skip";
+    /** /ui meteor unskip — cancel a pending skip. */
+    public static final String CMD_METEOR_UNSKIP = "ui.command.meteor.unskip";
+    /** /ui meteor reset — restart the spawn timer from now. */
+    public static final String CMD_METEOR_RESET = "ui.command.meteor.reset";
     /** /ui sculk status — growth state, active catalyst count, world filter. */
     public static final String CMD_SCULK_STATUS = "ui.command.sculk.status";
     /** /ui sculk start — enable growth and persist the switch in the DB. */
@@ -521,7 +529,11 @@ public final class Permissions {
                 new Permission(CMD_DURABILITY, "Scale the held item's durability (/ui durability multiply|divide [raw])", PermissionDefault.FALSE),
                 new Permission(CMD_ENCHANT, "Enchant items", PermissionDefault.FALSE),
                 new Permission(CMD_SETRAD, "Set radiation levels", PermissionDefault.FALSE),
-                new Permission(CMD_METEOR_SPAWN, "Spawn meteors", PermissionDefault.FALSE),
+                new Permission(CMD_METEOR_SPAWN, "Spawn meteors (/ui meteor spawn)", PermissionDefault.OP),
+                new Permission(CMD_METEOR_STATUS, "Show the time until the next meteor (/ui meteor status)", PermissionDefault.TRUE),
+                new Permission(CMD_METEOR_SKIP, "Skip the next meteor (/ui meteor skip)", PermissionDefault.OP),
+                new Permission(CMD_METEOR_UNSKIP, "Cancel a pending meteor skip (/ui meteor unskip)", PermissionDefault.OP),
+                new Permission(CMD_METEOR_RESET, "Reset the meteor spawn timer (/ui meteor reset)", PermissionDefault.OP),
                 new Permission(CMD_SCULK_STATUS, "Show sculk growth status (/ui sculk status) — active catalyst count, growth state and world filter", PermissionDefault.FALSE),
                 new Permission(CMD_SCULK_START, "Enable sculk growth (/ui sculk start) — the switch is persisted in the database", PermissionDefault.FALSE),
                 new Permission(CMD_SCULK_STOP, "Disable sculk growth (/ui sculk stop) — the switch is persisted in the database", PermissionDefault.FALSE),

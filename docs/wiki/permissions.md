@@ -155,7 +155,11 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.lockdown`
 - `ui.command.maintenance`
 - `ui.command.menu`
+- `ui.command.meteor.reset`
+- `ui.command.meteor.skip`
 - `ui.command.meteor.spawn`
+- `ui.command.meteor.status`
+- `ui.command.meteor.unskip`
 - `ui.command.modreport`
 - `ui.command.money`
 - `ui.command.near`

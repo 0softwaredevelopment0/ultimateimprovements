@@ -3,6 +3,33 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.23] - 2026-11-21
+
+### Added
+- **Meteor commands `/ui meteor status|skip|unskip|reset` and a configurable
+  spawn cooldown.** `status` shows the time until the next meteor and is
+  available to everyone by default (`ui.command.meteor.status`). `skip` marks
+  the next due meteor to be skipped: the timer still runs out, no meteor spawns
+  and a brand-new cooldown starts; `unskip` cancels that pending skip before it
+  fires. `reset` restarts the timer from now with a fresh cooldown (all three
+  are OP by default with their own nodes).
+- The spawn interval moved from `[meteor.interval]` (minutes range) to
+  `[meteor.cooldown]` with three modes: `static` (one value), `list` (a random
+  entry) and `range` (a random number of seconds between two bounds, e.g.
+  `40m-50m`). Every value uses the `s`/`m`/`h`/`d` suffixes; invalid entries are
+  warned about and replaced by the defaults. The bundled default is
+  `mode = "range"`, `range = "40m-50m"`.
+
+### Changed
+- `/ui meteor spawn` now defaults to OP instead of being denied to everyone
+  (`PermissionDefault.OP`), and still uses its own `ui.command.meteor.spawn`
+  node.
+
+### Fixed
+- The meteor timer is now driven by a wall-clock deadline polled once per
+  second, so status, skip, unskip and reset act on the real remaining time
+  instead of a delayed task that could not be inspected or moved.
+
 ## [1.11.0-alpha.22] - 2026-11-21
 
 ### Fixed

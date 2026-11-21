@@ -137,7 +137,7 @@ The status action is documented as public; changing state or mode is permission-
 
 The Meteor module periodically spawns a meteor near a random player in configured worlds. A meteor is represented by a falling block-display sphere, creates an impact/explosion and leaves a configured ore-centered deposit/crater.
 
-The [meteor] section in **UI-World.toml** controls interval, worlds, display blocks, core ores, explosion power and maximum simultaneous meteors. The documented command **/ui meteor spawn [count]** can force a spawn and has a dedicated permission.
+The `[meteor]` section in **UI-World.toml** controls worlds, display blocks, core ores, explosion power and maximum simultaneous meteors; `[meteor.cooldown]` controls the spawn timer (`static`, `list` or `range` mode, time values with `s`/`m`/`h`/`d` suffixes, default `40m-50m`). The `/ui meteor spawn [count]` command can force a spawn (OP by default); `/ui meteor status` shows the time until the next meteor for everyone, while `skip`, `unskip` and `reset` control the timer (OP). A skipped meteor does not spawn and the timer starts over.
 
 ## Additional world and utility features
 
