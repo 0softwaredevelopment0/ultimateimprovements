@@ -3,6 +3,20 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.22] - 2026-11-21
+
+### Fixed
+- **`/ui durability` and `/ui showcraft` print raw MiniMessage tags.** Both
+  commands fetched their config strings and passed them straight to
+  `CommandSender#sendMessage(String)`, which is the legacy path, so
+  `<dark_red>`, `<gray>` and friends showed up literally (e.g. the
+  "Only a player can use this command!" reply from the console). Every message
+  now goes through `MessageUtil.parse(...)`, including the `%placeholder%`
+  substitution chains. Checked the rest of the recently added / renamed
+  commands: `clear`, `craftrecipe`, `language`, `lockdown`, `maintenance`,
+  `anticheat`, `changedimmension`, `scoreboardnick`, `enchant`, `god`, `feed`
+  and the vanilla `op`/`stop` wrappers already parse correctly.
+
 ## [1.11.0-alpha.21] - 2026-11-21
 
 ### Fixed
