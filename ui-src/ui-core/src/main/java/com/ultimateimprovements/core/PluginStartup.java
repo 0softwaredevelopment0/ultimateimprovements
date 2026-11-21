@@ -120,12 +120,12 @@ public class PluginStartup {
             ConsoleLogger.warn("[Addons] Failed to register /ui addon: " + e.getMessage());
         }
 
-        // /ui lang — global ru/en switch for all addon messages.
+        // /ui language — global ru/en switch for all addon messages.
         try {
             com.ultimateimprovements.command.SubCommandRegistry.getInstance()
                     .register(new com.ultimateimprovements.command.subcommands.LangSubcommand());
         } catch (Exception e) {
-            ConsoleLogger.warn("[Lang] Failed to register /ui lang: " + e.getMessage());
+            ConsoleLogger.warn("[Lang] Failed to register /ui language: " + e.getMessage());
         }
 
         // /ui config — config management (regen with confirmation + permission gate).

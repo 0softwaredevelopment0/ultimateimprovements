@@ -78,10 +78,13 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
         registry.register(new AutorestartSubcommand());
         registry.register(new ItemNbtSubcommand());
         registry.register(new ClanSubcommand());
-        registry.register(new ClearSubcommand()); // /ui clear <chat|attributes> — replaces /ui clearchat
+        registry.register(new ClearSubcommand()); // /ui clear <chat|attributes>
         registry.register(new ChatChannelSubcommand());
         registry.register(new CmdLogSubcommand());
         registry.register(new ScoreboardNickSubcommand()); // /ui scoreboardnick — protected scoreboard nickname
+        registry.register(LegacySubCommandAdapter.of("showcraft",
+                (s, a) -> ShowCraftCommand.execute(s, a),
+                tc((s, a) -> ShowCraftCommand.tabComplete(a))));
         registry.register(new TurretSubcommand());
         registry.register(new KitSubcommand()); // /ui kit give|create|rename|delete|import|export|list
         registry.register(LegacySubCommandAdapter.of("reload",
@@ -91,14 +94,12 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
         // ── Legacy adapters with tab-complete ──
         // ── /ui money is registered by the UI-Admin addon ──
         registry.register(LegacySubCommandAdapter.of("broadcast", BroadcastSubcommand::execute,
-                tc((s, a) -> BroadcastSubcommand.tabComplete(a)),
-                List.of("bc"))); // /ui bc — compatibility alias
+                tc((s, a) -> BroadcastSubcommand.tabComplete(a))));
 
         // ── Legacy adapters (simple static calls) ──
-        registry.register(LegacySubCommandAdapter.of("chgdim", ChgDimSubcommand::execute));
-        registry.register(LegacySubCommandAdapter.of("item", ItemSubcommand::execute));
-        // ── /ui dura — held-item durability scaling (mechanics + raw variants) ──
-        registry.register(LegacySubCommandAdapter.of("dura", DuraSubcommand::execute,
+        registry.register(LegacySubCommandAdapter.of("changedimmension", ChgDimSubcommand::execute));
+        // ── /ui durability — held-item durability scaling (mechanics + raw variants) ──
+        registry.register(LegacySubCommandAdapter.of("durability", DuraSubcommand::execute,
                 tc((s, a) -> DuraSubcommand.tabComplete(s, a))));
         // ── /ui auth is registered by the UI-Auth addon ──
         registry.register(LegacySubCommandAdapter.of("power", PowerSubcommand::execute));
@@ -143,8 +144,8 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
                 })));
         registry.register(LegacySubCommandAdapter.of("plugin", PluginSubcommand::execute,
                 tc((s, a) -> PluginSubcommand.tabComplete(s, a))));
-        // ── /ui redstone, /ui check|uncheck, /ui codepane, /ui maint, /ui sudo,
-        //    /ui console, /ui server are registered by the UI-Guard addon ──
+        // ── /ui redstone, /ui check|uncheck, /ui codepane, /ui maintenance, /ui sudo,
+        //    /ui console, /ui lockdown are registered by the UI-Guard addon ──
         registry.register(LegacySubCommandAdapter.of("repstatus",
                 (s, a) -> { RepStatusSubcommand.execute(s); return true; }));
         registry.register(LegacySubCommandAdapter.of("expsplit", ExpSplitSubcommand::execute));

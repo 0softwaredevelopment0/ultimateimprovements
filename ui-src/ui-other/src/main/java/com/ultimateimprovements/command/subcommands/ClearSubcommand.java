@@ -50,11 +50,6 @@ public final class ClearSubcommand implements SubCommand {
     }
 
     @Override
-    public List<String> getAliases() {
-        return List.of("clearchat"); // backward-compatibility alias maps to the chat branch
-    }
-
-    @Override
     public boolean execute(CommandSender sender, String[] args) {
         // /ui clear <chat|attributes> ...
         if (args.length < 2) {

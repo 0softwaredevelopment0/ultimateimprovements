@@ -163,7 +163,7 @@ enabled = false
 # Default: true
 log_to_console = true
 
-# Dimension change command (/ui chgdim) and its dialog.
+# Dimension change command (/ui changedimmension) and its dialog.
 [changedimmension]
 # World name.
 # Default: "pocketworld"
@@ -214,8 +214,8 @@ pitch = 0.0
 [messages.changedimmension.messages]
 # Default: <green>✔</green> <white>Телепортация в</white> <yellow>%world%</yellow> <white>выполнена!</white>
 success = "<green>✔</green> <white>Телепортация в</white> <yellow>%world%</yellow> <white>выполнена!</white>"
-# Default: <yellow>ℹ</yellow> <gray>Чтобы вернуться, просто введите</gray> <white>/ui chgdim</white> <gray>снова.</gray>
-return_info = "<yellow>ℹ</yellow> <gray>Чтобы вернуться, просто введите</gray> <white>/ui chgdim</white> <gray>снова.</gray>"
+# Default: <yellow>ℹ</yellow> <gray>Чтобы вернуться, просто введите</gray> <white>/ui changedimmension</white> <gray>снова.</gray>
+return_info = "<yellow>ℹ</yellow> <gray>Чтобы вернуться, просто введите</gray> <white>/ui changedimmension</white> <gray>снова.</gray>"
 # Default: <green>✔</green> <white>Вы вернулись в начальную точку!</white>
 return_success = "<green>✔</green> <white>Вы вернулись в начальную точку!</white>"
 # Default: <dark_red>❌</dark_red> <red>Ошибка: Точка возврата повреждена!</red>
@@ -828,8 +828,8 @@ status_standby = "Ожидание"
 [messages_en.changedimmension.messages]
 # Default: <green>✔</green> <white>Teleportation to</white> <yellow>%world%</yellow> <white>completed!</white>
 success = "<green>✔</green> <white>Teleportation to</white> <yellow>%world%</yellow> <white>completed!</white>"
-# Default: <yellow>ℹ</yellow> <gray>To return, simply type</gray> <white>/ui chgdim</white> <gray>again.</gray>
-return_info = "<yellow>ℹ</yellow> <gray>To return, simply type</gray> <white>/ui chgdim</white> <gray>again.</gray>"
+# Default: <yellow>ℹ</yellow> <gray>To return, simply type</gray> <white>/ui changedimmension</white> <gray>again.</gray>
+return_info = "<yellow>ℹ</yellow> <gray>To return, simply type</gray> <white>/ui changedimmension</white> <gray>again.</gray>"
 # Default: <green>✔</green> <white>You have returned to your starting point!</white>
 return_success = "<green>✔</green> <white>You have returned to your starting point!</white>"
 # Default: <dark_red>❌</dark_red> <red>Error: Return point corrupted!</red>
@@ -1847,3 +1847,119 @@ split_success = "<green>✔</green> <white>All experience (<yellow>%xp%</yellow>
 collect_success = "<green>✔</green> <white>Received <yellow>%xp%</yellow> XP from the flask!</white>"
 # Default: <red>❌ This flask holds no experience!</red>
 bottle_empty = "<red>❌ This flask holds no experience!</red>"
+
+# Durability command messages (ru).
+# /ui durability scales the VANILLA damage component of the held item.
+# Placeholders: %value%, %op%, %before%, %after%, %max%, %percent%, %level%, %saved%, %expected%
+[messages.durability]
+player_only = "<dark_red>❌ <red>Только игрок может использовать эту команду!</red>"
+hold_item = "<dark_red>❌ <red>Вы должны держать предмет в руке!</red>"
+no_durability = "<dark_red>❌ <red>У этого предмета нет прочности!</red>"
+invalid_number = "<dark_red>❌ <red>Неверный формат числа: <white>%value%</white></red>"
+factor_non_negative = "<dark_red>❌ <red>Число должно быть не меньше 0!</red>"
+factor_positive = "<dark_red>❌ <red>Число должно быть больше 0!</red>"
+failed = "<dark_red>❌ <red>Не удалось изменить прочность.</red>"
+broken = "<red>✖ <white>Предмет сломан (<yellow>%op%</yellow><white>).</white>"
+scaled = "<green>✔ <white>Прочность: <yellow>%before%</yellow><gray> → </gray><yellow>%after%</yellow><gray>/%max%</gray> <gray>(<white>%percent%%<gray>)</gray>"
+raw_suffix = " <dark_gray>[без гейтов]"
+unbreakable_blocked = "<gray>Предмет <aqua>неломаемый</aqua><gray> — износ заблокирован.</gray>"
+unbreaking_saved = "<gray>Прочность <yellow>%level%</yellow> спасла <green>%saved%</green><gray> очк. (без неё осталось бы <white>%expected%</white><gray>).</gray>"
+info_title = "<gold>  ✦ <white>Прочность предмета <gray>(/ui durability)</gray>"
+info_remaining = "<gray>Осталось: <green>%remaining%</green><gray>/%max% <gray>(<white>%percent%%<gray>)</gray>"
+info_unbreakable = "<gray>Неломаемый: <white>%value%</white>"
+info_unbreaking = "<gray>Прочность (чар): <white>%level%</white>"
+info_variants = "<gray>Варианты: <white>multiply|divide <gray>(гейты) / <white>raw multiply|divide <gray>(без)</gray>"
+usage_header = "<dark_red>❌ <red>Использование:</red>"
+usage_info = "<white>/ui durability <gray>— информация"
+usage_multiply = "<white>/ui durability multiply <gray><фактор> <dark_gray>— остаток × фактор (с гейтами)"
+usage_divide = "<white>/ui durability divide <gray><делитель> <dark_gray>— остаток ÷ делитель (с гейтами)"
+usage_raw_multiply = "<white>/ui durability raw multiply <gray><фактор> <dark_gray>— без гейтов"
+usage_raw_divide = "<white>/ui durability raw divide <gray><делитель> <dark_gray>— без гейтов"
+
+# Showcraft messages (ru).
+# /ui showcraft <namespace:key> explains how a recipe is made.
+# Placeholders: %recipe%, %item%, %amount%, %station%, %seconds%, %ticks%, %xp%
+[messages.showcraft]
+usage = "<red>❌ Использование: </red><white>/ui showcraft <namespace:key></white> <gray>(tab-complete показывает все)</gray>"
+not_found = "<red>❌ Рецепт не найден: </red><white>%recipe%</white> <gray>(используйте namespace:key)</gray>"
+no_result = "<red>❌ У этого рецепта нет результата.</red>"
+header = "<gold>  ✦ <white>Рецепт </white><dark_gray>%recipe%</dark_gray>"
+result = "<gray>Результат: <white>%item%</white> <gray>×</gray><yellow>%amount%</yellow>"
+station = "<gray>Где создавать: <yellow>%station%</yellow>"
+crafter_only = "<gray>Кастомный предмет: <red>только блок Crafter</red> <gray>— на верстаке его не сделать.</gray>"
+pattern_header = "<gray>Схема:</gray>"
+ingredients_header = "<gray>Ингредиенты:</gray>"
+ingredient = " <dark_gray>▪</dark_gray> <white>%item%</white>"
+params_header = "<gray>Параметры:</gray>"
+cook_time = "<gray> ▪ Время готовки: <yellow>%seconds%с</yellow> <dark_gray>(%ticks% тиков)</dark_gray>"
+experience = "<gray> ▪ Опыт: <yellow>%xp%</yellow>"
+template = "<gray> ▪ Шаблон: </gray><white>%item%</white>"
+base = "<gray> ▪ Основа: </gray><white>%item%</white>"
+addition = "<gray> ▪ Добавка: </gray><white>%item%</white>"
+empty_cell = "<dark_gray>·</dark_gray>"
+grid_hint = "<dark_gray>Каждая строка — ряд сетки крафта (3 слота в ряду).</dark_gray>"
+
+# Craftrecipe messages (ru).
+# /ui craftrecipe <namespace:key> gives the recipe result for free.
+# Placeholders: %recipe%, %item%, %amount%, %given%, %total%
+[messages.craftrecipe]
+usage = "<red>❌ Использование: </red><white>/ui craftrecipe <namespace:key></white> <gray>(tab-complete показывает все)</gray>"
+not_found = "<red>❌ Рецепт не найден: </red><white>%recipe%</white> <gray>(используйте namespace:key)</gray>"
+no_result = "<red>❌ У этого рецепта нет результата.</red>"
+success = "<green>✔</green> <white>Создано </white><yellow>%item%</yellow><white> ×%amount% (без затрат ресурсов).</white>"
+inventory_full = "<yellow>⚠ Инвентарь полон! Поместилось только</yellow> <white>%given%/%total%</white> <yellow>— ничего не выброшено.</yellow>"
+
+# Durability command messages (en).
+[messages_en.durability]
+player_only = "<dark_red>❌ <red>Only a player can use this command!</red>"
+hold_item = "<dark_red>❌ <red>You must hold an item in your hand!</red>"
+no_durability = "<dark_red>❌ <red>This item has no durability!</red>"
+invalid_number = "<dark_red>❌ <red>Invalid number: <white>%value%</white></red>"
+factor_non_negative = "<dark_red>❌ <red>The number must be 0 or greater!</red>"
+factor_positive = "<dark_red>❌ <red>The number must be greater than 0!</red>"
+failed = "<dark_red>❌ <red>Failed to change the durability.</red>"
+broken = "<red>✖ <white>The item broke (<yellow>%op%</yellow><white>).</white>"
+scaled = "<green>✔ <white>Durability: <yellow>%before%</yellow><gray> → </gray><yellow>%after%</yellow><gray>/%max%</gray> <gray>(<white>%percent%%<gray>)</gray>"
+raw_suffix = " <dark_gray>[no gates]"
+unbreakable_blocked = "<gray>The item is <aqua>unbreakable</aqua><gray> — wear was blocked.</gray>"
+unbreaking_saved = "<gray>Unbreaking <yellow>%level%</yellow> saved <green>%saved%</green><gray> point(s) (without it <white>%expected%</white><gray> would remain).</gray>"
+info_title = "<gold>  ✦ <white>Item durability <gray>(/ui durability)</gray>"
+info_remaining = "<gray>Remaining: <green>%remaining%</green><gray>/%max% <gray>(<white>%percent%%<gray>)</gray>"
+info_unbreakable = "<gray>Unbreakable: <white>%value%</white>"
+info_unbreaking = "<gray>Unbreaking level: <white>%level%</white>"
+info_variants = "<gray>Variants: <white>multiply|divide <gray>(gates) / <white>raw multiply|divide <gray>(no gates)</gray>"
+usage_header = "<dark_red>❌ <red>Usage:</red>"
+usage_info = "<white>/ui durability <gray>— information"
+usage_multiply = "<white>/ui durability multiply <gray><factor> <dark_gray>— remaining × factor (with gates)"
+usage_divide = "<white>/ui durability divide <gray><divisor> <dark_gray>— remaining ÷ divisor (with gates)"
+usage_raw_multiply = "<white>/ui durability raw multiply <gray><factor> <dark_gray>— no gates"
+usage_raw_divide = "<white>/ui durability raw divide <gray><divisor> <dark_gray>— no gates"
+
+# Showcraft messages (en).
+[messages_en.showcraft]
+usage = "<red>❌ Usage: </red><white>/ui showcraft <namespace:key></white> <gray>(tab-complete lists all)</gray>"
+not_found = "<red>❌ Recipe not found: </red><white>%recipe%</white> <gray>(use namespace:key)</gray>"
+no_result = "<red>❌ This recipe has no craftable result.</red>"
+header = "<gold>  ✦ <white>Recipe </white><dark_gray>%recipe%</dark_gray>"
+result = "<gray>Result: <white>%item%</white> <gray>×</gray><yellow>%amount%</yellow>"
+station = "<gray>Crafted in: <yellow>%station%</yellow>"
+crafter_only = "<gray>Custom item: <red>Crafter block only</red> <gray>— it cannot be made on a crafting table.</gray>"
+pattern_header = "<gray>Pattern:</gray>"
+ingredients_header = "<gray>Ingredients:</gray>"
+ingredient = " <dark_gray>▪</dark_gray> <white>%item%</white>"
+params_header = "<gray>Parameters:</gray>"
+cook_time = "<gray> ▪ Cook time: <yellow>%seconds%s</yellow> <dark_gray>(%ticks% ticks)</dark_gray>"
+experience = "<gray> ▪ Experience: <yellow>%xp%</yellow>"
+template = "<gray> ▪ Template: </gray><white>%item%</white>"
+base = "<gray> ▪ Base: </gray><white>%item%</white>"
+addition = "<gray> ▪ Addition: </gray><white>%item%</white>"
+empty_cell = "<dark_gray>·</dark_gray>"
+grid_hint = "<dark_gray>Each row is a crafting-grid row (3 slots per row).</dark_gray>"
+
+# Craftrecipe messages (en).
+[messages_en.craftrecipe]
+usage = "<red>❌ Usage: </red><white>/ui craftrecipe <namespace:key></white> <gray>(tab-complete lists all)</gray>"
+not_found = "<red>❌ Recipe not found: </red><white>%recipe%</white> <gray>(use namespace:key)</gray>"
+no_result = "<red>❌ This recipe has no craftable result.</red>"
+success = "<green>✔</green> <white>Crafted </white><yellow>%item%</yellow><white> ×%amount% (no resources used).</white>"
+inventory_full = "<yellow>⚠ Inventory full! Only</yellow> <white>%given%/%total%</white> <yellow>fit — nothing was dropped.</yellow>"

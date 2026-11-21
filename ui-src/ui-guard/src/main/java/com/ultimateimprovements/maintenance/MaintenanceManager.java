@@ -53,7 +53,7 @@ public class MaintenanceManager implements Listener {
 
     /**
      * Checks whether the maintenance feature is enabled in config.yml.
-     * Disables the whole system: /ui maint will be unavailable, joins are not blocked.
+     * Disables the whole system: /ui maintenance will be unavailable, joins are not blocked.
      */
     public boolean isFeatureEnabled() {
         return Main.getInstance().getConfig().getBoolean("maintenance.enabled", true);

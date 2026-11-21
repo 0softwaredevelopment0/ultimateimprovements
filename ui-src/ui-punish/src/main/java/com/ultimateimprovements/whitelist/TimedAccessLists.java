@@ -33,7 +33,7 @@ import java.util.logging.Level;
  *       <b>required</b> for temp commands.</li>
  * </ul>
  * Time format: {@code <N>s|m|h|d} (seconds, minutes, hours, days); both
- * {@code -t 5m} and {@code -t5m} forms are accepted (same as /ui server lockdown).
+ * {@code -t 5m} and {@code -t5m} forms are accepted (same as /ui lockdown).
  * <p>
  * <b>Opposite actions cancel pending schedules</b>: an action with an ADD
  * effect cancels pending REMOVE schedules for the same player (and vice

@@ -100,8 +100,9 @@ public class HelpSubCommand implements SubCommand {
                 .u("resetauth <player>", "delete the player's registration")
                 .u("delsession <player>", "reset the player's stored session")
                 .u("chgpass [player] [new]", "password reset: dialog for players, arguments for the console");
-        cmd("chgdim", "Teleport between dimensions (menu)")
-                .u("", "opens the dimension picker menu");
+        cmd("changedimmension", "Teleport between dimensions (menu)")
+                .u("", "opens the dimension picker menu")
+                .perm("ui.command.chgdim");
         cmd("dont_run_this_command", "Get the impossible achievement (don't run it!)")
                 .u("", "seriously, don't");
         cmd("advancement", "Timed advancement challenges")
@@ -136,8 +137,8 @@ public class HelpSubCommand implements SubCommand {
         cmd("uuid", "Get a player's UUID").u("[player]", "defaults to yourself");
         cmd("askpos", "Request a player's coordinates")
                 .u("<player>", "sends a dialog; the player decides to share or not");
-        cmd("chgdim", null); // duplicate guard — remove below
-        COMMANDS.remove("chgdim"); // keep the core entry only
+        cmd("changedimmension", null); // duplicate guard — remove below
+        COMMANDS.remove("changedimmension"); // keep the core entry only
         cmd("kit", "Kits — named 27-slot item sets (shulker-box layout)")
                 .u("list [page]", "paginated list of kits with their display names")
                 .u("give [-f]", "give a kit to yourself or to another player (dialog); -f overwrites occupied slots")
@@ -177,10 +178,10 @@ public class HelpSubCommand implements SubCommand {
 
         // ── Items / enchant / PDC ──
         cmd("enchant", "Enchant manager (incl. custom AoE)")
-                .u("give <enchant> <level>", "add an enchantment to the held item")
-                .u("take <enchant>", "remove an enchantment")
-                .u("check", "list enchantments on the held item")
-                .u("aoe <level>", "set the custom AoE level");
+                .u("give <enchant> <level> <player|all> [slot]", "add an enchantment to a player or everyone")
+                .u("take <enchant> <level> [player|all] [slot]", "remove an enchantment")
+                .u("check <player> [page]", "list a player's enchantments")
+                .u("confirm | cancel", "apply or drop a pending high-level give");
         cmd("pdc", "PDC manager")
                 .u("list", "show PDC keys on the held item")
                 .u("add <key> <type> <value>", "add a key")
@@ -188,9 +189,14 @@ public class HelpSubCommand implements SubCommand {
                 .u("remove <key>", "remove a key")
                 .u("clear", "remove all keys")
                 .u("container", "inspect the container PDC");
-        cmd("item", "Item NBT editor (online and offline)")
-                .u("<player>", "open the item editor for a player");
-        cmd("cilist", "Custom item list").u("", "all plugin custom items with ids");
+        cmd("showcraft", "Show how a recipe is made")
+                .u("<namespace:key>", "station, ingredients and parameters (e.g. cook time)")
+                .perm("ui.command.showcraft");
+        cmd("durability", "Scale the held item's durability")
+                .u("", "show the current vanilla durability")
+                .u("multiply|divide <value>", "scale the remaining durability (with gates)")
+                .u("raw multiply|divide <value>", "scale without unbreakable/unbreaking gates")
+                .perm("ui.command.dura");
         cmd("unlock", "Unlockables")
                 .u("book", "unlock the book crafting")
                 .u("sign", "unlock the sign crafting");
@@ -311,18 +317,19 @@ public class HelpSubCommand implements SubCommand {
                 .sub("list", "", "show the list");
         cmd("check", "Anti-cheat check on a player").u("<player>", "freezes and flags for a moderator");
         cmd("uncheck", "End an anti-cheat check").u("<player>", "");
-        cmd("ac", "Anti-cheat stats").u("[player]", "");
+        cmd("anticheat", "Anti-cheat stats").u("[player]", "")
+                .perm("ui.anticheat.notify");
         cmd("sudo", "Sudo mode (dangerous)").u("", "execute as console after confirm");
         cmd("execchat", "Execute a chat command as another").u("<player> <text>", "");
         cmd("op", "Grant operator (with confirmation)").u("<player>", "");
         cmd("deop", "Revoke operator (with confirmation)").u("<player>", "");
         cmd("oplist", "View the operator list").u("[page]", "");
-        cmd("maint", "Maintenance mode")
+        cmd("maintenance", "Maintenance mode")
                 .u("on", "only the maintenance whitelist can join")
                 .u("off", "open the server back")
                 .u("add <player>", "whitelist for maintenance")
                 .u("remove <player>", "");
-        cmd("server", "Server lockdown (anti-bot-attack)")
+        cmd("lockdown", "Server lockdown (anti-bot-attack)")
                 .u("status [blocked|grace] [page]", "summary / paginated section lists")
                 .u("on [-t 10s|5m|2h|1d]", "refuse new connections (online players stay)")
                 .u("off [-t 10s|5m|2h|1d]", "allow new connections again")
@@ -330,7 +337,8 @@ public class HelpSubCommand implements SubCommand {
                 .sub("status", "[blocked|grace] [page]", "summary / blocked joins / players in grace")
                 .sub("on", "[-t 10s|5m|2h|1d]", "enable now (or after the delay)")
                 .sub("off", "[-t 10s|5m|2h|1d]", "disable now (or after the delay)")
-                .sub("timed", "<10s|5m|2h|1d>", "enable with auto-disable");
+                .sub("timed", "<10s|5m|2h|1d>", "enable with auto-disable")
+                .perm("ui.command.server");
         cmd("console", "Console lockdown (anti-tamper)")
                 .u("status", "show the console lockdown state")
                 .u("on [-t 10s|5m|2h|1d]", "cancel every console/RCON command")
@@ -354,7 +362,9 @@ public class HelpSubCommand implements SubCommand {
                 .u("enable <addon>", "enable an addon (real onEnable, confirmed)")
                 .u("disable <addon>", "disable an addon (real onDisable, confirmed)")
                 .u("restart <addon>", "restart an addon (confirmed)");
-        cmd("lang", "View or switch the UI language").u("[ru|en]", "applies to every addon");
+        cmd("language", "View or switch the UI language")
+                .u("status", "show the current language")
+                .u("set <en|ru>", "change the language in the core config");
         cmd("update", "Download release JARs into update/").u("[tag]", "does NOT apply them — use /ui swapjar");
         cmd("swapjar", "Apply downloaded JARs").u("", "moves update/ → plugins/, live after a restart");
         cmd("menu", "Open the admin menu").u("", "");
@@ -363,7 +373,10 @@ public class HelpSubCommand implements SubCommand {
 
         // ── Chat / social ──
         cmd("broadcast", "Broadcast a message").u("<text> [-clean]", "-clean = without the plugin prefix");
-        cmd("clearchat", "Clear the chat").u("[player|all]", "");
+        cmd("clear", "Unified cleanup")
+                .u("chat <player|all>", "clear the chat window")
+                .u("attributes <player|UUID|all>", "reset entity attributes to vanilla defaults")
+                .perm("ui.command.clear.chat", "ui.command.clear.attributes");
         cmd("chatchnl", "Switch your chat channel")
                 .u("<local|global|world|private|admin|check|console|terminal>", "");
         cmd("report", "Report a player").u("<player> <reason>", "");
@@ -394,7 +407,7 @@ public class HelpSubCommand implements SubCommand {
         cmd("pingsound", "Toggle the chat ping sound").u("<on|off>", "");
         cmd("wirelessbind", "Wireless redstone bind mode").u("<on|off>", "default: off");
         cmd("craftrecipe", "Free-craft any recipe (admin)")
-                .u("<recipe>", "result goes to your inventory, no resources");
+                .u("<namespace:key>", "result goes to your inventory, no resources");
         cmd("radview", "Admin radiation view").u("on|off", "overrides the dosimeter readout, marks it with *");
 
         // ── World / structures ──

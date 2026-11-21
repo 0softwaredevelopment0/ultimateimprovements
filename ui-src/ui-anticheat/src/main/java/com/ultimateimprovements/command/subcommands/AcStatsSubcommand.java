@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * /ui ac stats — anticheat diagnostics: status, checks, player VLs, PlayerData.
+ * /ui anticheat stats — anticheat diagnostics: status, checks, player VLs, PlayerData.
  */
 public final class AcStatsSubcommand {
 
@@ -35,7 +35,7 @@ public final class AcStatsSubcommand {
         }
 
         // ── Parse sub-args ──
-        // args: ["ac", "subcommand", "playerName"]
+        // args: ["anticheat", "subcommand", "playerName"]
         String sub = args.length > 1 ? args[1].toLowerCase() : "overview";
 
         return switch (sub) {
@@ -49,13 +49,13 @@ public final class AcStatsSubcommand {
             default -> {
                 sender.sendMessage(MessageUtil.parse(
                         "<red>❌ Неизвестная подкоманда. Используйте:</red>\n"
-                        + "<white>/ui ac overview</white> — общая статистика\n"
-                        + "<white>/ui ac checks</white> — список проверок\n"
-                        + "<white>/ui ac players</white> — VL всех игроков\n"
-                        + "<white>/ui ac player <ник></white> — VL конкретного игрока\n"
-                        + "<white>/ui ac exempt <ник></white> — освободить игрока от античита\n"
-                        + "<white>/ui ac unexempt <ник></white> — снять освобождение\n"
-                        + "<white>/ui ac toggle [on|off]</white> — глобально включить/выключить античит"));
+                        + "<white>/ui anticheat overview</white> — общая статистика\n"
+                        + "<white>/ui anticheat checks</white> — список проверок\n"
+                        + "<white>/ui anticheat players</white> — VL всех игроков\n"
+                        + "<white>/ui anticheat player <ник></white> — VL конкретного игрока\n"
+                        + "<white>/ui anticheat exempt <ник></white> — освободить игрока от античита\n"
+                        + "<white>/ui anticheat unexempt <ник></white> — снять освобождение\n"
+                        + "<white>/ui anticheat toggle [on|off]</white> — глобально включить/выключить античит"));
                 yield true;
             }
         };
@@ -101,8 +101,8 @@ public final class AcStatsSubcommand {
         sender.sendMessage(MessageUtil.parse("<dark_gray>┃  <gray>Players:   <white>" + trackedPlayers + " <gray>tracked <dark_gray>/ <white>" + Bukkit.getOnlinePlayers().size() + " online"));
         sender.sendMessage(MessageUtil.parse("<dark_gray>┃  <gray>Active VL: <white>" + vlCounts.size() + " <gray>checks with violations"));
         sender.sendMessage(MessageUtil.parse("<dark_gray>┃"));
-        sender.sendMessage(MessageUtil.parse("<dark_gray>┃  <gray>└ <click> <white>/ui ac checks <gray>— список проверок"));
-        sender.sendMessage(MessageUtil.parse("<dark_gray>┃  <gray>└ <click> <white>/ui ac players <gray>— VL игроков"));
+        sender.sendMessage(MessageUtil.parse("<dark_gray>┃  <gray>└ <click> <white>/ui anticheat checks <gray>— список проверок"));
+        sender.sendMessage(MessageUtil.parse("<dark_gray>┃  <gray>└ <click> <white>/ui anticheat players <gray>— VL игроков"));
 
         // Category breakdown
         for (CheckCategory cat : CheckCategory.values()) {
@@ -204,7 +204,7 @@ public final class AcStatsSubcommand {
         }
 
         sender.sendMessage(MessageUtil.parse("<dark_gray>┃"));
-        sender.sendMessage(MessageUtil.parse("<dark_gray>┃  <gray><click> <white>/ui ac player <ник> <gray>— детали игрока"));
+        sender.sendMessage(MessageUtil.parse("<dark_gray>┃  <gray><click> <white>/ui anticheat player <ник> <gray>— детали игрока"));
         sender.sendMessage(MessageUtil.parse("<dark_gray>┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"));
         sender.sendMessage("");
 
@@ -217,7 +217,7 @@ public final class AcStatsSubcommand {
 
     private static boolean showPlayer(CommandSender sender, AntiCheatManager acm, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui ac player <ник></white>"));
+            sender.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui anticheat player <ник></white>"));
             return true;
         }
 
@@ -294,11 +294,11 @@ public final class AcStatsSubcommand {
     // =========================
 
     /**
-     * /ui ac exempt <player> — exempt a player from all anticheat checks
+     * /ui anticheat exempt <player> — exempt a player from all anticheat checks
      */
     private static boolean exemptPlayer(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui ac exempt <ник></white>"));
+            sender.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui anticheat exempt <ник></white>"));
             return true;
         }
 
@@ -329,11 +329,11 @@ public final class AcStatsSubcommand {
     }
 
     /**
-     * /ui ac unexempt <player> — remove the exemption from a player
+     * /ui anticheat unexempt <player> — remove the exemption from a player
      */
     private static boolean unexemptPlayer(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui ac unexempt <ник></white>"));
+            sender.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui anticheat unexempt <ник></white>"));
             return true;
         }
 
@@ -363,7 +363,7 @@ public final class AcStatsSubcommand {
     }
 
     /**
-     * /ui ac toggle [on|off] — globally enable/disable the anticheat
+     * /ui anticheat toggle [on|off] — globally enable/disable the anticheat
      */
     private static boolean toggleAntiCheat(CommandSender sender, String[] args) {
         AntiCheatManager acm = AntiCheatManager.getInstance();
@@ -380,7 +380,7 @@ public final class AcStatsSubcommand {
                 case "off", "disable", "false", "0" -> newState = false;
                 default -> {
                     sender.sendMessage(MessageUtil.parse(
-                            "<red>❌ Usage: </red><white>/ui ac toggle [on|off]</white>"));
+                            "<red>❌ Usage: </red><white>/ui anticheat toggle [on|off]</white>"));
                     return true;
                 }
             }

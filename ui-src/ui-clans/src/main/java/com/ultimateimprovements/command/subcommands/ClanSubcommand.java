@@ -60,9 +60,6 @@ public final class ClanSubcommand implements SubCommand {
     @Override
     public String getName() { return "clan"; }
 
-    @Override
-    public List<String> getAliases() { return List.of("clans"); }
-
     // ============================================================
     // EXECUTE
     // ============================================================

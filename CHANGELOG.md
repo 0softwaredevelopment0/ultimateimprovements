@@ -3,6 +3,42 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.16] - 2026-11-21
+
+### Changed
+- **Command renames for clarity** (old names removed):
+  - `/ui server lockdown …` → **`/ui lockdown …`** (`/ui server` is gone);
+  - `/ui ac` → **`/ui anticheat`**;
+  - `/ui chgdim` → **`/ui changedimmension`**;
+  - `/ui dura` → **`/ui durability`** (still scales the vanilla `damage`
+    component; all messages now live in `UI-Other.toml` under
+    `messages.durability` / `messages_en.durability`, English by default);
+  - `/ui lang` → **`/ui language`** with the new `status` and `set <en|ru>`
+    subcommands (permission `ui.command.language`, open to every player by
+    default; `set` writes `messages.lang` and warns about restart or
+    `/ui reload`);
+  - `/ui maint` → **`/ui maintenance`**.
+- **`/ui enchant give` now requires the target**: the syntax is
+  `give <enchantment> <level> <player|all> [slot]`. `all` applies the
+  enchantment to every online player, and the existing `confirm`/`cancel`
+  flow works for both a single player and `all`.
+- **`/ui craftrecipe` now requires `namespace:key`** instead of a bare recipe
+  name; tab-complete lists every registered recipe in the namespaced form.
+
+### Added
+- **`/ui showcraft <namespace:key>`** (replaces `/ui cilist`): shows the
+  result, the crafting station (crafting table, furnace, blast furnace,
+  smoker, campfire, stonecutter, smithing table, or the custom Crafter), the
+  ingredient grid/list, and station parameters such as cooking time and
+  experience. Custom UI recipes are marked as Crafter-only. Own permission:
+  `ui.command.showcraft` (default OP).
+
+### Removed
+- Aliases `/ui bc`, `/ui clans`, `/ui clearchat` and `/ui sbnick` (use
+  `/ui broadcast`, `/ui clan`, `/ui clear chat` and `/ui scoreboardnick`).
+- `/ui item` (`/ui item dura …` — the durability command is
+  `/ui durability`).
+
 ## [1.11.0-alpha.15] - 2026-11-21
 
 ### Added

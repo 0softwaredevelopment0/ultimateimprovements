@@ -147,7 +147,8 @@ public final class AddonCatalog {
         routeMsg("UI-Other", "changedimmension",
                 "notes", "death_logger",
                 "structures", "space", "wireless_redstone",
-                "kits", "expsplit");
+                "kits", "expsplit",
+                "durability", "showcraft", "craftrecipe");
         routeMsg("UI-Display", "motd");
         routeMsg("UI-Player", "suicide");
         routeMsg("UI-Essentials", "power");
