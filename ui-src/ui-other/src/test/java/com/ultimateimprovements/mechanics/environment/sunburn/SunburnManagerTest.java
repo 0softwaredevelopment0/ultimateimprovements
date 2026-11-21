@@ -52,4 +52,25 @@ class SunburnManagerTest {
         assertEquals(defaults.size(), new HashSet<>(defaults).size(),
                 "Default sunburn blacklist must not contain duplicate entries");
     }
+
+    @Test
+    @DisplayName("Head detection covers every vanilla skull and excludes wall blocks")
+    void headDetectionCoversVanillaHeads() {
+        List<String> heads = List.of(
+                "PLAYER_HEAD", "ZOMBIE_HEAD", "CREEPER_HEAD", "DRAGON_HEAD",
+                "PIGLIN_HEAD", "SKELETON_SKULL", "WITHER_SKELETON_SKULL");
+        for (String head : heads) {
+            org.junit.jupiter.api.Assertions.assertTrue(SunburnManager.isHeadName(head),
+                    head + " must count as a wearable head");
+        }
+
+        List<String> notHeads = List.of(
+                "DIAMOND_HELMET", "PLAYER_WALL_HEAD", "ZOMBIE_WALL_HEAD",
+                "SKELETON_WALL_SKULL", "WITHER_SKELETON_WALL_SKULL", "", "AIR");
+        for (String other : notHeads) {
+            org.junit.jupiter.api.Assertions.assertFalse(SunburnManager.isHeadName(other),
+                    other + " must not count as a wearable head");
+        }
+        org.junit.jupiter.api.Assertions.assertFalse(SunburnManager.isHeadName(null));
+    }
 }

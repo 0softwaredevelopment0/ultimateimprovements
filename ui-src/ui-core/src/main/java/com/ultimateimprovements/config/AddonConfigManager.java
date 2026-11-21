@@ -140,6 +140,8 @@ public final class AddonConfigManager {
             new MovedBlock("UI-Other", "messages_en.power", "UI-Essentials"),
             new MovedBlock("UI-Other", "messages.suicide", "UI-Player"),
             new MovedBlock("UI-Other", "messages_en.suicide", "UI-Player"),
+            new MovedBlock("UI-Other", "messages.sunburn", "UI-Player"),
+            new MovedBlock("UI-Other", "messages_en.sunburn", "UI-Player"),
             new MovedBlock("UI-Core", "messages.features.modeprotect", "UI-Essentials"),
             new MovedBlock("UI-Core", "messages_en.features.modeprotect", "UI-Essentials")
     );

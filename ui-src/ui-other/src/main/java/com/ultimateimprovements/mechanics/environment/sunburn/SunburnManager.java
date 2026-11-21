@@ -1,7 +1,9 @@
 package com.ultimateimprovements.mechanics.environment.sunburn;
 
+import com.ultimateimprovements.config.MessagesManager;
 import com.ultimateimprovements.core.Main;
 import com.ultimateimprovements.util.ConsoleLogger;
+import com.ultimateimprovements.util.MessageUtil;
 
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * SunburnManager — players catch fire from sunlight in the Overworld.
@@ -29,6 +32,10 @@ import java.util.UUID;
  * Overworld are checked. If daytime + open sky above:
  *   - No helmet => set on fire (fire_ticks duration)
  *   - Helmet => spend helmet durability instead (no fire while protected)
+ *   - Mob/player head => heads have no durability, so instead of wearing down
+ *     each degrade step rolls {@code sunburn.head_break_chance_percent}
+ *     (default 0.1%): on a hit the head is removed from the armour slot with
+ *     an item-break sound and the player is told in chat.
  *
  * The plugin does its own sky check: it scans the block column upward from
  * the player (no vanilla sky-light test). Air is skipped; passable blocks are
@@ -54,6 +61,13 @@ public class SunburnManager implements Listener {
     private int fireTicks;
     private int helmetDegradeInterval;
     private int helmetDurabilityLoss;
+    /**
+     * Chance (in percent, per degrade step) that a mob/player head worn in the
+     * helmet slot is destroyed by the sun. Heads have no durability, so this
+     * roll replaces the helmet wear. Configured as
+     * {@code sunburn.head_break_chance_percent} (default 0.1%).
+     */
+    private double headBreakChancePercent;
     private boolean extinguishWhenSafe;
     private Set<String> includedWorlds;
     /**
@@ -155,6 +169,8 @@ public class SunburnManager implements Listener {
         // existing server configs keep their tuned value.
         helmetDurabilityLoss = cfg.getInt("sunburn.helmet_durability_loss",
                 cfg.getInt("sunburn.helmet_integrity_loss", 1));
+        headBreakChancePercent = Math.max(0.0,
+                Math.min(100.0, cfg.getDouble("sunburn.head_break_chance_percent", 0.1)));
         extinguishWhenSafe = cfg.getBoolean("sunburn.extinguish_when_safe", true);
 
         blacklistedBlocks = EnumSet.noneOf(Material.class);
@@ -192,6 +208,7 @@ public class SunburnManager implements Listener {
                 + ", fireTicks=" + fireTicks
                 + ", helmetDegrade=" + helmetDegradeInterval
                 + ", helmetLoss=" + helmetDurabilityLoss
+                + ", headBreakChance=" + headBreakChancePercent + "%"
                 + ", extinguishWhenSafe=" + extinguishWhenSafe
                 + ", blacklistedBlocks=" + blacklistedBlocks.size()
                 + ", skipNonSolidBlocks=" + skipNonSolidBlocks
@@ -253,8 +270,19 @@ public class SunburnManager implements Listener {
                 boolean hasHelmet = helmet != null && helmet.getType() != Material.AIR;
 
                 if (hasHelmet) {
-                    for (int i = 0; i < helmetDegradeSteps; i++) {
-                        player.damageItemStack(EquipmentSlot.HEAD, helmetDurabilityLoss);
+                    if (isHeadItem(helmet)) {
+                        // Heads have no durability: instead of wearing down, each
+                        // degrade step rolls the chance that the head is destroyed.
+                        for (int i = 0; i < helmetDegradeSteps; i++) {
+                            if (rollHeadBreak()) {
+                                breakWornHead(player);
+                                break;
+                            }
+                        }
+                    } else {
+                        for (int i = 0; i < helmetDegradeSteps; i++) {
+                            player.damageItemStack(EquipmentSlot.HEAD, helmetDurabilityLoss);
+                        }
                     }
                 } else {
                     // No helmet — set on fire
@@ -271,6 +299,73 @@ public class SunburnManager implements Listener {
 
         exposedPlayers.clear();
         exposedPlayers.addAll(nowExposed);
+    }
+
+    // =========================
+    // HEAD BREAK (worn mob/player heads)
+    // =========================
+
+    /** Rolls the configured per-step chance that a worn head is destroyed. */
+    private boolean rollHeadBreak() {
+        if (headBreakChancePercent <= 0.0) return false;
+        return ThreadLocalRandom.current().nextDouble(100.0) < headBreakChancePercent;
+    }
+
+    /**
+     * Destroys the head currently worn in the helmet slot: removes it from the
+     * armour slot (no drop), plays the burning/item-break sounds, sets the
+     * player on fire (they are unprotected now) and sends the chat message in
+     * the active language.
+     */
+    private void breakWornHead(Player player) {
+        PlayerInventory inv = player.getInventory();
+        ItemStack worn = inv.getHelmet();
+        if (!isHeadItem(worn)) return;
+
+        String headName = displayName(worn.getType());
+        inv.setHelmet(null);
+
+        Location loc = player.getLocation();
+        player.playSound(loc, Sound.ENTITY_ITEM_BREAK, 1.0f, 0.8f);
+        player.playSound(loc, Sound.BLOCK_FIRE_EXTINGUISH, 0.7f, 1.2f);
+
+        // Without the head the player is unprotected and burns like a bare head.
+        player.setFireTicks(fireTicks);
+
+        String raw = MessagesManager.getString("sunburn.head_broken",
+                "<red>☀</red> <white>От солнца ваша голова</white> <yellow>%head%</yellow> <white>сгорела!</white>");
+        if (raw == null || raw.isBlank()) return; // blank message = silent mode
+        player.sendMessage(MessageUtil.parse(raw.replace("%head%", headName), player));
+    }
+
+    /** Whether the stack is any mob/player head (skull), wearable as a helmet. */
+    static boolean isHeadItem(ItemStack item) {
+        return item != null && item.getType() != Material.AIR
+                && isHeadName(item.getType().name());
+    }
+
+    /**
+     * Name-based head check: every vanilla skull/head item ends with
+     * {@code _HEAD} or {@code _SKULL}. The wall-mounted block variants contain
+     * {@code _WALL_} and are not wearable items, so they are excluded.
+     */
+    static boolean isHeadName(String materialName) {
+        if (materialName == null || materialName.isBlank()) return false;
+        String name = materialName.toUpperCase(Locale.ROOT);
+        if (name.contains("_WALL_")) return false;
+        return name.endsWith("_HEAD") || name.endsWith("_SKULL");
+    }
+
+    /** {@code PLAYER_HEAD} → {@code Player Head}. */
+    private static String displayName(Material type) {
+        String[] parts = type.name().toLowerCase(Locale.ROOT).split("_");
+        StringBuilder out = new StringBuilder();
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+            if (!out.isEmpty()) out.append(' ');
+            out.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        return out.toString();
     }
 
     // =========================
