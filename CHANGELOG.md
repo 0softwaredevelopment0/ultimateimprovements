@@ -3,6 +3,20 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.26] - 2026-11-22
+
+### Changed
+- **Reworked the blaze powder recipe.** The datapack now crafts one blaze
+  powder from a 3x3 pattern of resin bricks, a gold block, an experience
+  bottle, a trial key, a honeycomb block and a magma block instead of the
+  previous amethyst shard, charcoal, resin brick and breeze rod layout. Both
+  the `en` and `ru` datapacks are updated.
+
+### Fixed
+- **`build/` output is no longer tracked.** Gradle build output under `build/`
+  was committed by mistake and showed up in `git status`; it is now untracked
+  and ignored, while the real `scripts/build/` sources stay tracked.
+
 ## [1.11.0-alpha.25] - 2026-11-21
 
 ### Changed

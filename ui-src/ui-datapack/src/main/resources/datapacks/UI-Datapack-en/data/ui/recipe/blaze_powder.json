@@ -4,21 +4,28 @@
   "group": "blaze_powder",
   "category": "misc",
   "pattern": [
-    "ACG",
-    "B  "
+    "BRT",
+    "RGR",
+    "HRM"
   ],
   "key": {
-    "A": [
-      "minecraft:amethyst_shard"
-    ],
-    "C": [
-      "minecraft:charcoal"
-    ],
-    "G": [
+    "R": [
       "minecraft:resin_brick"
     ],
+    "G": [
+      "minecraft:gold_block"
+    ],
     "B": [
-      "minecraft:breeze_rod"
+      "minecraft:experience_bottle"
+    ],
+    "T": [
+      "minecraft:trial_key"
+    ],
+    "H": [
+      "minecraft:honeycomb_block"
+    ],
+    "M": [
+      "minecraft:magma_block"
     ]
   },
   "result": {
