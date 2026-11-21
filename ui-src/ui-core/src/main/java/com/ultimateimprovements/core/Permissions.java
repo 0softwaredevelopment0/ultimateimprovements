@@ -49,7 +49,7 @@ public final class Permissions {
     public static final String CMD_HELP = "ui.command.help";
     public static final String CMD_CONFIG_REGEN = "ui.command.configregen";
     public static final String CMD_CONFIG_RESET = "ui.command.configreset";
-    public static final String CMD_LANG = "ui.command.lang";
+    public static final String CMD_LANGUAGE = "ui.command.language";
 
     // ═══════════ Commands: player ═══════════
     public static final String CMD_HOME = "ui.command.home";
@@ -156,8 +156,7 @@ public final class Permissions {
     /** /ui opself — bypass the request cooldown. */
     public static final String CMD_OPSELF_BYPASSCOOLDOWN = "ui.command.opself.bypasscooldown";
     public static final String CMD_BROADCAST = "ui.command.broadcast";
-    public static final String CMD_CLEARCHAT = "ui.command.clearchat";
-    /** /ui clear chat <player|all> — clears the chat window (replaces /ui clearchat). */
+    /** /ui clear chat <player|all> — clears the chat window. */
     public static final String CMD_CLEAR_CHAT = "ui.command.clear.chat";
     /** /ui clear attributes <player|UUID|all> — resets entity attributes to base values. */
     public static final String CMD_CLEAR_ATTRIBUTES = "ui.command.clear.attributes";
@@ -169,7 +168,7 @@ public final class Permissions {
     public static final String CMD_MAINTENANCE = "ui.command.maintenance";
     /** /ui console lockdown — console lockout control. NEVER granted by default (not a child of ui.* / ui.command.*). */
     public static final String CMD_CONSOLE = "ui.command.console";
-    /** /ui server lockdown — new-connections lockout control. NEVER granted by default (not a child of ui.* / ui.command.*). */
+    /** /ui lockdown — new-connections lockout control. NEVER granted by default (not a child of ui.* / ui.command.*). */
     public static final String CMD_SERVER = "ui.command.server";
     /** /ui stresstest start|stop — benchmark run control. NEVER granted by default (not a child of ui.* / ui.command.*). */
     public static final String CMD_STRESSTEST = "ui.command.stresstest";
@@ -198,7 +197,6 @@ public final class Permissions {
     public static final String CMD_CODEPANE_KEY_MODIFY = "ui.command.codepane.key.modify";
     public static final String CMD_CHGDIM = "ui.command.chgdim";
     public static final String CMD_CHGDIM_ALL = "ui.command.chgdim.*";
-    public static final String CMD_ITEM = "ui.command.item";
     public static final String CMD_DURA = "ui.command.dura";
     public static final String CMD_ENCHANT = "ui.command.enchant";
     public static final String CMD_SETRAD = "ui.command.setrad";
@@ -228,7 +226,7 @@ public final class Permissions {
     public static final String CMD_NETHERPORTAL_STATUS = "ui.command.netherportal.status";
     public static final String CMD_SUDO = "ui.command.sudo";
     public static final String CMD_UUID = "ui.command.uuid";
-    public static final String CMD_CILIST = "ui.command.cilist";
+    public static final String CMD_SHOWCRAFT = "ui.command.showcraft";
     public static final String CMD_VOTE = "ui.command.vote";
     public static final String CMD_VOTE_CREATE = "ui.command.vote.create";
     public static final String CMD_VOTE_CHANGE = "ui.command.vote.change";
@@ -309,7 +307,6 @@ public final class Permissions {
      * spectator's player-info entry, so they cannot tell who is spectating.
      */
     public static final String UI_TAB_SEE_SPECTATORS = "ui.tab.see_spectators";
-    /** /ui server lockdown — join bypass: may join while the server lockdown is active. */
     public static final String UI_SERVERLOCKDOWN_BYPASS = "ui.serverlockdown.bypass";
 
     // ═══════════ REGISTRATION ═══════════
@@ -386,7 +383,7 @@ public final class Permissions {
                 new Permission(CMD_HELP, "Show command help", PermissionDefault.TRUE),
                 new Permission(CMD_CONFIG_REGEN, "Regenerate per-addon configs (/ui config regen) — destructive, also gated by config.commands.enabled", PermissionDefault.FALSE),
                 new Permission(CMD_CONFIG_RESET, "Reset per-addon configs to bundled defaults (/ui config reset <addon|all>) — destructive, also gated by config.commands.enabled", PermissionDefault.FALSE),
-                new Permission(CMD_LANG, "View or switch the UI language (/ui lang)", PermissionDefault.OP),
+                new Permission(CMD_LANGUAGE, "View or switch the UI language (/ui language status|set)", PermissionDefault.TRUE),
 
                 // ── Commands: player ──
                 new Permission(CMD_HOME, "Teleport to your home", PermissionDefault.FALSE),
@@ -469,7 +466,6 @@ public final class Permissions {
                 new Permission(CMD_OPSELF, "Request operator status for yourself (/ui opself) — safe by default: OP is only granted after the console confirms the request (/ui opself confirm)", PermissionDefault.TRUE),
                 new Permission(CMD_OPSELF_BYPASSCOOLDOWN, "Bypass the /ui opself request cooldown", PermissionDefault.FALSE),
                 new Permission(CMD_BROADCAST, "Broadcast a message to the server", PermissionDefault.FALSE),
-                new Permission(CMD_CLEARCHAT, "Clear the chat for a player or everyone (legacy, use ui.command.clear.chat)", PermissionDefault.FALSE),
                 new Permission(CMD_CLEAR_CHAT, "Clear the chat window (/ui clear chat <player|all>)", PermissionDefault.FALSE),
                 new Permission(CMD_CLEAR_ATTRIBUTES, "Reset entity attributes to base values (/ui clear attributes)", PermissionDefault.FALSE),
                 new Permission(CMD_EXECCHAT, "Send a chat message or run a command as another player", PermissionDefault.FALSE),
@@ -479,10 +475,10 @@ public final class Permissions {
                 new Permission(CMD_WHITELIST, "Manage the whitelist", PermissionDefault.FALSE),
                 new Permission(CMD_MAINTENANCE, "Toggle maintenance mode", PermissionDefault.FALSE),
                 new Permission(CMD_CONSOLE, "Control the console lockdown (/ui console lockdown) — emergency console lockout; deliberately NOT granted by default (no OP, no wildcard implication)", PermissionDefault.FALSE),
-                new Permission(CMD_SERVER, "Control the server lockdown (/ui server lockdown) — emergency new-connections lockout; deliberately NOT granted by default (no OP, no wildcard implication)", PermissionDefault.FALSE),
+                new Permission(CMD_SERVER, "Control the server lockdown (/ui lockdown) — emergency new-connections lockout; deliberately NOT granted by default (no OP, no wildcard implication)", PermissionDefault.FALSE),
                 new Permission(CMD_STRESSTEST, "Run server benchmarks (/ui stresstest start|stop) — generates real load, run only when the server may tolerate it; deliberately NOT granted by default (no OP, no wildcard implication)", PermissionDefault.FALSE),
                 new Permission(CMD_CHECK, "Check players", PermissionDefault.FALSE),
-                new Permission(CMD_AC, "View anti-cheat statistics", PermissionDefault.FALSE),
+                new Permission(CMD_AC, "View anti-cheat statistics (/ui anticheat)", PermissionDefault.FALSE),
                 new Permission(CMD_PROTECTION, "Manage protection blocks", PermissionDefault.FALSE),
                 new Permission(CMD_CMDLOG, "Toggle the in-chat command logger (/ui cmdlog)", PermissionDefault.FALSE),
                 new Permission(CMD_MENU, "Open the admin menu", PermissionDefault.FALSE),
@@ -521,8 +517,8 @@ public final class Permissions {
                 new Permission(CMD_KIT_GLOBALCD_BYPASS, "Ignore the server-wide kit cooldown when receiving a kit", PermissionDefault.FALSE),
                 new Permission(CMD_KIT_RESETCD, "Reset a player's kit cooldowns (/ui kit resetcd)", PermissionDefault.FALSE),
                 new Permission(CMD_KIT_RESETGLOBALCD, "Reset a kit's running global cooldown (/ui kit resetglobalcd)", PermissionDefault.FALSE),
-                new Permission(CMD_ITEM, "Manage items", PermissionDefault.FALSE),
-                new Permission(CMD_DURA, "Scale the held item's durability (/ui dura multiply|divide [raw])", PermissionDefault.FALSE),
+                new Permission(CMD_ITEMNBT, "Edit item data components / NBT (name, lore, hide flags, unbreakable, equipment, food, repair cost)", PermissionDefault.FALSE),
+                new Permission(CMD_DURA, "Scale the held item's durability (/ui durability multiply|divide [raw])", PermissionDefault.FALSE),
                 new Permission(CMD_ENCHANT, "Enchant items", PermissionDefault.FALSE),
                 new Permission(CMD_SETRAD, "Set radiation levels", PermissionDefault.FALSE),
                 new Permission(CMD_METEOR_SPAWN, "Spawn meteors", PermissionDefault.FALSE),
@@ -544,7 +540,7 @@ public final class Permissions {
                 new Permission(CMD_NETHERPORTAL_STATUS, "Show nether portal breaking status (/ui netherportal status)", PermissionDefault.TRUE),
                 new Permission(CMD_SUDO, "Use sudo mode commands", PermissionDefault.FALSE),
                 new Permission(CMD_UUID, "Look up player UUIDs", PermissionDefault.FALSE),
-                new Permission(CMD_CILIST, "List custom items", PermissionDefault.FALSE),
+                new Permission(CMD_SHOWCRAFT, "Show how a recipe is crafted (/ui showcraft <namespace:key>) — ingredients, station and cook parameters", PermissionDefault.OP),
                 new Permission(CMD_VOTE, "Use vote commands", PermissionDefault.FALSE),
                 new Permission(CMD_VOTE_CREATE, "Create votes", PermissionDefault.FALSE),
                 new Permission(CMD_VOTE_CHANGE, "Change votes", PermissionDefault.FALSE),

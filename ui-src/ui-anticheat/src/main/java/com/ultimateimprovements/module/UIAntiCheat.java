@@ -109,11 +109,11 @@ public final class UIAntiCheat extends JavaPlugin {
         try {
             SubCommandRegistry registry = SubCommandRegistry.getInstance();
             if (registry != null) {
-                registry.register(LegacySubCommandAdapter.of("ac", AcStatsSubcommand::execute));
-                ConsoleLogger.info("[AntiCheat] Registered /ui ac command.");
+                registry.register(LegacySubCommandAdapter.of("anticheat", AcStatsSubcommand::execute));
+                ConsoleLogger.info("[AntiCheat] Registered /ui anticheat command.");
             }
         } catch (Exception e) {
-            ConsoleLogger.warn("[AntiCheat] Failed to register /ui ac: " + e.getMessage());
+            ConsoleLogger.warn("[AntiCheat] Failed to register /ui anticheat: " + e.getMessage());
         }
     }
 }

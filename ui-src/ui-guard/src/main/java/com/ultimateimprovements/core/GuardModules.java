@@ -243,7 +243,7 @@ public final class GuardModules {
             }
         });
 
-        // ServerLockdown (emergency join lockout: /ui server lockdown)
+        // ServerLockdown (emergency join lockout: /ui lockdown)
         mm.register(new SimpleModule("ServerLockdown", "mechanics/security/serverlockdown", false) {
             @Override
             protected void onInit(JavaPlugin plugin) throws Exception {

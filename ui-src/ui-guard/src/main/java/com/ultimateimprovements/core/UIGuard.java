@@ -99,13 +99,13 @@ public class UIGuard extends JavaPlugin {
             registry.register(LegacySubCommandAdapter.of("codepane",
                     CodePaneSubcommand::execute,
                     (s, a) -> CodePaneSubcommand.tabComplete(a)));
-            registry.register(LegacySubCommandAdapter.of("maint",
+            registry.register(LegacySubCommandAdapter.of("maintenance",
                     MaintSubcommand::execute,
                     (s, a) -> MaintSubcommand.tabComplete(a)));
             registry.register(LegacySubCommandAdapter.of("console",
                     ConsoleSubcommand::execute,
                     (s, a) -> ConsoleSubcommand.tabComplete(a)));
-            registry.register(LegacySubCommandAdapter.of("server",
+            registry.register(LegacySubCommandAdapter.of("lockdown",
                     ServerSubcommand::execute,
                     (s, a) -> ServerSubcommand.tabComplete(a)));
             registry.register(LegacySubCommandAdapter.of("sudo",

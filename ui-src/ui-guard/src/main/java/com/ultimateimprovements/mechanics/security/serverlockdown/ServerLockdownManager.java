@@ -34,7 +34,7 @@ import java.util.UUID;
  * lockdown is lifted. Players with the {@code ui.serverlockdown.bypass}
  * permission (FALSE by default) always get through.
  * <p>
- * Managed by {@code /ui server lockdown} (same flags as the console lockdown:
+ * Managed by {@code /ui lockdown} (same flags as the console lockdown:
  * status / on / off / timed, optional {@code -t <10s|5m|2h|1d>} delay). The
  * status command shows per-session statistics: how many connections were
  * blocked and who is currently inside the grace window.
@@ -384,7 +384,7 @@ public final class ServerLockdownManager implements Listener {
 
     /**
      * Enables the lockdown now and schedules its automatic disable after
-     * {@code durationMillis} (/ui server lockdown timed).
+     * {@code durationMillis} (/ui lockdown timed).
      */
     public void enableTimed(long durationMillis) {
         enable();

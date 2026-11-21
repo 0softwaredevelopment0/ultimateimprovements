@@ -1,6 +1,7 @@
 package com.ultimateimprovements.command.subcommands;
 
 import com.ultimateimprovements.command.CommandErrors;
+import com.ultimateimprovements.config.MessagesManager;
 import com.ultimateimprovements.mechanics.features.integrity.ItemDurabilityUtil;
 import com.ultimateimprovements.util.MessageUtil;
 import com.ultimateimprovements.util.Registries;
@@ -13,9 +14,11 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * /ui dura — durability scaling on the held item.
+ * /ui durability — durability scaling on the held item.
  * <p>
- * Two variants for every operation:
+ * Every operation works on the <b>vanilla</b> {@code damage} component (the old
+ * percentage-based integrity system was removed long ago). Two variants for
+ * every operation:
  * <ul>
  *   <li><b>mechanics</b> (default) — the vanilla gates apply to reductions:
  *       an unbreakable item loses nothing and the lost points are rolled
@@ -23,6 +26,8 @@ import java.util.Locale;
  *   <li><b>raw</b> — editor mode ({@code raw} prefix): gates are ignored,
  *       the numbers apply exactly as typed.</li>
  * </ul>
+ * All user-facing texts live in the composite config under
+ * {@code messages.durability.*} (RU) and {@code messages_en.durability.*} (EN).
  * Permission: {@code ui.command.dura} (default FALSE).
  */
 public final class DuraSubcommand {
@@ -31,7 +36,8 @@ public final class DuraSubcommand {
 
     public static boolean execute(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(MessageUtil.parse("<dark_red>❌ <red>Только игрок может использовать эту команду!"));
+            sender.sendMessage(msg("durability.player_only",
+                    "<dark_red>❌ <red>Only a player can use this command!</red>"));
             return true;
         }
         if (!player.hasPermission("ui.command.dura")) { CommandErrors.noPermission(player, "ui.command.dura"); return true; }
@@ -55,11 +61,13 @@ public final class DuraSubcommand {
     private static void scale(Player player, String op, String valueStr, boolean raw) {
         ItemStack held = player.getInventory().getItemInMainHand();
         if (held == null || held.getType() == Material.AIR) {
-            player.sendMessage(MessageUtil.parse("<dark_red>❌ <red>Вы должны держать предмет в руке!"));
+            player.sendMessage(msg("durability.hold_item",
+                    "<dark_red>❌ <red>You must hold an item in your hand!</red>"));
             return;
         }
         if (ItemDurabilityUtil.getMaxDurability(held) <= 0) {
-            player.sendMessage(MessageUtil.parse("<dark_red>❌ <red>У этого предмета нет прочности!"));
+            player.sendMessage(msg("durability.no_durability",
+                    "<dark_red>❌ <red>This item has no durability!</red>"));
             return;
         }
         if (!op.equals("multiply") && !op.equals("divide")) { sendUsage(player); return; }
@@ -69,12 +77,18 @@ public final class DuraSubcommand {
             // Accept the Russian decimal comma as well as the dot.
             value = Double.parseDouble(valueStr.trim().replace(',', '.'));
         } catch (NumberFormatException e) {
-            player.sendMessage(MessageUtil.parse("<dark_red>❌ <red>Неверный формат числа: <white>" + valueStr));
+            player.sendMessage(msg("durability.invalid_number",
+                    "<dark_red>❌ <red>Invalid number: <white>%value%</white></red>")
+                    .replace("%value%", valueStr));
             return;
         }
         if (op.equals("multiply") ? value < 0 : value <= 0) {
-            player.sendMessage(MessageUtil.parse("<dark_red>❌ <red>Число должно быть "
-                    + (op.equals("multiply") ? "не меньше 0!" : "больше 0!")));
+            player.sendMessage(msg(op.equals("multiply")
+                            ? "durability.factor_non_negative"
+                            : "durability.factor_positive",
+                    op.equals("multiply")
+                            ? "<dark_red>❌ <red>The number must be 0 or greater!</red>"
+                            : "<dark_red>❌ <red>The number must be greater than 0!</red>"));
             return;
         }
 
@@ -90,40 +104,52 @@ public final class DuraSubcommand {
                 : (raw ? ItemDurabilityUtil.divideItemIntegrity(held, value)
                        : ItemDurabilityUtil.divideItemIntegrity(held, value, player));
         if (result < 0) {
-            player.sendMessage(MessageUtil.parse("<dark_red>❌ <red>Не удалось изменить прочность."));
+            player.sendMessage(msg("durability.failed",
+                    "<dark_red>❌ <red>Failed to change the durability.</red>"));
             return;
         }
 
         int afterRemaining = max - ItemDurabilityUtil.getVanillaDamage(held);
         String opWord = op.equals("multiply") ? "× " + value : "÷ " + value;
-        StringBuilder msg = new StringBuilder();
+        String body;
         if (afterRemaining <= 0) {
-            msg.append("<red>✖ <white>Предмет сломан (<yellow>").append(opWord).append("<white>).");
+            body = msg("durability.broken",
+                    "<red>✖ <white>The item broke (<yellow>%op%</yellow><white>).</white>")
+                    .replace("%op%", opWord);
         } else {
-            msg.append("<green>✔ <white>Прочность: <yellow>").append(beforeRemaining)
-               .append("</yellow><gray> → </gray><yellow>").append(afterRemaining)
-               .append("</yellow><gray>/").append(max)
-               .append(" <gray>(<white>").append(String.format(Locale.ROOT, "%.1f", result)).append("%<gray>)");
+            body = msg("durability.scaled",
+                    "<green>✔ <white>Durability: <yellow>%before%</yellow><gray> → </gray>"
+                            + "<yellow>%after%</yellow><gray>/%max%</gray> "
+                            + "<gray>(<white>%percent%%<gray>)</gray>")
+                    .replace("%before%", String.valueOf(beforeRemaining))
+                    .replace("%after%", String.valueOf(afterRemaining))
+                    .replace("%max%", String.valueOf(max))
+                    .replace("%percent%", String.format(Locale.ROOT, "%.1f", result));
         }
         if (raw) {
-            msg.append(" <dark_gray>[без гейтов]");
+            body += msg("durability.raw_suffix", " <dark_gray>[no gates]");
         }
-        player.sendMessage(MessageUtil.parse(msg.toString()));
+        player.sendMessage(MessageUtil.parse(body));
 
         // Mechanics-only feedback for reductions
         boolean reduces = op.equals("multiply") ? value < 1 : value > 1;
         if (!raw && reduces && beforeRemaining > 0 && afterRemaining > 0) {
             if (unbreakable) {
                 if (afterRemaining == beforeRemaining) {
-                    player.sendMessage(MessageUtil.parse("<gray>Предмет <aqua>неломаемый</aqua><gray> — износ заблокирован."));
+                    player.sendMessage(msg("durability.unbreakable_blocked",
+                            "<gray>The item is <aqua>unbreakable</aqua><gray> — wear was blocked.</gray>"));
                 }
             } else if (unbreakingLevel > 0) {
                 int expected = expectedRemaining(max, beforeRemaining, op, value);
                 int saved = afterRemaining - expected;
                 if (saved > 0) {
-                    player.sendMessage(MessageUtil.parse("<gray>Прочность <yellow>" + unbreakingLevel
-                            + "</yellow> спасла <green>" + saved + "</green><gray> очк. (без неё осталось бы <white>"
-                            + expected + "</white><gray>)."));
+                    player.sendMessage(msg("durability.unbreaking_saved",
+                                    "<gray>Unbreaking <yellow>%level%</yellow> saved "
+                                            + "<green>%saved%</green><gray> point(s) (without it "
+                                            + "<white>%expected%</white><gray> would remain).</gray>")
+                            .replace("%level%", String.valueOf(unbreakingLevel))
+                            .replace("%saved%", String.valueOf(saved))
+                            .replace("%expected%", String.valueOf(expected)));
                 }
             }
         }
@@ -138,36 +164,56 @@ public final class DuraSubcommand {
     private static void showInfo(Player player) {
         ItemStack held = player.getInventory().getItemInMainHand();
         if (held == null || held.getType() == Material.AIR) {
-            player.sendMessage(MessageUtil.parse("<dark_red>❌ <red>Вы должны держать предмет в руке!"));
+            player.sendMessage(msg("durability.hold_item",
+                    "<dark_red>❌ <red>You must hold an item in your hand!</red>"));
             return;
         }
         int max = ItemDurabilityUtil.getMaxDurability(held);
         if (max <= 0) {
-            player.sendMessage(MessageUtil.parse("<dark_red>❌ <red>У этого предмета нет прочности!"));
+            player.sendMessage(msg("durability.no_durability",
+                    "<dark_red>❌ <red>This item has no durability!</red>"));
             return;
         }
         int damage = ItemDurabilityUtil.getVanillaDamage(held);
+        int unbreakingLevel = Registries.unbreaking() != null
+                ? held.getEnchantmentLevel(Registries.unbreaking())
+                : held.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.UNBREAKING);
+
         player.sendMessage(MessageUtil.parse("<gold>═══════════════════════"));
-        player.sendMessage(MessageUtil.parse("<gold>  ✦ <white>Прочность предмета <gray>(/ui dura)"));
+        player.sendMessage(msg("durability.info_title",
+                "<gold>  ✦ <white>Item durability <gray>(/ui durability)</gray>"));
         player.sendMessage(MessageUtil.parse("<gold>═══════════════════════"));
-        player.sendMessage(MessageUtil.parse("<gray>Осталось: <green>" + (max - damage) + "</green><gray>/" + max
-                + " <gray>(<white>" + String.format(Locale.ROOT, "%.1f", ItemDurabilityUtil.getItemIntegrityPercent(held)) + "%<gray>)"));
-        player.sendMessage(MessageUtil.parse("<gray>Неломаемый: <white>" + ItemDurabilityUtil.isUnbreakable(held)));
-        player.sendMessage(MessageUtil.parse("<gray>Прочность (чар): <white>"
-                + (Registries.unbreaking() != null
-                        ? held.getEnchantmentLevel(Registries.unbreaking())
-                        : held.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.UNBREAKING))));
-        player.sendMessage(MessageUtil.parse("<gray>Варианты: <white>multiply|divide <gray>(гейты) / <white>raw multiply|divide <gray>(без)"));
+        player.sendMessage(msg("durability.info_remaining",
+                        "<gray>Remaining: <green>%remaining%</green><gray>/%max% "
+                                + "<gray>(<white>%percent%%<gray>)</gray>")
+                .replace("%remaining%", String.valueOf(max - damage))
+                .replace("%max%", String.valueOf(max))
+                .replace("%percent%", String.format(Locale.ROOT,
+                        "%.1f", ItemDurabilityUtil.getItemIntegrityPercent(held))));
+        player.sendMessage(msg("durability.info_unbreakable",
+                        "<gray>Unbreakable: <white>%value%</white>")
+                .replace("%value%", String.valueOf(ItemDurabilityUtil.isUnbreakable(held))));
+        player.sendMessage(msg("durability.info_unbreaking",
+                        "<gray>Unbreaking level: <white>%level%</white>")
+                .replace("%level%", String.valueOf(unbreakingLevel)));
+        player.sendMessage(msg("durability.info_variants",
+                "<gray>Variants: <white>multiply|divide <gray>(gates) / "
+                        + "<white>raw multiply|divide <gray>(no gates)</gray>"));
         player.sendMessage(MessageUtil.parse("<gold>═══════════════════════"));
     }
 
     private static void sendUsage(Player player) {
-        player.sendMessage(MessageUtil.parse("<dark_red>❌ <red>Использование:"));
-        player.sendMessage(MessageUtil.parse("<white>/ui dura <gray>— информация"));
-        player.sendMessage(MessageUtil.parse("<white>/ui dura multiply <gray><фактор> <dark_gray>— остаток × фактор (с гейтами)"));
-        player.sendMessage(MessageUtil.parse("<white>/ui dura divide <gray><делитель> <dark_gray>— остаток ÷ делитель (с гейтами)"));
-        player.sendMessage(MessageUtil.parse("<white>/ui dura raw multiply <gray><фактор> <dark_gray>— без гейтов"));
-        player.sendMessage(MessageUtil.parse("<white>/ui dura raw divide <gray><делитель> <dark_gray>— без гейтов"));
+        player.sendMessage(msg("durability.usage_header", "<dark_red>❌ <red>Usage:</red>"));
+        player.sendMessage(msg("durability.usage_info",
+                "<white>/ui durability <gray>— information"));
+        player.sendMessage(msg("durability.usage_multiply",
+                "<white>/ui durability multiply <gray><factor> <dark_gray>— remaining × factor (with gates)"));
+        player.sendMessage(msg("durability.usage_divide",
+                "<white>/ui durability divide <gray><divisor> <dark_gray>— remaining ÷ divisor (with gates)"));
+        player.sendMessage(msg("durability.usage_raw_multiply",
+                "<white>/ui durability raw multiply <gray><factor> <dark_gray>— no gates"));
+        player.sendMessage(msg("durability.usage_raw_divide",
+                "<white>/ui durability raw divide <gray><divisor> <dark_gray>— no gates"));
     }
 
     public static List<String> tabComplete(CommandSender sender, String[] args) {
@@ -176,5 +222,9 @@ public final class DuraSubcommand {
         if (args.length == 3) return List.of(""); // numeric value — suppress player-name fallback
         if (args.length == 4 && args[1].equalsIgnoreCase("raw")) return List.of("");
         return List.of();
+    }
+
+    private static String msg(String path, String def) {
+        return MessagesManager.getString(path, def);
     }
 }

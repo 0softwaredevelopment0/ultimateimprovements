@@ -31,18 +31,19 @@ import java.util.function.Consumer;
  * plus custom ones, addressed as {@code namespace:name} — "minecraft:mending",
  * "ui:aoe" (bare names still resolve for convenience).
  * <pre>
- *   /ui enchant give <enchantment> <level> [player] [slot]
+ *   /ui enchant give <enchantment> <level> <player|all> [slot]
  *   /ui enchant confirm
  *   /ui enchant cancel
- *   /ui enchant take <enchantment> <level> [player] [slot]
+ *   /ui enchant take <enchantment> <level> [player|all] [slot]
  *   /ui enchant check <player> [page]
  * </pre>
- * There is no hard level cap, but a give above {@code enchant.max_level}
- * (default 10) requires {@code /ui enchant confirm} within 60 seconds
- * (or {@code /ui enchant cancel} to drop it). A bare name registered in
- * several namespaces fails with error 019 — use {@code namespace:name}.
- * Slots: mainhand, offhand, bothhand, cursor, hotbar, armor, inventory, all.
- * Settings are in config.yml → {@code enchant:}.
+ * The give target is REQUIRED: a player nickname or {@code all} (every online
+ * player). A give above {@code enchant.max_level} (default 10) requires
+ * {@code /ui enchant confirm} within 60 seconds (or {@code /ui enchant cancel}
+ * to drop it) — this works for a single player and for {@code all} alike. A
+ * bare name registered in several namespaces fails with error 019 — use
+ * {@code namespace:name}. Slots: mainhand, offhand, bothhand, cursor, hotbar,
+ * armor, inventory, all. Settings are in config.yml → {@code enchant:}.
  */
 public final class EnchantSubcommand {
 
@@ -340,12 +341,12 @@ public final class EnchantSubcommand {
     private static void sendUsage(CommandSender sender) {
         sender.sendMessage(MessageUtil.parse(MessagesManager.getString("enchant.usage",
                 "<yellow>Usage:</yellow>\n"
-                + "<white>/ui enchant give <enchantment> <level> [player] [slot]</white>\n"
+                + "<white>/ui enchant give <enchantment> <level> <player|all> [slot]</white>\n"
                 + "<white>/ui enchant confirm</white> <gray>- apply a give above the safe level</gray>\n"
                 + "<white>/ui enchant cancel</white> <gray>- drop a pending give</gray>\n"
-                + "<white>/ui enchant take <enchantment> <level> [player] [slot]</white>\n"
+                + "<white>/ui enchant take <enchantment> <level> [player|all] [slot]</white>\n"
                 + "<white>/ui enchant check <player> [page]</white>\n"
-                + "<gray>player/slot optional: sender + mainhand. Slots: mainhand, offhand, bothhand, cursor, hotbar, armor, inventory, all</gray>")));
+                + "<gray>give requires player|all; slot optional (mainhand). Slots: mainhand, offhand, bothhand, cursor, hotbar, armor, inventory, all</gray>")));
     }
 
     // =========================
@@ -361,7 +362,7 @@ public final class EnchantSubcommand {
     }
 
     /** A fully validated give/take request. */
-    private record ValidatedApply(ResolvedEnchant ench, int level, Player targetPlayer, String target) {}
+    private record ValidatedApply(ResolvedEnchant ench, int level, List<Player> targets, String targetName, String slot) {}
 
     /** A high-level give waiting for {@code /ui enchant confirm}. */
     private record PendingApply(String enchantArg, int level, String playerName, String slot, long createdAt) {}
@@ -384,7 +385,7 @@ public final class EnchantSubcommand {
         // A give above the safe level requires an explicit /ui enchant confirm
         if (isGive && v.level() > getConfirmThreshold()) {
             PENDING.put(pendingKey(sender), new PendingApply(
-                    args[2], v.level(), v.targetPlayer().getName(), v.target(), System.currentTimeMillis()));
+                    args[2], v.level(), v.targetName(), v.slot(), System.currentTimeMillis()));
             String body = MessagesManager.getString("enchant.confirm_required",
                     "<yellow>⚠</yellow> <white>%enchant% %level%</white> <gray>is above the safe level</gray>"
                     + " <yellow>%max%</yellow><gray>. To apply it on</gray> <yellow>%player%</yellow>"
@@ -392,7 +393,7 @@ public final class EnchantSubcommand {
                     .replace("%enchant%", v.ench().displayName())
                     .replace("%level%", String.valueOf(v.level()))
                     .replace("%max%", String.valueOf(getConfirmThreshold()))
-                    .replace("%player%", v.targetPlayer().getName());
+                    .replace("%player%", v.targetName());
             sender.sendMessage(MessageUtil.parse(body)
                     .append(net.kyori.adventure.text.Component.newline())
                     .append(clickable("/ui enchant confirm",
@@ -450,16 +451,15 @@ public final class EnchantSubcommand {
                             .replace("%enchant%", p.enchantArg())));
             return true;
         }
-        @SuppressWarnings("deprecation")
-        Player targetPlayer = Bukkit.getPlayerExact(p.playerName());
-        if (targetPlayer == null) {
+        List<Player> targetPlayers = resolveTargets(p.playerName());
+        if (targetPlayers.isEmpty()) {
             sender.sendMessage(MessageUtil.parse(
                     MessagesManager.getString("enchant.player_not_found",
                             "<red>❌ Player </red><yellow>%player%</yellow><red> is not online!</red>")
                             .replace("%player%", p.playerName())));
             return true;
         }
-        executeApply(sender, new ValidatedApply(ench, p.level(), targetPlayer, p.slot()), true);
+        executeApply(sender, new ValidatedApply(ench, p.level(), targetPlayers, p.playerName(), p.slot()), true);
         return true;
     }
 
@@ -490,11 +490,13 @@ public final class EnchantSubcommand {
      * Sends the error message and returns {@code null} on failure.
      */
     private static ValidatedApply validateApply(CommandSender sender, String[] args, boolean isGive) {
-        // /ui enchant give|take <enchant> <level> [player] [slot]
-        if (args.length < 4) {
+        // /ui enchant give <enchant> <level> <player|all> [slot]
+        // /ui enchant take <enchant> <level> [player|all] [slot]
+        int minArgs = isGive ? 5 : 4;
+        if (args.length < minArgs) {
             sender.sendMessage(MessageUtil.parse(isGive
-                    ? "<red>❌ Usage: </red><white>/ui enchant give <enchantment> <level> [player] [slot]</white>"
-                    : "<red>❌ Usage: </red><white>/ui enchant take <enchantment> <level> [player] [slot]</white>"));
+                    ? "<red>❌ Usage: </red><white>/ui enchant give <enchantment> <level> <player|all> [slot]</white>"
+                    : "<red>❌ Usage: </red><white>/ui enchant take <enchantment> <level> [player|all] [slot]</white>"));
             return null;
         }
 
@@ -535,7 +537,7 @@ public final class EnchantSubcommand {
             return null;
         }
 
-        // ─── Player (optional — defaults to the sender) ───
+        // ─── Player (required for give; optional for take — defaults to the sender) ───
         String playerName;
         if (args.length >= 5) {
             playerName = args[4];
@@ -545,9 +547,8 @@ public final class EnchantSubcommand {
             CommandErrors.playerOnly(sender);
             return null;
         }
-        @SuppressWarnings("deprecation")
-        Player targetPlayer = Bukkit.getPlayerExact(playerName);
-        if (targetPlayer == null) {
+        List<Player> targetPlayers = resolveTargets(playerName);
+        if (targetPlayers.isEmpty()) {
             sender.sendMessage(MessageUtil.parse(
                     MessagesManager.getString("enchant.player_not_found",
                             "<red>❌ Player </red><yellow>%player%</yellow><red> is not online!</red>")
@@ -564,7 +565,20 @@ public final class EnchantSubcommand {
                             .replace("%target%", target)));
             return null;
         }
-        return new ValidatedApply(ench, level, targetPlayer, target);
+        return new ValidatedApply(ench, level, targetPlayers, playerName, target);
+    }
+
+    /**
+     * Resolves a player argument to one or more targets. {@code all} means every
+     * online player; anything else is looked up by exact name.
+     */
+    private static List<Player> resolveTargets(String playerName) {
+        if ("all".equalsIgnoreCase(playerName)) {
+            return new ArrayList<>(Bukkit.getOnlinePlayers());
+        }
+        @SuppressWarnings("deprecation")
+        Player targetPlayer = Bukkit.getPlayerExact(playerName);
+        return targetPlayer == null ? List.of() : List.of(targetPlayer);
     }
 
     /**
@@ -586,10 +600,11 @@ public final class EnchantSubcommand {
     private static void executeApply(CommandSender sender, ValidatedApply v, boolean isGive) {
         ResolvedEnchant ench = v.ench();
         int level = v.level();
-        Player targetPlayer = v.targetPlayer();
-        String target = v.target();
+        String target = v.slot();
 
-        // ─── Apply ───
+        // ─── Apply ─── (every resolved target; "all" = every online player)
+        int total = 0;
+        for (Player targetPlayer : v.targets()) {
         int count = 0;
         for (Slot slot : collectSlots(targetPlayer, target)) {
             ItemStack item = slot.get();
@@ -821,9 +836,11 @@ public final class EnchantSubcommand {
 
             slot.set(item);
         }
+        total += count;
+        }
 
         String action = isGive ? "Applied" : "Removed";
-        if (count == 0) {
+        if (total == 0) {
             sender.sendMessage(MessageUtil.parse(
                     MessagesManager.getString("enchant.none_found",
                             "<yellow>⚠</yellow> <gray>No items to %action% in</gray> <white>%target%</white><gray>.</gray>")
@@ -836,8 +853,8 @@ public final class EnchantSubcommand {
                             .replace("%action%", action)
                             .replace("%enchant%", ench.displayName())
                             .replace("%level%", String.valueOf(level))
-                            .replace("%count%", String.valueOf(count))
-                            .replace("%player%", targetPlayer.getName())));
+                            .replace("%count%", String.valueOf(total))
+                            .replace("%player%", v.targetName())));
         }
     }
 
@@ -1051,7 +1068,7 @@ public final class EnchantSubcommand {
                 switch (args.length) {
                     case 3 -> result = allEnchantNames();
                     case 4 -> result = levelSuggestions(args[3]);
-                    case 5 -> result = onlinePlayerNames();
+                    case 5 -> result = playerOrAllNames();
                     case 6 -> result = targetNames();
                     default -> { }
                 }
@@ -1091,6 +1108,13 @@ public final class EnchantSubcommand {
         for (Player p : Bukkit.getOnlinePlayers()) {
             result.add(p.getName());
         }
+        return result;
+    }
+
+    /** Online players plus the {@code all} keyword for a give/take target. */
+    private static List<String> playerOrAllNames() {
+        List<String> result = onlinePlayerNames();
+        result.add("all");
         return result;
     }
 }

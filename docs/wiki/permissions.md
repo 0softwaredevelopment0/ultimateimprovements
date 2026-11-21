@@ -96,13 +96,11 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.checkver`
 - `ui.command.chgdim`
 - `ui.command.chgdim.*`
-- `ui.command.cilist`
 - `ui.command.clan`
 - `ui.command.clan.home.bypasscooldown`
 - `ui.command.clan.remove`
 - `ui.command.clear.attributes`
 - `ui.command.clear.chat`
-- `ui.command.clearchat`
 - `ui.command.cmdlog`
 - `ui.command.codepane`
 - `ui.command.codepane.key`
@@ -136,7 +134,6 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.home`
 - `ui.command.inv.edit`
 - `ui.command.invsee`
-- `ui.command.item`
 - `ui.command.itemnbt`
 - `ui.command.kit`
 - `ui.command.kit.cooldown`
@@ -153,7 +150,7 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.kit.rename`
 - `ui.command.kit.resetcd`
 - `ui.command.kit.resetglobalcd`
-- `ui.command.lang`
+- `ui.command.language`
 - `ui.command.listhomes`
 - `ui.command.maintenance`
 - `ui.command.menu`
@@ -219,6 +216,7 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.setrad`
 - `ui.command.setspawn`
 - `ui.command.sharepos`
+- `ui.command.showcraft`
 - `ui.command.showspeed`
 - `ui.command.space`
 - `ui.command.spawn`

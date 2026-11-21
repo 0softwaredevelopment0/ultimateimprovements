@@ -17,7 +17,8 @@ All primary commands use the \`/ui\` root (also available as \`/ultimateimprovem
 | \`/ui modules enable <path>\` | Enable a registered module by path or name |
 | \`/ui modules disable <path>\` | Disable a non-essential module by path or name |
 | \`/ui addon list\` | List addon presence/status |
-| \`/ui lang [ru\|en]\` | View or change the UI language |
+| \`/ui language status\` | Show the current UI language |
+| \`/ui language set <en\|ru>\` | Change the UI language |
 | \`/ui config regen <UI-Addon.toml>\` | Back up and regenerate a config |
 | \`/ui config reset <addon\|all>\` | Back up and reset an addon config |
 
@@ -66,12 +67,12 @@ Passwords are entered using the plugin's dialog flow, not in public chat. Do not
 | \`/ui opblacklist ...\` | Manage the OP blacklist |
 | \`/ui check <player>\` | Start a player check/freeze |
 | \`/ui uncheck <player>\` | End a player check |
-| \`/ui ac [player]\` | Anti-cheat status |
+| \`/ui anticheat [player]\` | Anti-cheat status |
 | \`/ui report <player> <reason>\` | Submit a report |
 | \`/ui reports [page]\` | List reports |
 | \`/ui modreport <id> accept\|decline\` | Moderate a report |
 | \`/ui repstatus <id>\` | Check report status |
-| \`/ui server ...\` | Server lockdown controls |
+| \`/ui lockdown ...\` | Server lockdown controls |
 | \`/ui console ...\` | Console lockdown controls |
 | \`/ui stresstest ...\` | Run a controlled benchmark |
 
@@ -103,12 +104,12 @@ Offline \`invsee\`/ \`endersee\` edits touch the player data file and make a bac
 
 | Command | Purpose |
 |---|---|
-| \`/ui enchant give <enchantment> <level>\` | Apply an enchantment to the held item |
-| \`/ui enchant take <enchantment>\` | Remove an enchantment |
-| \`/ui enchant check\` | Inspect item enchantments |
-| \`/ui cilist\` | List custom items |
+| \`/ui enchant give <enchantment> <level> <player\|all> [slot]\` | Apply an enchantment to a player or everyone |
+| \`/ui enchant take <enchantment> <level> [player\|all] [slot]\` | Remove an enchantment |
+| \`/ui enchant check <player> [page]\` | Inspect item enchantments |
+| \`/ui showcraft <namespace:key>\` | Show the station, ingredients and parameters of a recipe |
+| \`/ui durability multiply\|divide [raw] <value>\` | Scale the held item's vanilla durability |
 | \`/ui pdc ...\` | Inspect/edit item PersistentDataContainer |
-| \`/ui item ...\` | Item/NBT management |
 | \`/ui advancement start <woodcutter\|teleport>\` | Start a timed challenge |
 | \`/ui advancement stop\` | Stop the active challenge |
 | \`/ui turret ...\` | Configure end-crystal turrets |
@@ -133,7 +134,8 @@ Offline \`invsee\`/ \`endersee\` edits touch the player data file and make a bac
 | \`/ui msg <player> <text>\` | Private message |
 | \`/ui chatchnl ...\` | Change chat channel |
 | \`/ui broadcast <text> [-clean]\` | Server announcement |
-| \`/ui clearchat [player\|all]\` | Clear chat |
+| \`/ui clear chat <player\|all>\` | Clear the chat window |
+| \`/ui clear attributes <player\|UUID\|all>\` | Reset entity attributes to vanilla defaults |
 | \`/ui bossbar on\|off\` | Toggle bossbar |
 | \`/ui scoreboard on\|off\` | Toggle scoreboard |
 | \`/ui scoreboardnick ...\` | Change scoreboard nickname |

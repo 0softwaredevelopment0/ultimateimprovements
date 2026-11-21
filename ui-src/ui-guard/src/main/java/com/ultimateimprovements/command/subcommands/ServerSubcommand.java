@@ -16,14 +16,14 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
- * Handles the {@code /ui server} subcommand — server lockdown control.
+ * Handles the {@code /ui lockdown} subcommand — server lockdown control.
  * <p>
  * Usage:
  * <pre>
- *   /ui server lockdown                     — show status
- *   /ui server lockdown on [-t &lt;10s|5m|2h|1d&gt;]   — enable now (or after the delay)
- *   /ui server lockdown off [-t &lt;10s|5m|2h|1d&gt;]  — disable now (or after the delay)
- *   /ui server lockdown timed &lt;10s|5m|2h|1d&gt;     — enable, auto-disable after the duration
+ *   /ui lockdown                     — show status
+ *   /ui lockdown on [-t &lt;10s|5m|2h|1d&gt;]   — enable now (or after the delay)
+ *   /ui lockdown off [-t &lt;10s|5m|2h|1d&gt;]  — disable now (or after the delay)
+ *   /ui lockdown timed &lt;10s|5m|2h|1d&gt;     — enable, auto-disable after the duration
  * </pre>
  * While the lockdown is active new connections are refused (anti-bot-attack
  * measure), but players already online are never kicked — they keep a grace
@@ -48,13 +48,13 @@ public final class ServerSubcommand {
             return true;
         }
 
-        // /ui server (no lockdown action) — usage
-        if (args.length < 2 || !args[1].equalsIgnoreCase("lockdown")) {
+        // /ui lockdown (no action) — usage
+        if (args.length < 2) {
             sendUsage(sender);
             return true;
         }
 
-        String action = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
+        String action = args[1].toLowerCase(Locale.ROOT);
         ServerLockdownManager manager = ServerLockdownManager.getInstance();
         if (manager == null) {
             sender.sendMessage(MessageUtil.parse(
@@ -127,12 +127,12 @@ public final class ServerSubcommand {
     }
 
     private static boolean lockdownTimed(CommandSender sender, ServerLockdownManager manager, String[] args) {
-        if (args.length < 4) {
+        if (args.length < 3) {
             sender.sendMessage(MessageUtil.parse(
-                    "<red>❌ Usage: </red><white>/ui server lockdown timed <10s|5m|2h|1d></white>"));
+                    "<red>❌ Usage: </red><white>/ui lockdown timed <10s|5m|2h|1d></white>"));
             return true;
         }
-        long duration = ServerLockdownManager.parseTimeToMillis(args[3]);
+        long duration = ServerLockdownManager.parseTimeToMillis(args[2]);
         if (duration <= 0) {
             CommandErrors.custom(sender, ERR_INVALID_TIME,
                     "<red>Invalid time format! Use: </red><white>10s</white><gray>, </gray><white>5m</white>"
@@ -177,17 +177,17 @@ public final class ServerSubcommand {
         // ─── Clickable section tabs (like the /ui help navigation) ───
         Component blockedTab = Component.text("[Blocked joins]")
                 .color(NamedTextColor.YELLOW)
-                .clickEvent(ClickEvent.runCommand("/ui server lockdown status blocked 1"))
+                .clickEvent(ClickEvent.runCommand("/ui lockdown status blocked 1"))
                 .hoverEvent(HoverEvent.showText(MessageUtil.parse(
                         "<gray>Who was refused during this lockdown session")));
         Component graceTab = Component.text("[In grace]")
                 .color(NamedTextColor.YELLOW)
-                .clickEvent(ClickEvent.runCommand("/ui server lockdown status grace 1"))
+                .clickEvent(ClickEvent.runCommand("/ui lockdown status grace 1"))
                 .hoverEvent(HoverEvent.showText(MessageUtil.parse(
                         "<gray>Who quit and may still rejoin within the grace window")));
         Component thresholdsTab = Component.text("[Thresholds]")
                 .color(NamedTextColor.YELLOW)
-                .clickEvent(ClickEvent.runCommand("/ui server lockdown status thresholds 1"))
+                .clickEvent(ClickEvent.runCommand("/ui lockdown status thresholds 1"))
                 .hoverEvent(HoverEvent.showText(MessageUtil.parse(
                         "<gray>Alert thresholds and whether they already fired this session")));
         sender.sendMessage(MessageUtil.parse("<gray>Sections: </gray>")
@@ -202,35 +202,35 @@ public final class ServerSubcommand {
         sender.sendMessage(MessageUtil.parse(
                 "<dark_gray>online are not kicked and may rejoin within the grace window</dark_gray>"));
         sender.sendMessage(MessageUtil.parse(
-                "<dark_gray>after quitting. Lift via /ui server lockdown off</dark_gray>"));
+                "<dark_gray>after quitting. Lift via /ui lockdown off</dark_gray>"));
         sender.sendMessage(MessageUtil.parse(
                 "<dark_gray>or server_lockdown.kill_switch = true + restart//ui reload.</dark_gray>"));
         return true;
     }
 
     /**
-     * Dispatches {@code /ui server lockdown status [section] [page]}:
+     * Dispatches {@code /ui lockdown status [section] [page]}:
      * without a section — the summary; with a section — the paginated list.
      */
     private static boolean handleStatus(CommandSender sender, ServerLockdownManager manager, String[] args) {
-        if (args.length < 4 || args[3].equalsIgnoreCase("summary")) {
+        if (args.length < 3 || args[2].equalsIgnoreCase("summary")) {
             return showStatus(sender, manager);
         }
-        String section = args[3].toLowerCase(Locale.ROOT);
+        String section = args[2].toLowerCase(Locale.ROOT);
         if (!section.equals("blocked") && !section.equals("grace") && !section.equals("thresholds")) {
             sender.sendMessage(MessageUtil.parse(
-                    "<red>❌ Unknown section: </red><white>" + args[3]
+                    "<red>❌ Unknown section: </red><white>" + args[2]
                             + "</white><gray> — use </gray><white>blocked</white><gray>, </gray><white>grace</white>"
                             + "<gray> or </gray><white>thresholds</white>"));
             return true;
         }
         int page = 1;
-        if (args.length >= 5) {
+        if (args.length >= 4) {
             try {
-                page = Integer.parseInt(args[4]);
+                page = Integer.parseInt(args[3]);
             } catch (NumberFormatException e) {
                 sender.sendMessage(MessageUtil.parse(
-                        "<red>❌ Invalid page number: </red><white>" + args[4] + "</white>"));
+                        "<red>❌ Invalid page number: </red><white>" + args[3] + "</white>"));
                 return true;
             }
         }
@@ -341,7 +341,7 @@ public final class ServerSubcommand {
         if (page > 1) {
             footer = footer.append(Component.text("[<]")
                     .color(NamedTextColor.YELLOW)
-                    .clickEvent(ClickEvent.runCommand("/ui server lockdown status " + section + " " + (page - 1)))
+                    .clickEvent(ClickEvent.runCommand("/ui lockdown status " + section + " " + (page - 1)))
                     .hoverEvent(HoverEvent.showText(MessageUtil.parse("<gray>Previous page"))));
         } else {
             footer = footer.append(MessageUtil.parse("<dark_gray>[<]"));
@@ -350,7 +350,7 @@ public final class ServerSubcommand {
         if (page < totalPages) {
             footer = footer.append(Component.text("[>]")
                     .color(NamedTextColor.YELLOW)
-                    .clickEvent(ClickEvent.runCommand("/ui server lockdown status " + section + " " + (page + 1)))
+                    .clickEvent(ClickEvent.runCommand("/ui lockdown status " + section + " " + (page + 1)))
                     .hoverEvent(HoverEvent.showText(MessageUtil.parse("<gray>Next page"))));
         } else {
             footer = footer.append(MessageUtil.parse("<dark_gray>[>]"));
@@ -368,7 +368,7 @@ public final class ServerSubcommand {
         }
         Component backTab = Component.text("[Summary]")
                 .color(NamedTextColor.YELLOW)
-                .clickEvent(ClickEvent.runCommand("/ui server lockdown status"))
+                .clickEvent(ClickEvent.runCommand("/ui lockdown status"))
                 .hoverEvent(HoverEvent.showText(MessageUtil.parse("<gray>Back to the summary")));
         sender.sendMessage(tabs.append(MessageUtil.parse(" ")).append(backTab));
     }
@@ -387,7 +387,7 @@ public final class ServerSubcommand {
         };
         return Component.text(label)
                 .color(NamedTextColor.YELLOW)
-                .clickEvent(ClickEvent.runCommand("/ui server lockdown status " + section + " 1"))
+                .clickEvent(ClickEvent.runCommand("/ui lockdown status " + section + " 1"))
                 .hoverEvent(HoverEvent.showText(MessageUtil.parse(hover)));
     }
 
@@ -402,7 +402,7 @@ public final class ServerSubcommand {
      *         malformed flag (error message already sent to the sender)
      */
     private static Long parseTimeFlag(CommandSender sender, String[] args) {
-        for (int i = 3; i < args.length; i++) {
+        for (int i = 2; i < args.length; i++) {
             String arg = args[i];
             String lower = arg.toLowerCase(Locale.ROOT);
             if (lower.equals("-t")) {
@@ -445,11 +445,11 @@ public final class ServerSubcommand {
     private static void sendUsage(CommandSender sender) {
         sender.sendMessage(MessageUtil.parse(
                 "<red>❌ Usage:</red>\n"
-                        + "<white>/ui server lockdown</white> <gray>— show status (summary)</gray>\n"
-                        + "<white>/ui server lockdown status [blocked|grace|thresholds] [page]</white> <gray>— summary / paginated section lists</gray>\n"
-                        + "<white>/ui server lockdown on [-t 10s|5m|2h|1d]</white> <gray>— enable now (or after the delay)</gray>\n"
-                        + "<white>/ui server lockdown off [-t 10s|5m|2h|1d]</white> <gray>— disable now (or after the delay)</gray>\n"
-                        + "<white>/ui server lockdown timed <10s|5m|2h|1d></white> <gray>— enable, auto-disable after the duration</gray>"
+                        + "<white>/ui lockdown</white> <gray>— show status (summary)</gray>\n"
+                        + "<white>/ui lockdown status [blocked|grace|thresholds] [page]</white> <gray>— summary / paginated section lists</gray>\n"
+                        + "<white>/ui lockdown on [-t 10s|5m|2h|1d]</white> <gray>— enable now (or after the delay)</gray>\n"
+                        + "<white>/ui lockdown off [-t 10s|5m|2h|1d]</white> <gray>— disable now (or after the delay)</gray>\n"
+                        + "<white>/ui lockdown timed <10s|5m|2h|1d></white> <gray>— enable, auto-disable after the duration</gray>"
         ));
     }
 
@@ -461,13 +461,11 @@ public final class ServerSubcommand {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 2) {
-            completions.add("lockdown");
-        } else if (args.length == 3 && args[1].equalsIgnoreCase("lockdown")) {
             for (String action : List.of("status", "on", "off", "timed")) {
                 completions.add(action);
             }
-        } else if (args.length == 4 && args[1].equalsIgnoreCase("lockdown")) {
-            String action = args[2].toLowerCase(Locale.ROOT);
+        } else if (args.length == 3) {
+            String action = args[1].toLowerCase(Locale.ROOT);
             if (action.equals("status")) {
                 completions.add("summary");
                 completions.add("blocked");
@@ -478,15 +476,15 @@ public final class ServerSubcommand {
             } else if (action.equals("timed")) {
                 completions.addAll(TIME_SUGGESTIONS);
             }
-        } else if (args.length == 5 && args[1].equalsIgnoreCase("lockdown")) {
-            String action = args[2].toLowerCase(Locale.ROOT);
+        } else if (args.length == 4) {
+            String action = args[1].toLowerCase(Locale.ROOT);
             if (action.equals("status")) {
-                String section = args[3].toLowerCase(Locale.ROOT);
+                String section = args[2].toLowerCase(Locale.ROOT);
                 if (section.equals("blocked") || section.equals("grace")) {
                     completions.add("1");
                 }
             } else if ((action.equals("on") || action.equals("off"))
-                    && args[3].equalsIgnoreCase("-t")) {
+                    && args[2].equalsIgnoreCase("-t")) {
                 completions.addAll(TIME_SUGGESTIONS);
             }
         }

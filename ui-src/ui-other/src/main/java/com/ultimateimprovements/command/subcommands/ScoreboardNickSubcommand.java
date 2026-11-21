@@ -55,11 +55,6 @@ public final class ScoreboardNickSubcommand implements SubCommand {
         return "scoreboardnick";
     }
 
-    @Override
-    public List<String> getAliases() {
-        return List.of("sbnick");
-    }
-
     // ═══════════ EXECUTE ═══════════
 
     @Override

@@ -1613,3 +1613,24 @@ all_passed = "[ConfigValidator] ✓ All config values passed validation."
 # Legacy monolithic config.toml found in the data folder.
 # Default: [Config] Legacy monolithic config.toml found in %dir% — settings now live in configs/UI-<Addon>.toml
 legacy_monolithic = "[Config] Legacy monolithic config.toml found in %dir% — settings now live in configs/UI-<Addon>.toml"
+
+# /ui language messages (ru).
+# Placeholders: %lang%, %previous%, %current%
+[messages.language]
+status = "<gray>Текущий язык интерфейса: <yellow>%lang%</yellow> <dark_gray>(/ui language set <en|ru>)"
+set_usage = "<red>❌ Использование: </red><white>/ui language set <en|ru></white>"
+invalid = "<red>❌ Неизвестный язык: </red><yellow>%lang%</yellow><red>. Доступно: </red><white>en</white><red>, </red><white>ru</white>"
+set_same = "<yellow>⚠</yellow> <white>Язык уже</white> <yellow>%lang%</yellow><white>.</white>"
+set_success = "<green>✔</green> <white>Язык изменён: </white><gray>%previous% → </gray><yellow>%current%</yellow>"
+reload_hint = "<yellow>⚠</yellow> <gray>Некоторые компоненты подхватят язык только после перезапуска сервера или <white>/ui reload</white>.</gray>"
+usage = "<red>❌ Использование:</red>\n<white>/ui language status</white> <gray>— показать текущий язык</gray>\n<white>/ui language set <en|ru></white> <gray>— изменить язык</gray>"
+
+# /ui language messages (en).
+[messages_en.language]
+status = "<gray>Current UI language: <yellow>%lang%</yellow> <dark_gray>(/ui language set <en|ru>)"
+set_usage = "<red>❌ Usage: </red><white>/ui language set <en|ru></white>"
+invalid = "<red>❌ Unknown language: </red><yellow>%lang%</yellow><red>. Available: </red><white>en</white><red>, </red><white>ru</white>"
+set_same = "<yellow>⚠</yellow> <white>The language is already</white> <yellow>%lang%</yellow><white>.</white>"
+set_success = "<green>✔</green> <white>Language changed: </white><gray>%previous% → </gray><yellow>%current%</yellow>"
+reload_hint = "<yellow>⚠</yellow> <gray>Some components pick the language up only after a server restart or <white>/ui reload</white>.</gray>"
+usage = "<red>❌ Usage:</red>\n<white>/ui language status</white> <gray>— show the current language</gray>\n<white>/ui language set <en|ru></white> <gray>— change the language</gray>"

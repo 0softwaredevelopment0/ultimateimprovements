@@ -35,8 +35,7 @@ The suite documents:
 - operator home tools: **/ui ophomels**, **/ui opdelhome**;
 - server spawn: **/ui setspawn**, **/ui spawn**;
 - random teleport: **/ui rtp**;
-- dimension/world menu: **/ui chgdim**;
-- direct dimension teleport: **/ui chgdim_teleport <world>**;
+- dimension/world menu: **/ui changedimmension**;
 - nearby-player and coordinate utilities: **/ui near**, **/ui getpos**, **/ui askpos**, **/ui uuid**.
 
 Player homes and related settings are persistent. Random teleport and cross-dimension operations may have cooldowns, world filters or permission checks.

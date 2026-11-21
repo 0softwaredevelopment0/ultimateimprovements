@@ -18,14 +18,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * /ui craftrecipe &lt;recipe&gt; — admin free-craft.
+ * /ui craftrecipe &lt;namespace:key&gt; — admin free-craft.
  * <p>
  * "Crafts" the given registered recipe without consuming any resources and puts
  * the result straight into the player's inventory. If the inventory cannot fit
  * the result, the command says so and drops nothing (nothing is lost).
  * <p>
- * Tab-complete lists EVERY registered recipe — including custom UI recipes that
- * are hidden from the vanilla recipe book (Crafter-only ones included).
+ * The recipe must be addressed as {@code namespace:key} (e.g.
+ * {@code minecraft:diamond_sword}, {@code ui:lead_ingot}). Tab-complete lists
+ * EVERY registered recipe in that form — including custom UI recipes that are
+ * hidden from the vanilla recipe book (Crafter-only ones included).
  * <p>
  * Permission: {@code ui.command.craftrecipe} (admin-only, default OP).
  */
@@ -47,7 +49,7 @@ public final class CraftRecipeSubcommand {
         if (args.length < 2) {
             player.sendMessage(MessageUtil.parse(MessagesManager.getString(
                     "craftrecipe.usage",
-                    "<red>❌ Usage: </red><white>/ui craftrecipe <recipe></white> <gray>(tab-complete lists all)</gray>")));
+                    "<red>❌ Usage: </red><white>/ui craftrecipe <namespace:key></white> <gray>(tab-complete lists all)</gray>")));
             return true;
         }
 
@@ -99,25 +101,20 @@ public final class CraftRecipeSubcommand {
     }
 
     /**
-     * Resolves user input to a NamespacedKey: accepts bare names ("dfc"),
-     * "ui:dfc" (namespaced) and vanilla keys ("diamond_sword").
+     * Resolves user input to a {@link NamespacedKey}. The input MUST carry an
+     * explicit namespace ({@code namespace:key}); bare names are rejected so the
+     * command cannot silently pick one of several recipes with the same path.
      */
     private static NamespacedKey resolveKey(String input) {
-        // 1. Exact key with namespace
-        if (input.contains(":")) {
-            int idx = input.indexOf(':');
-            return new NamespacedKey(input.substring(0, idx), input.substring(idx + 1));
+        if (!input.contains(":")) return null;
+        try {
+            return NamespacedKey.fromString(input);
+        } catch (IllegalArgumentException e) {
+            return null;
         }
-        // 2. ui: namespace first (custom recipes)
-        NamespacedKey ui = NamespacedKey.fromString("ui:" + input);
-        if (ui != null && Bukkit.getRecipe(ui) != null) return ui;
-        // 3. minecraft: namespace
-        NamespacedKey mc = NamespacedKey.minecraft(input);
-        if (Bukkit.getRecipe(mc) != null) return mc;
-        return ui;
     }
 
-    /** Tab-complete: EVERY registered recipe, custom ones included. */
+    /** Tab-complete: EVERY registered recipe as {@code namespace:key}. */
     public static List<String> tabComplete(String[] args) {
         if (args.length != 2) return List.of();
         String partial = args[1].toLowerCase();
@@ -126,13 +123,7 @@ public final class CraftRecipeSubcommand {
         Bukkit.recipeIterator().forEachRemaining(recipe -> {
             if (recipe instanceof Keyed keyed) {
                 String key = keyed.getKey().toString();
-                String bare = keyed.getKey().getKey();
-                if (key.startsWith("ui:")) {
-                    // custom recipes are suggested by bare name (most used)
-                    if (bare.startsWith(partial)) out.add(bare);
-                } else if (bare.startsWith(partial)) {
-                    out.add(bare);
-                }
+                if (key.startsWith(partial) && !out.contains(key)) out.add(key);
             }
         });
         return out;

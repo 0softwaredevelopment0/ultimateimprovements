@@ -110,10 +110,6 @@ public final class UIEssentials extends JavaPlugin {
             // PDC
             registry.register(new PdcSubcommand());
 
-            // Cilist
-            registry.register(LegacySubCommandAdapter.of("cilist",
-                    (s, a) -> { CilistCommand.execute(s); return true; }));
-
             // Help
             registry.register(new HelpSubCommand());
 
