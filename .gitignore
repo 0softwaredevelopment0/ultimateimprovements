@@ -19,7 +19,9 @@ target/
 /dist/
 /nbdist/
 /.nb-gradle/
-**/build/*
+# Build output is generated and never committed
+build/
+!scripts/build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 .gradle/
