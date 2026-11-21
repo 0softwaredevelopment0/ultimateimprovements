@@ -6,6 +6,7 @@ import com.ultimateimprovements.util.ConsoleLogger;
 import com.ultimateimprovements.util.MessageUtil;
 
 import org.bukkit.*;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,10 +18,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -33,9 +36,11 @@ import java.util.concurrent.ThreadLocalRandom;
  *   - No helmet => set on fire (fire_ticks duration)
  *   - Helmet => spend helmet durability instead (no fire while protected)
  *   - Mob/player head => heads have no durability, so instead of wearing down
- *     each degrade step rolls {@code sunburn.head_break_chance_percent}
- *     (default 0.1%): on a hit the head is removed from the armour slot with
- *     an item-break sound and the player is told in chat.
+ *     each degrade step rolls the head's break chance
+ *     ({@code sunburn.head_break_chances.<MATERIAL>}, falling back to
+ *     {@code sunburn.head_break_chance_percent}, default 0.1%): on a hit the
+ *     head is removed from the armour slot with an item-break sound and the
+ *     player is told in chat.
  *
  * The plugin does its own sky check: it scans the block column upward from
  * the player (no vanilla sky-light test). Air is skipped; passable blocks are
@@ -65,9 +70,16 @@ public class SunburnManager implements Listener {
      * Chance (in percent, per degrade step) that a mob/player head worn in the
      * helmet slot is destroyed by the sun. Heads have no durability, so this
      * roll replaces the helmet wear. Configured as
-     * {@code sunburn.head_break_chance_percent} (default 0.1%).
+     * {@code sunburn.head_break_chance_percent} (default 0.1%); this is the
+     * fallback for heads missing from {@link #headBreakChances}.
      */
     private double headBreakChancePercent;
+    /**
+     * Per-head overrides from {@code sunburn.head_break_chances} — material
+     * name → chance in percent. Any head not listed uses
+     * {@link #headBreakChancePercent}.
+     */
+    private final Map<Material, Double> headBreakChances = new EnumMap<>(Material.class);
     private boolean extinguishWhenSafe;
     private Set<String> includedWorlds;
     /**
@@ -171,6 +183,20 @@ public class SunburnManager implements Listener {
                 cfg.getInt("sunburn.helmet_integrity_loss", 1));
         headBreakChancePercent = Math.max(0.0,
                 Math.min(100.0, cfg.getDouble("sunburn.head_break_chance_percent", 0.1)));
+        headBreakChances.clear();
+        ConfigurationSection chances = cfg.getConfigurationSection("sunburn.head_break_chances");
+        if (chances != null) {
+            for (String name : chances.getKeys(false)) {
+                Material material = Material.matchMaterial(name.trim().toUpperCase(Locale.ROOT));
+                if (material == null || !isHeadName(material.name())) {
+                    ConsoleLogger.warn("[SunburnModule] '" + name
+                            + "' in sunburn.head_break_chances is not a wearable head — ignored.");
+                    continue;
+                }
+                double chance = chances.getDouble(name, headBreakChancePercent);
+                headBreakChances.put(material, Math.max(0.0, Math.min(100.0, chance)));
+            }
+        }
         extinguishWhenSafe = cfg.getBoolean("sunburn.extinguish_when_safe", true);
 
         blacklistedBlocks = EnumSet.noneOf(Material.class);
@@ -209,6 +235,7 @@ public class SunburnManager implements Listener {
                 + ", helmetDegrade=" + helmetDegradeInterval
                 + ", helmetLoss=" + helmetDurabilityLoss
                 + ", headBreakChance=" + headBreakChancePercent + "%"
+                + ", headOverrides=" + headBreakChances.size()
                 + ", extinguishWhenSafe=" + extinguishWhenSafe
                 + ", blacklistedBlocks=" + blacklistedBlocks.size()
                 + ", skipNonSolidBlocks=" + skipNonSolidBlocks
@@ -274,7 +301,7 @@ public class SunburnManager implements Listener {
                         // Heads have no durability: instead of wearing down, each
                         // degrade step rolls the chance that the head is destroyed.
                         for (int i = 0; i < helmetDegradeSteps; i++) {
-                            if (rollHeadBreak()) {
+                            if (rollHeadBreak(helmet.getType())) {
                                 breakWornHead(player);
                                 break;
                             }
@@ -305,10 +332,14 @@ public class SunburnManager implements Listener {
     // HEAD BREAK (worn mob/player heads)
     // =========================
 
-    /** Rolls the configured per-step chance that a worn head is destroyed. */
-    private boolean rollHeadBreak() {
-        if (headBreakChancePercent <= 0.0) return false;
-        return ThreadLocalRandom.current().nextDouble(100.0) < headBreakChancePercent;
+    /**
+     * Rolls the configured per-step chance that the given worn head is
+     * destroyed, using its per-material override when present.
+     */
+    private boolean rollHeadBreak(Material headType) {
+        double chance = headBreakChances.getOrDefault(headType, headBreakChancePercent);
+        if (chance <= 0.0) return false;
+        return ThreadLocalRandom.current().nextDouble(100.0) < chance;
     }
 
     /**
