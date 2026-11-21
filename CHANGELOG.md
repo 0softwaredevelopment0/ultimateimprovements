@@ -3,6 +3,21 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.17] - 2026-11-21
+
+### Fixed
+- **The authorization dialog no longer re-opens (and clears the typed password)
+  while the player is frozen in mid-air.** A paused dialog does not stop
+  server-side physics: a player who joined or logged out above the ground kept
+  falling, `PlayerMoveEvent` stayed cancelled, and the server set them back every
+  tick. Each of those cancelled moves was mistaken for "the auth window is
+  gone", so the screen was re-sent every few seconds and the password field was
+  wiped, plus the "Action blocked — you are not authorized yet" notice kept
+  appearing. The freeze now keeps the player hovering (`setFlying(true)` with a
+  zero fly speed, restored after login), and blocked movement cancels the event
+  without re-opening the dialog — movement is a continuous signal, not a
+  closed-window signal.
+
 ## [1.11.0-alpha.16] - 2026-11-21
 
 ### Changed

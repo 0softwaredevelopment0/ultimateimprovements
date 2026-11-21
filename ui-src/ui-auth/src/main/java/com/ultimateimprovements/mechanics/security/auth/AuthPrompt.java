@@ -34,10 +34,16 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>{@link #sendJoinHint(Player)} — the prefixed hint shown right after joining.</li>
  * </ul>
  * Detection of «is the screen on the client's display»: a dialog opened with
- * {@code pause=true} swallows player input, so a cancelled action proves the screen
- * is <b>not</b> shown. While the screen is believed to be open the re-open is delayed
- * ({@link #OPEN_SCREEN_FALLBACK_MS}) instead of firing immediately, so a failed
+ * {@code pause=true} swallows player input, so a cancelled instantaneous action proves
+ * the screen is <b>not</b> shown. While the screen is believed to be open the re-open is
+ * delayed ({@link #OPEN_SCREEN_FALLBACK_MS}) instead of firing immediately, so a failed
  * render still gets recovered without ever wiping a password being typed.
+ * <p>
+ * Movement is deliberately <b>not</b> such a signal: paused dialogs do not stop
+ * server-side physics, so a falling player produced a cancelled move every tick and
+ * every one of them re-sent the screen. {@link AuthListener#onPlayerMove} cancels
+ * movement without prompting, and the freeze keeps the player hovering so no
+ * move is generated at all.
  */
 public final class AuthPrompt {
 

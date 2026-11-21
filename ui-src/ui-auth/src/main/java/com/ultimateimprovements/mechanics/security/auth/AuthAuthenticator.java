@@ -885,7 +885,16 @@ public class AuthAuthenticator {
         // remains zero. This permission exists only while this snapshot is active.
         player.setAllowFlight(true);
         player.setFlySpeed(0.0f);
-        player.setFlying(false);
+
+        // Hover instead of standing on gravity. The auth dialog uses pause=true,
+        // which still leaves server-side physics running: a player frozen mid-air
+        // kept falling every tick, the cancelled PlayerMoveEvent made the server
+        // setback them, and each of those moves looked like a "missing dialog" to
+        // AuthPrompt — it re-sent the screen and wiped the password being typed.
+        // With flight enabled (fly speed is zero, movement stays cancelled) gravity
+        // no longer moves the player, so no fall, no setback, no endless re-prompts.
+        player.setFlying(true);
+        player.setVelocity(new org.bukkit.util.Vector());
     }
 
     private void unfreezePlayer(Player player) {
