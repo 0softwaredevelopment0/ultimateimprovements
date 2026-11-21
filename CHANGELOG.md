@@ -3,6 +3,15 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.20] - 2026-11-21
+
+### Changed
+- **The auth screen also clears velocity when it opens and on every blocked
+  move.** Besides the freeze-time reset, the velocity is zeroed right after the
+  dialog is sent (initial join and every re-open) and whenever a movement packet
+  is cancelled, so the client never accumulates fall speed behind the screen.
+  This is tied to blocked movement events, not to a per-tick task.
+
 ## [1.11.0-alpha.19] - 2026-11-21
 
 ### Changed

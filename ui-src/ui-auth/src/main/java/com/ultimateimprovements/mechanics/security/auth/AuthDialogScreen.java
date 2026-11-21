@@ -125,6 +125,9 @@ public class AuthDialogScreen {
         // Remember that the screen is (probably) on the client's display — AuthPrompt
         // uses this to decide whether a cancelled action must re-send the dialog.
         AuthPrompt.markOpened(player);
+        // Kill any velocity the client still predicts at the moment the window
+        // appears, so the player does not start a visible fall behind the screen.
+        player.setVelocity(new org.bukkit.util.Vector());
         ConsoleLogger.info("[AuthDialog] Opened auth screen for " + player.getName()
             + " (registered=" + isRegistered + ")");
     }

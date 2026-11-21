@@ -165,6 +165,10 @@ public class AuthListener implements Listener {
                 || event.getFrom().getBlockY() != event.getTo().getBlockY()
                 || event.getFrom().getBlockZ() != event.getTo().getBlockZ()) {
             event.setCancelled(true);
+            // Cancel the predicted motion too. This runs only for moves that were
+            // actually blocked (not on every tick), and keeps the client from
+            // showing a fall while the auth screen is up.
+            player.setVelocity(new org.bukkit.util.Vector());
         }
     }
 
