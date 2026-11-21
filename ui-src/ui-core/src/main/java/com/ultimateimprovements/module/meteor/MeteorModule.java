@@ -28,6 +28,12 @@ import java.util.Random;
  * finds the surface near them and launches {@link MeteorTask} — a vertical
  * meteor fall that ends with an explosion and a meteorite structure.
  * <p>
+ * The timer is driven by the configurable cooldown from
+ * {@link MeteorCooldown} ({@code [meteor.cooldown]}): a fixed value, a random
+ * entry of a list, or a random number of seconds inside a range. The scheduler
+ * polls the wall-clock deadline once per second, which is what makes
+ * {@code /ui meteor status|skip|unskip|reset} exact.
+ * <p>
  * Target worlds come from {@code meteor.worlds} (a list); an empty list falls
  * back to the single {@code meteor.world} name. The old
  * {@code space.meteor_space_only} switch used to redirect meteors to the void
@@ -45,6 +51,9 @@ public class MeteorModule extends PluginModule {
     private static final int FALL_HEIGHT_MIN = 80;
     private static final int FALL_HEIGHT_MAX = 120;
 
+    /** How often the scheduler compares the wall clock with the next spawn. */
+    private static final long SCHEDULER_PERIOD_TICKS = 20L;
+
     private static MeteorModule instance;
 
     /** One-time flag for the obsolete key notice (module re-inits on every soft reload). */
@@ -53,6 +62,13 @@ public class MeteorModule extends PluginModule {
     private BukkitTask scheduler;
     private final List<MeteorTask> activeMeteors = new ArrayList<>();
     private Random random = new Random();
+
+    /** Cooldown rules loaded from {@code [meteor.cooldown]}. */
+    private MeteorCooldown cooldown = MeteorCooldown.defaults();
+    /** Wall-clock deadline of the next spawn; 0 when the scheduler is off. */
+    private long nextSpawnAtMillis;
+    /** The next due meteor is skipped (cleared when it fires or by unskip). */
+    private boolean skipPending;
 
     public MeteorModule() {
         super("Meteor", "modules/meteor", false);
@@ -73,13 +89,15 @@ public class MeteorModule extends PluginModule {
 
     @Override
     protected void onReloadConfig(JavaPlugin plugin) {
-        // onInit runs only at startup — re-read meteor.enabled/interval on /ui reload.
+        // onInit runs only at startup — re-read meteor.enabled/cooldown on /ui reload.
         rescheduleNext(plugin);
     }
 
     @Override
     protected void onDisable(JavaPlugin plugin) {
         if (scheduler != null) { scheduler.cancel(); scheduler = null; }
+        nextSpawnAtMillis = 0L;
+        skipPending = false;
 
         for (MeteorTask task : new ArrayList<>(activeMeteors)) {
             try {
@@ -126,46 +144,135 @@ public class MeteorModule extends PluginModule {
     private void rescheduleNext(JavaPlugin plugin) {
         if (scheduler != null) {
             scheduler.cancel();
+            scheduler = null;
         }
+        nextSpawnAtMillis = 0L;
+        skipPending = false;
 
         var cfg = cfg();
         if (!cfg.getBoolean("meteor.enabled", false)) return;
 
-        int intervalMin = cfg.getInt("meteor.interval.min", 30);
-        int intervalMax = cfg.getInt("meteor.interval.max", 90);
-        // Clamp against absurd config values: intervalMax - intervalMin + 1 can
-        // overflow int and nextInt(negative) would throw, killing the scheduler.
-        if (intervalMin <= 0) intervalMin = 1;
-        if (intervalMin > 100_000) intervalMin = 100_000;
-        if (intervalMax < intervalMin) intervalMax = intervalMin;
-        if (intervalMax > 100_000) intervalMax = 100_000;
+        cooldown = MeteorCooldown.fromConfig(cfg);
+        armNext(plugin);
 
-        int minutes = intervalMin + random.nextInt(intervalMax - intervalMin + 1);
-        long ticks = minutes * 60L * 20L;
-
+        // Poll the wall-clock deadline instead of sleeping on a single delayed
+        // task: status/skip/unskip/reset can move the deadline at any moment.
         scheduler = new BukkitRunnable() {
             @Override
             public void run() {
-                // The scheduler is the only thing that keeps the mechanic alive:
-                // a single unexpected throw must not cancel the next cycle.
-                try {
-                    spawnRandomMeteor();
-                } catch (Throwable t) {
-                    ConsoleLogger.warn("[Meteor] Scheduler cycle failed: " + describe(t));
-                } finally {
-                    rescheduleNext(plugin);
-                }
+                tickScheduler(plugin);
             }
-        }.runTaskLater(plugin, ticks);
+        }.runTaskTimer(plugin, SCHEDULER_PERIOD_TICKS, SCHEDULER_PERIOD_TICKS);
+    }
 
+    /**
+     * Arms the next spawn: picks a fresh cooldown with the configured mode and
+     * stores the deadline. Shared by the initial schedule, the post-spawn/skip
+     * re-arm and {@code /ui meteor reset}.
+     */
+    private void armNext(JavaPlugin plugin) {
+        long seconds = cooldown.nextSeconds(random);
+        nextSpawnAtMillis = System.currentTimeMillis() + seconds * 1000L;
         if (schedulerLogging(plugin)) {
-            ConsoleLogger.info("[Meteor] Next meteor in " + minutes + " minute(s) (" + ticks + " ticks).");
+            ConsoleLogger.info("[Meteor] Next meteor in " + MeteorCooldown.formatSeconds(seconds)
+                    + " (" + seconds + "s, mode=" + cooldown.getMode().name().toLowerCase() + ").");
+        }
+    }
+
+    /**
+     * One scheduler tick: fires the due meteor (or consumes the pending skip)
+     * and re-arms the timer. A pending skip does not shorten the wait — the
+     * timer runs out, the meteor is skipped and a brand-new cooldown starts.
+     */
+    private void tickScheduler(JavaPlugin plugin) {
+        if (!cfg().getBoolean("meteor.enabled", false)) {
+            if (scheduler != null) { scheduler.cancel(); scheduler = null; }
+            nextSpawnAtMillis = 0L;
+            skipPending = false;
+            return;
+        }
+        if (nextSpawnAtMillis <= 0L || System.currentTimeMillis() < nextSpawnAtMillis) return;
+
+        try {
+            if (skipPending) {
+                skipPending = false;
+                ConsoleLogger.info("[Meteor] The due meteor was skipped by /ui meteor skip.");
+            } else {
+                spawnRandomMeteor();
+            }
+        } catch (Throwable t) {
+            // The scheduler is the only thing that keeps the mechanic alive:
+            // a single unexpected throw must not cancel the next cycle.
+            ConsoleLogger.warn("[Meteor] Scheduler cycle failed: " + describe(t));
+        } finally {
+            armNext(plugin);
         }
     }
 
     /** Periodic scheduler log toggle ({@code meteor.log_scheduler}, default off). */
     private static boolean schedulerLogging(JavaPlugin plugin) {
         return plugin.getConfig().getBoolean("meteor.log_scheduler", false);
+    }
+
+    // ========================================================================
+    // SCHEDULE CONTROL (/ui meteor status|skip|unskip|reset)
+    // ========================================================================
+
+    /** @return true when the meteor mechanic is enabled and a timer is armed. */
+    public boolean isTimerActive() {
+        return scheduler != null && nextSpawnAtMillis > 0L
+                && cfg().getBoolean("meteor.enabled", false);
+    }
+
+    /**
+     * @return whole seconds until the next meteor (rounded up), or {@code -1}
+     *         when no timer is armed.
+     */
+    public long getSecondsUntilNextMeteor() {
+        if (!isTimerActive()) return -1L;
+        long remainingMillis = nextSpawnAtMillis - System.currentTimeMillis();
+        if (remainingMillis <= 0L) return 0L;
+        return (remainingMillis + 999L) / 1000L;
+    }
+
+    /** @return true when the next due meteor will be skipped instead of spawned. */
+    public boolean isSkipPending() {
+        return skipPending;
+    }
+
+    /**
+     * Marks the next due meteor to be skipped. The timer keeps running: when it
+     * fires, the meteor is consumed without spawning and a fresh cooldown starts.
+     *
+     * @return false when no timer is armed (module disabled)
+     */
+    public boolean skipNextMeteor() {
+        if (!isTimerActive()) return false;
+        skipPending = true;
+        return true;
+    }
+
+    /**
+     * Cancels a pending skip. The meteor has not been skipped yet — it simply
+     * spawns when the timer fires.
+     *
+     * @return false when no skip was pending
+     */
+    public boolean cancelSkipNextMeteor() {
+        if (!skipPending) return false;
+        skipPending = false;
+        return true;
+    }
+
+    /**
+     * Resets the spawn timer to a brand-new cooldown measured from now.
+     *
+     * @return false when no timer is armed (module disabled)
+     */
+    public boolean resetMeteorTimer() {
+        if (!isTimerActive()) return false;
+        armNext(Main.getInstance());
+        return true;
     }
 
     // ========================================================================

@@ -122,7 +122,10 @@ Offline \`invsee\`/ \`endersee\` edits touch the player data file and make a bac
 | \`/ui radview on\|off\` | Admin radiation overlay |
 | \`/ui setrad <player> <mSv>\` | Set radiation level (administrative/debug) |
 | \`/ui checkrad [player]\` | Inspect radiation level |
-| \`/ui meteor spawn [count]\` | Spawn meteor(s), subject to permission |
+| \`/ui meteor spawn [count]\` | Spawn meteor(s) (OP by default) |
+| \`/ui meteor status\` | Time until the next meteor (everyone) |
+| \`/ui meteor skip\` \| \`unskip\` | Skip the next meteor / cancel that skip |
+| \`/ui meteor reset\` | Restart the meteor spawn timer from now |
 
 ## Economy, chat and displays
 

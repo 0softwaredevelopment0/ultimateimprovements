@@ -413,7 +413,14 @@ public class HelpSubCommand implements SubCommand {
         // ── World / structures ──
         cmd("redstone", "Blocked redstone chunks").u("list|clear", "lagged chunks management");
         cmd("turret", "End-crystal turret config").u("", "shift+RMB on a crystal");
-        cmd("meteor", "Meteor module").u("", "");
+        cmd("meteor", "Meteor module")
+                .u("spawn [count]", "force-spawn meteors")
+                .u("status", "time until the next meteor")
+                .u("skip|unskip", "skip / un-skip the next meteor")
+                .u("reset", "restart the spawn timer")
+                .perm("ui.command.meteor.spawn", "ui.command.meteor.status",
+                        "ui.command.meteor.skip", "ui.command.meteor.unskip",
+                        "ui.command.meteor.reset");
         cmd("space", "Space dimension").u("enter|exit", "");
 
         // ── Misc ──

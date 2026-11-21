@@ -825,8 +825,10 @@ final class ConfigRules {
             integer("meteor.spawn_radius.max", 1, 10000),
             integer("meteor.height.min", -2048, 2048),
             integer("meteor.height.max", -2048, 2048),
-            integer("meteor.interval.min", 1, 100000),
-            integer("meteor.interval.max", 1, 100000),
+            stringEnum("meteor.cooldown.mode", "static", "list", "range"),
+            string("meteor.cooldown.static", true, 32),
+            stringList("meteor.cooldown.list"),
+            string("meteor.cooldown.range", true, 64),
             bool("meteor.log_scheduler"),
 
             // ── UI-World · nether portal breaking ──

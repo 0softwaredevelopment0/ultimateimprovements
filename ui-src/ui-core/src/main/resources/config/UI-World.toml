@@ -44,14 +44,26 @@ display_blocks = ["CRACKED_DEEPSLATE_BRICKS", "CRACKED_DEEPSLATE_TILES", "CHISEL
 # Default: false (silent)
 log_scheduler = false
 
-# interval section.
-[meteor.interval]
-# Minimum value.
-# Default: 30
-min = 30
-# Maximum value.
-# Default: 90
-max = 90
+# cooldown section.
+[meteor.cooldown]
+# How the cooldown before the NEXT meteor is chosen:
+#   "static" - always "static"
+#   "list"   - a random entry of "list" every time
+#   "range"  - a random number of seconds between the two bounds of "range"
+# Every time value is a number plus one suffix: s = seconds, m = minutes,
+# h = hours, d = days (e.g. "30m", "2h", "1d"). The range is "<min>-<max>".
+# The timer starts over after every meteor and after every skipped meteor.
+# Default: "range"
+mode = "range"
+# Cooldown used by mode = "static".
+# Default: "30m"
+static = "30m"
+# Possible cooldowns picked by mode = "list".
+# Default: ["15m", "10m", "5m", "20m"]
+list = ["15m", "10m", "5m", "20m"]
+# Cooldown range used by mode = "range"; the exact value is picked to the second.
+# Default: "40m-50m"
+range = "40m-50m"
 
 # spawn radius section.
 [meteor.spawn_radius]
@@ -665,8 +677,8 @@ explosion_damage_radius = 12
 # ---- MESSAGES ----
 
 [messages.meteor]
-# Default: <red>❌ Использование: </red><white>/ui meteor spawn [количество]</white>
-usage = "<red>❌ Использование: </red><white>/ui meteor spawn [количество]</white>"
+# Default: <red>❌ Использование: </red><white>/ui meteor spawn [количество]|status|skip|unskip|reset</white>
+usage = "<red>❌ Использование: </red><white>/ui meteor spawn [количество]|status|skip|unskip|reset</white>"
 # Default: <red>❌ Неизвестная подкоманда meteor: </red><white>%sub%</white>
 unknown_sub = "<red>❌ Неизвестная подкоманда meteor: </red><white>%sub%</white>"
 # Permission node.
@@ -686,6 +698,23 @@ spawn_failed = "<red>❌ Не удалось вызвать метеор — п�
 # Only part of the requested meteors were created (active meteor cap).
 # Default: <yellow>⚠ Вызвано </yellow><white>%spawned%</white><yellow> из </yellow><white>%count%</white><yellow> метеоров — достигнут лимит активных.</yellow>
 spawn_partial = "<yellow>⚠ Вызвано </yellow><white>%spawned%</white><yellow> из </yellow><white>%count%</white><yellow> метеоров — достигнут лимит активных.</yellow>"
+# Time until the next meteor (%time% is a value like "12m 34s").
+# Default: <gray>Следующий метеор через </gray><yellow>%time%</yellow><gray>.</gray>
+status = "<gray>Следующий метеор через </gray><yellow>%time%</yellow><gray>.</gray>"
+# No timer is armed (module disabled or not scheduled yet).
+# Default: <gray>Следующий метеор сейчас <red>не запланирован</red>.</gray>
+status_off = "<gray>Следующий метеор сейчас <red>не запланирован</red>.</gray>"
+# Default: <green>✔ <white>Следующий метеор будет пропущен, и таймер начнётся заново.</white>
+skip_set = "<green>✔ <white>Следующий метеор будет пропущен, и таймер начнётся заново.</white>"
+# Default: <gray>Следующий метеор уже помечен как пропускаемый.</gray>
+skip_already = "<gray>Следующий метеор уже помечен как пропускаемый.</gray>"
+# Default: <gray>Нет запланированного пропуска метеора.</gray>
+unskip_none = "<gray>Нет запланированного пропуска метеора.</gray>"
+# Default: <green>✔ <white>Пропуск следующего метеора отменён.</white>
+unskip_done = "<green>✔ <white>Пропуск следующего метеора отменён.</white>"
+# %time% is the freshly picked cooldown.
+# Default: <green>✔ <white>Таймер метеора сброшен. Следующий метеор через </white><yellow>%time%</yellow><gray>.</gray>
+reset_done = "<green>✔ <white>Таймер метеора сброшен. Следующий метеор через </white><yellow>%time%</yellow><gray>.</gray>"
 
 [messages.nether_portal]
 usage = "<gray>Использование:</gray> <white>/ui netherportal on|off|mode player|entity|status</white>"
@@ -703,7 +732,7 @@ status_broken = "<gray>Порталов сломано с перезагрузк
 # ---- MESSAGES (ENGLISH) ----
 
 [messages_en.meteor]
-usage = "<red>❌ Usage: </red><white>/ui meteor spawn [count]</white>"
+usage = "<red>❌ Usage: </red><white>/ui meteor spawn [count]|status|skip|unskip|reset</white>"
 unknown_sub = "<red>❌ Unknown meteor subcommand: </red><white>%sub%</white>"
 no_permission = "<red>❌ You don't have permission to spawn meteors!</red>"
 invalid_count = "<red>❌ Invalid count!</red>"
@@ -712,6 +741,13 @@ module_not_init = "<red>❌ Meteor module is not initialized!</red>"
 spawned = "<green>✔</green> <white>Spawned </white><yellow>%count%</yellow><white> meteor(s)!</white>"
 spawn_failed = "<red>❌ Could not spawn a meteor — see the server console for the reason.</red>"
 spawn_partial = "<yellow>⚠ Spawned </yellow><white>%spawned%</white><yellow> of </yellow><white>%count%</white><yellow> meteor(s) — active limit reached.</yellow>"
+status = "<gray>Next meteor in </gray><yellow>%time%</yellow><gray>.</gray>"
+status_off = "<gray>The next meteor is <red>not scheduled</red>.</gray>"
+skip_set = "<green>✔ <white>The next meteor will be skipped and the timer will start over.</white>"
+skip_already = "<gray>The next meteor is already marked to be skipped.</gray>"
+unskip_none = "<gray>There is no pending meteor skip.</gray>"
+unskip_done = "<green>✔ <white>The pending meteor skip was cancelled.</white>"
+reset_done = "<green>✔ <white>Meteor timer reset. Next meteor in </white><yellow>%time%</yellow><gray>.</gray>"
 
 [messages_en.nether_portal]
 usage = "<gray>Usage:</gray> <white>/ui netherportal on|off|mode player|entity|status</white>"
