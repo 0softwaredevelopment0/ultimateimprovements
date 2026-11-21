@@ -102,7 +102,7 @@ public class HelpSubCommand implements SubCommand {
                 .u("chgpass [player] [new]", "password reset: dialog for players, arguments for the console");
         cmd("changedimmension", "Teleport between dimensions (menu)")
                 .u("", "opens the dimension picker menu")
-                .perm("ui.command.chgdim");
+                .perm("ui.command.changedimmension");
         cmd("dont_run_this_command", "Get the impossible achievement (don't run it!)")
                 .u("", "seriously, don't");
         cmd("advancement", "Timed advancement challenges")
@@ -178,8 +178,8 @@ public class HelpSubCommand implements SubCommand {
 
         // ── Items / enchant / PDC ──
         cmd("enchant", "Enchant manager (incl. custom AoE)")
-                .u("give <enchant> <level> <player|all> [slot]", "add an enchantment to a player or everyone")
-                .u("take <enchant> <level> [player|all] [slot]", "remove an enchantment")
+                .u("give <player|all> <enchant> <level> [slot]", "add an enchantment to a player or everyone")
+                .u("take <player|all> <enchant> <level> [slot]", "remove an enchantment")
                 .u("check <player> [page]", "list a player's enchantments")
                 .u("confirm | cancel", "apply or drop a pending high-level give");
         cmd("pdc", "PDC manager")
@@ -196,7 +196,7 @@ public class HelpSubCommand implements SubCommand {
                 .u("", "show the current vanilla durability")
                 .u("multiply|divide <value>", "scale the remaining durability (with gates)")
                 .u("raw multiply|divide <value>", "scale without unbreakable/unbreaking gates")
-                .perm("ui.command.dura");
+                .perm("ui.command.durability");
         cmd("unlock", "Unlockables")
                 .u("book", "unlock the book crafting")
                 .u("sign", "unlock the sign crafting");
@@ -318,7 +318,7 @@ public class HelpSubCommand implements SubCommand {
         cmd("check", "Anti-cheat check on a player").u("<player>", "freezes and flags for a moderator");
         cmd("uncheck", "End an anti-cheat check").u("<player>", "");
         cmd("anticheat", "Anti-cheat stats").u("[player]", "")
-                .perm("ui.anticheat.notify");
+                .perm("ui.command.anticheat", "ui.anticheat.notify");
         cmd("sudo", "Sudo mode (dangerous)").u("", "execute as console after confirm");
         cmd("execchat", "Execute a chat command as another").u("<player> <text>", "");
         cmd("op", "Grant operator (with confirmation)").u("<player>", "");
@@ -338,7 +338,7 @@ public class HelpSubCommand implements SubCommand {
                 .sub("on", "[-t 10s|5m|2h|1d]", "enable now (or after the delay)")
                 .sub("off", "[-t 10s|5m|2h|1d]", "disable now (or after the delay)")
                 .sub("timed", "<10s|5m|2h|1d>", "enable with auto-disable")
-                .perm("ui.command.server");
+                .perm("ui.command.lockdown");
         cmd("console", "Console lockdown (anti-tamper)")
                 .u("status", "show the console lockdown state")
                 .u("on [-t 10s|5m|2h|1d]", "cancel every console/RCON command")

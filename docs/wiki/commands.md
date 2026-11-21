@@ -104,8 +104,8 @@ Offline \`invsee\`/ \`endersee\` edits touch the player data file and make a bac
 
 | Command | Purpose |
 |---|---|
-| \`/ui enchant give <enchantment> <level> <player\|all> [slot]\` | Apply an enchantment to a player or everyone |
-| \`/ui enchant take <enchantment> <level> [player\|all] [slot]\` | Remove an enchantment |
+| \`/ui enchant give <player\|all> <enchantment> <level> [slot]\` | Apply an enchantment to a player or everyone |
+| \`/ui enchant take <player\|all> <enchantment> <level> [slot]\` | Remove an enchantment |
 | \`/ui enchant check <player> [page]\` | Inspect item enchantments |
 | \`/ui showcraft <namespace:key>\` | Show the station, ingredients and parameters of a recipe |
 | \`/ui durability multiply\|divide [raw] <value>\` | Scale the held item's vanilla durability |

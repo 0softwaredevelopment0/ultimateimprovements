@@ -88,7 +88,7 @@ public class ChgDimDialogHandler implements Listener {
             + ": \"" + worldName + "\"");
 
         // Check permission for the specific world
-        if (!player.hasPermission("ui.command.chgdim." + worldName)) {
+        if (!player.hasPermission("ui.command.changedimmension." + worldName)) {
             reopenWithError(player, "You do not have permission to teleport to \"" + worldName + "\"!");
             return;
         }

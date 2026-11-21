@@ -18,10 +18,18 @@ in this file.
     default; `set` writes `messages.lang` and warns about restart or
     `/ui reload`);
   - `/ui maint` → **`/ui maintenance`**.
-- **`/ui enchant give` now requires the target**: the syntax is
-  `give <enchantment> <level> <player|all> [slot]`. `all` applies the
-  enchantment to every online player, and the existing `confirm`/`cancel`
-  flow works for both a single player and `all`.
+- **Permission nodes now match the new command names**:
+  `ui.command.server` → `ui.command.lockdown`,
+  `ui.command.ac` → `ui.command.anticheat`,
+  `ui.command.chgdim` / `ui.command.chgdim.*` →
+  `ui.command.changedimmension` / `ui.command.changedimmension.*`,
+  `ui.command.dura` → `ui.command.durability`. Old nodes are no longer
+  registered — re-grant the new ones in the permissions plugin.
+- **`/ui enchant` target argument moved right after the action**: the syntax is
+  now `give|take <player|all> <enchantment> <level> [slot]` (for example
+  `/ui enchant give all minecraft:sharpness 5`). `all` applies the change to
+  every online player, and the existing `confirm`/`cancel` flow works for both
+  a single player and `all`.
 - **`/ui craftrecipe` now requires `namespace:key`** instead of a bare recipe
   name; tab-complete lists every registered recipe in the namespaced form.
 

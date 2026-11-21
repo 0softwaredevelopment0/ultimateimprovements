@@ -23,7 +23,9 @@ public final class AcStatsSubcommand {
     private AcStatsSubcommand() {}
 
     public static boolean execute(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("ui.anticheat.notify") && !sender.isOp()) {
+        if (!sender.hasPermission("ui.anticheat.notify")
+                && !sender.hasPermission("ui.command.anticheat")
+                && !sender.isOp()) {
             sender.sendMessage(MessageUtil.parse("<red>❌ Нет прав!</red>"));
             return true;
         }

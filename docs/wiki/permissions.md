@@ -75,8 +75,8 @@ The current core source contains 204 permission-string declarations representing
 - `ui.chat.custom.bypass`
 - `ui.chat.filter.bypass`
 - `ui.command.*`
-- `ui.command.ac`
 - `ui.command.addons`
+- `ui.command.anticheat`
 - `ui.command.askpos`
 - `ui.command.auth`
 - `ui.command.auth.chgpass`
@@ -91,11 +91,11 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.blacklist`
 - `ui.command.bossbar`
 - `ui.command.broadcast`
+- `ui.command.changedimmension`
+- `ui.command.changedimmension.*`
 - `ui.command.chatchnl`
 - `ui.command.check`
 - `ui.command.checkver`
-- `ui.command.chgdim`
-- `ui.command.chgdim.*`
 - `ui.command.clan`
 - `ui.command.clan.home.bypasscooldown`
 - `ui.command.clan.remove`
@@ -115,7 +115,7 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.crash`
 - `ui.command.delhome`
 - `ui.command.deop`
-- `ui.command.dura`
+- `ui.command.durability`
 - `ui.command.enchant`
 - `ui.command.endersee`
 - `ui.command.execchat`
@@ -152,6 +152,7 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.kit.resetglobalcd`
 - `ui.command.language`
 - `ui.command.listhomes`
+- `ui.command.lockdown`
 - `ui.command.maintenance`
 - `ui.command.menu`
 - `ui.command.meteor.spawn`
@@ -211,7 +212,6 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.sculk.start`
 - `ui.command.sculk.status`
 - `ui.command.sculk.stop`
-- `ui.command.server`
 - `ui.command.sethome`
 - `ui.command.setrad`
 - `ui.command.setspawn`

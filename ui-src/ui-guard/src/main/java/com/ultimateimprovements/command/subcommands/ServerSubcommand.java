@@ -43,8 +43,8 @@ public final class ServerSubcommand {
     private ServerSubcommand() {}
 
     public static boolean execute(CommandSender sender, String[] args) {
-        if (!sender.hasPermission(Permissions.CMD_SERVER)) {
-            CommandErrors.noPermission(sender, Permissions.CMD_SERVER);
+        if (!sender.hasPermission(Permissions.CMD_LOCKDOWN)) {
+            CommandErrors.noPermission(sender, Permissions.CMD_LOCKDOWN);
             return true;
         }
 

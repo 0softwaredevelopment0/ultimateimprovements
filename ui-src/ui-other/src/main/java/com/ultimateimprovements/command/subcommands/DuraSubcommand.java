@@ -2,6 +2,7 @@ package com.ultimateimprovements.command.subcommands;
 
 import com.ultimateimprovements.command.CommandErrors;
 import com.ultimateimprovements.config.MessagesManager;
+import com.ultimateimprovements.core.Permissions;
 import com.ultimateimprovements.mechanics.features.integrity.ItemDurabilityUtil;
 import com.ultimateimprovements.util.MessageUtil;
 import com.ultimateimprovements.util.Registries;
@@ -28,7 +29,7 @@ import java.util.Locale;
  * </ul>
  * All user-facing texts live in the composite config under
  * {@code messages.durability.*} (RU) and {@code messages_en.durability.*} (EN).
- * Permission: {@code ui.command.dura} (default FALSE).
+ * Permission: {@code ui.command.durability} (default FALSE).
  */
 public final class DuraSubcommand {
 
@@ -40,7 +41,7 @@ public final class DuraSubcommand {
                     "<dark_red>❌ <red>Only a player can use this command!</red>"));
             return true;
         }
-        if (!player.hasPermission("ui.command.dura")) { CommandErrors.noPermission(player, "ui.command.dura"); return true; }
+        if (!player.hasPermission(Permissions.CMD_DURABILITY)) { CommandErrors.noPermission(player, Permissions.CMD_DURABILITY); return true; }
 
         String op = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "info";
         switch (op) {

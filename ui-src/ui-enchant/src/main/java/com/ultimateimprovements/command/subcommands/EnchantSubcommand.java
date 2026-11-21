@@ -31,19 +31,20 @@ import java.util.function.Consumer;
  * plus custom ones, addressed as {@code namespace:name} — "minecraft:mending",
  * "ui:aoe" (bare names still resolve for convenience).
  * <pre>
- *   /ui enchant give <enchantment> <level> <player|all> [slot]
+ *   /ui enchant give <player|all> <enchantment> <level> [slot]
  *   /ui enchant confirm
  *   /ui enchant cancel
- *   /ui enchant take <enchantment> <level> [player|all] [slot]
+ *   /ui enchant take <player|all> <enchantment> <level> [slot]
  *   /ui enchant check <player> [page]
  * </pre>
- * The give target is REQUIRED: a player nickname or {@code all} (every online
- * player). A give above {@code enchant.max_level} (default 10) requires
- * {@code /ui enchant confirm} within 60 seconds (or {@code /ui enchant cancel}
- * to drop it) — this works for a single player and for {@code all} alike. A
- * bare name registered in several namespaces fails with error 019 — use
- * {@code namespace:name}. Slots: mainhand, offhand, bothhand, cursor, hotbar,
- * armor, inventory, all. Settings are in config.yml → {@code enchant:}.
+ * The target comes straight after the action: a player nickname or {@code all}
+ * (every online player). A give above {@code enchant.max_level} (default 10)
+ * requires {@code /ui enchant confirm} within 60 seconds (or
+ * {@code /ui enchant cancel} to drop it) — this works for a single player and
+ * for {@code all} alike. A bare name registered in several namespaces fails
+ * with error 019 — use {@code namespace:name}. Slots: mainhand, offhand,
+ * bothhand, cursor, hotbar, armor, inventory, all. Settings are in config.yml
+ * → {@code enchant:}.
  */
 public final class EnchantSubcommand {
 
@@ -341,12 +342,12 @@ public final class EnchantSubcommand {
     private static void sendUsage(CommandSender sender) {
         sender.sendMessage(MessageUtil.parse(MessagesManager.getString("enchant.usage",
                 "<yellow>Usage:</yellow>\n"
-                + "<white>/ui enchant give <enchantment> <level> <player|all> [slot]</white>\n"
+                + "<white>/ui enchant give <player|all> <enchantment> <level> [slot]</white>\n"
                 + "<white>/ui enchant confirm</white> <gray>- apply a give above the safe level</gray>\n"
                 + "<white>/ui enchant cancel</white> <gray>- drop a pending give</gray>\n"
-                + "<white>/ui enchant take <enchantment> <level> [player|all] [slot]</white>\n"
+                + "<white>/ui enchant take <player|all> <enchantment> <level> [slot]</white>\n"
                 + "<white>/ui enchant check <player> [page]</white>\n"
-                + "<gray>give requires player|all; slot optional (mainhand). Slots: mainhand, offhand, bothhand, cursor, hotbar, armor, inventory, all</gray>")));
+                + "<gray>target is required (player or all); slot optional (mainhand). Slots: mainhand, offhand, bothhand, cursor, hotbar, armor, inventory, all</gray>")));
     }
 
     // =========================
@@ -385,7 +386,7 @@ public final class EnchantSubcommand {
         // A give above the safe level requires an explicit /ui enchant confirm
         if (isGive && v.level() > getConfirmThreshold()) {
             PENDING.put(pendingKey(sender), new PendingApply(
-                    args[2], v.level(), v.targetName(), v.slot(), System.currentTimeMillis()));
+                    args[3], v.level(), v.targetName(), v.slot(), System.currentTimeMillis()));
             String body = MessagesManager.getString("enchant.confirm_required",
                     "<yellow>⚠</yellow> <white>%enchant% %level%</white> <gray>is above the safe level</gray>"
                     + " <yellow>%max%</yellow><gray>. To apply it on</gray> <yellow>%player%</yellow>"
@@ -485,29 +486,38 @@ public final class EnchantSubcommand {
     /**
      * Validates the /ui enchant give|take arguments.
      * <p>
-     * {@code <player>} and {@code <slot>} are OPTIONAL: they default to the
-     * sender (players only) and {@code mainhand}.
+     * Order: {@code <player|all> <enchantment> <level> [slot]}. The target is
+     * required; {@code <slot>} is optional and defaults to {@code mainhand}.
      * Sends the error message and returns {@code null} on failure.
      */
     private static ValidatedApply validateApply(CommandSender sender, String[] args, boolean isGive) {
-        // /ui enchant give <enchant> <level> <player|all> [slot]
-        // /ui enchant take <enchant> <level> [player|all] [slot]
-        int minArgs = isGive ? 5 : 4;
-        if (args.length < minArgs) {
+        // /ui enchant give|take <player|all> <enchant> <level> [slot]
+        if (args.length < 5) {
             sender.sendMessage(MessageUtil.parse(isGive
-                    ? "<red>❌ Usage: </red><white>/ui enchant give <enchantment> <level> <player|all> [slot]</white>"
-                    : "<red>❌ Usage: </red><white>/ui enchant take <enchantment> <level> [player|all] [slot]</white>"));
+                    ? "<red>❌ Usage: </red><white>/ui enchant give <player|all> <enchantment> <level> [slot]</white>"
+                    : "<red>❌ Usage: </red><white>/ui enchant take <player|all> <enchantment> <level> [slot]</white>"));
+            return null;
+        }
+
+        // ─── Player (required — a nickname or "all") ───
+        String playerName = args[2];
+        List<Player> targetPlayers = resolveTargets(playerName);
+        if (targetPlayers.isEmpty()) {
+            sender.sendMessage(MessageUtil.parse(
+                    MessagesManager.getString("enchant.player_not_found",
+                            "<red>❌ Player </red><yellow>%player%</yellow><red> is not online!</red>")
+                            .replace("%player%", playerName)));
             return null;
         }
 
         // ─── Enchantment ───
-        ResolveResult resolved = resolveEnchant(args[2]);
+        ResolveResult resolved = resolveEnchant(args[3]);
         if (resolved.isAmbiguous()) {
             CommandErrors.custom(sender, ERR_AMBIGUOUS_ENCHANT,
                     MessagesManager.getString("enchant.ambiguous_enchant",
                             "<white>%enchant%</white> <red>exists in several namespaces (</red><yellow>%list%</yellow>"
                             + "<red>) — specify one explicitly</red>")
-                            .replace("%enchant%", args[2])
+                            .replace("%enchant%", args[3])
                             .replace("%list%", String.join(", ", resolved.ambiguousIds())));
             return null;
         }
@@ -516,14 +526,14 @@ public final class EnchantSubcommand {
             sender.sendMessage(MessageUtil.parse(
                     MessagesManager.getString("enchant.invalid_enchant",
                             "<red>❌ Unknown enchantment: </red><yellow>%enchant%</yellow>")
-                            .replace("%enchant%", args[2])));
+                            .replace("%enchant%", args[3])));
             return null;
         }
 
         // ─── Level ───
         int level;
         try {
-            level = Integer.parseInt(args[3].trim());
+            level = Integer.parseInt(args[4].trim());
         } catch (NumberFormatException e) {
             sender.sendMessage(MessageUtil.parse(
                     MessagesManager.getString("enchant.invalid_level",
@@ -534,25 +544,6 @@ public final class EnchantSubcommand {
             sender.sendMessage(MessageUtil.parse(
                     MessagesManager.getString("enchant.invalid_level",
                             "<red>❌ Level must be a whole number of 1 or higher!</red>")));
-            return null;
-        }
-
-        // ─── Player (required for give; optional for take — defaults to the sender) ───
-        String playerName;
-        if (args.length >= 5) {
-            playerName = args[4];
-        } else if (sender instanceof Player self) {
-            playerName = self.getName();
-        } else {
-            CommandErrors.playerOnly(sender);
-            return null;
-        }
-        List<Player> targetPlayers = resolveTargets(playerName);
-        if (targetPlayers.isEmpty()) {
-            sender.sendMessage(MessageUtil.parse(
-                    MessagesManager.getString("enchant.player_not_found",
-                            "<red>❌ Player </red><yellow>%player%</yellow><red> is not online!</red>")
-                            .replace("%player%", playerName)));
             return null;
         }
 
@@ -1066,9 +1057,9 @@ public final class EnchantSubcommand {
         switch (sub) {
             case "give", "take" -> {
                 switch (args.length) {
-                    case 3 -> result = allEnchantNames();
-                    case 4 -> result = levelSuggestions(args[3]);
-                    case 5 -> result = playerOrAllNames();
+                    case 3 -> result = playerOrAllNames();
+                    case 4 -> result = allEnchantNames();
+                    case 5 -> result = levelSuggestions(args[4]);
                     case 6 -> result = targetNames();
                     default -> { }
                 }

@@ -169,11 +169,11 @@ public final class Permissions {
     /** /ui console lockdown — console lockout control. NEVER granted by default (not a child of ui.* / ui.command.*). */
     public static final String CMD_CONSOLE = "ui.command.console";
     /** /ui lockdown — new-connections lockout control. NEVER granted by default (not a child of ui.* / ui.command.*). */
-    public static final String CMD_SERVER = "ui.command.server";
+    public static final String CMD_LOCKDOWN = "ui.command.lockdown";
     /** /ui stresstest start|stop — benchmark run control. NEVER granted by default (not a child of ui.* / ui.command.*). */
     public static final String CMD_STRESSTEST = "ui.command.stresstest";
     public static final String CMD_CHECK = "ui.command.check";
-    public static final String CMD_AC = "ui.command.ac";
+    public static final String CMD_ANTICHEAT = "ui.command.anticheat";
     public static final String CMD_PROTECTION = "ui.command.protection";
     public static final String CMD_CMDLOG = "ui.command.cmdlog";
     public static final String CMD_MENU = "ui.command.menu";
@@ -195,9 +195,9 @@ public final class Permissions {
     public static final String CMD_CODEPANE_KEY_LIST = "ui.command.codepane.key.list";
     public static final String CMD_CODEPANE_KEY_REMOVE = "ui.command.codepane.key.remove";
     public static final String CMD_CODEPANE_KEY_MODIFY = "ui.command.codepane.key.modify";
-    public static final String CMD_CHGDIM = "ui.command.chgdim";
-    public static final String CMD_CHGDIM_ALL = "ui.command.chgdim.*";
-    public static final String CMD_DURA = "ui.command.dura";
+    public static final String CMD_CHANGEDIMMENSION = "ui.command.changedimmension";
+    public static final String CMD_CHANGEDIMMENSION_ALL = "ui.command.changedimmension.*";
+    public static final String CMD_DURABILITY = "ui.command.durability";
     public static final String CMD_ENCHANT = "ui.command.enchant";
     public static final String CMD_SETRAD = "ui.command.setrad";
     public static final String CMD_METEOR_SPAWN = "ui.command.meteor.spawn";
@@ -475,10 +475,10 @@ public final class Permissions {
                 new Permission(CMD_WHITELIST, "Manage the whitelist", PermissionDefault.FALSE),
                 new Permission(CMD_MAINTENANCE, "Toggle maintenance mode", PermissionDefault.FALSE),
                 new Permission(CMD_CONSOLE, "Control the console lockdown (/ui console lockdown) — emergency console lockout; deliberately NOT granted by default (no OP, no wildcard implication)", PermissionDefault.FALSE),
-                new Permission(CMD_SERVER, "Control the server lockdown (/ui lockdown) — emergency new-connections lockout; deliberately NOT granted by default (no OP, no wildcard implication)", PermissionDefault.FALSE),
+                new Permission(CMD_LOCKDOWN, "Control the server lockdown (/ui lockdown) — emergency new-connections lockout; deliberately NOT granted by default (no OP, no wildcard implication)", PermissionDefault.FALSE),
                 new Permission(CMD_STRESSTEST, "Run server benchmarks (/ui stresstest start|stop) — generates real load, run only when the server may tolerate it; deliberately NOT granted by default (no OP, no wildcard implication)", PermissionDefault.FALSE),
                 new Permission(CMD_CHECK, "Check players", PermissionDefault.FALSE),
-                new Permission(CMD_AC, "View anti-cheat statistics (/ui anticheat)", PermissionDefault.FALSE),
+                new Permission(CMD_ANTICHEAT, "View anti-cheat statistics (/ui anticheat)", PermissionDefault.FALSE),
                 new Permission(CMD_PROTECTION, "Manage protection blocks", PermissionDefault.FALSE),
                 new Permission(CMD_CMDLOG, "Toggle the in-chat command logger (/ui cmdlog)", PermissionDefault.FALSE),
                 new Permission(CMD_MENU, "Open the admin menu", PermissionDefault.FALSE),
@@ -500,8 +500,8 @@ public final class Permissions {
                 new Permission(CMD_CODEPANE_KEY_LIST, "List code panel keys", PermissionDefault.FALSE),
                 new Permission(CMD_CODEPANE_KEY_REMOVE, "Remove code panel keys", PermissionDefault.FALSE),
                 new Permission(CMD_CODEPANE_KEY_MODIFY, "Modify code panel keys", PermissionDefault.FALSE),
-                new Permission(CMD_CHGDIM, "Teleport between dimensions", PermissionDefault.FALSE),
-                new Permission(CMD_CHGDIM_ALL, "Teleport to any dimension world", PermissionDefault.FALSE),
+                new Permission(CMD_CHANGEDIMMENSION, "Teleport between dimensions (/ui changedimmension)", PermissionDefault.FALSE),
+                new Permission(CMD_CHANGEDIMMENSION_ALL, "Teleport to any dimension world (/ui changedimmension)", PermissionDefault.FALSE),
                 new Permission(CMD_KIT, "Use the kit system (/ui kit list)", PermissionDefault.FALSE),
                 new Permission(CMD_KIT_GIVE, "Give kits to yourself (/ui kit give)", PermissionDefault.FALSE),
                 new Permission(CMD_KIT_GIVE_OTHER, "Give kits to other players (non-empty recipient field)", PermissionDefault.FALSE),
@@ -518,7 +518,7 @@ public final class Permissions {
                 new Permission(CMD_KIT_RESETCD, "Reset a player's kit cooldowns (/ui kit resetcd)", PermissionDefault.FALSE),
                 new Permission(CMD_KIT_RESETGLOBALCD, "Reset a kit's running global cooldown (/ui kit resetglobalcd)", PermissionDefault.FALSE),
                 new Permission(CMD_ITEMNBT, "Edit item data components / NBT (name, lore, hide flags, unbreakable, equipment, food, repair cost)", PermissionDefault.FALSE),
-                new Permission(CMD_DURA, "Scale the held item's durability (/ui durability multiply|divide [raw])", PermissionDefault.FALSE),
+                new Permission(CMD_DURABILITY, "Scale the held item's durability (/ui durability multiply|divide [raw])", PermissionDefault.FALSE),
                 new Permission(CMD_ENCHANT, "Enchant items", PermissionDefault.FALSE),
                 new Permission(CMD_SETRAD, "Set radiation levels", PermissionDefault.FALSE),
                 new Permission(CMD_METEOR_SPAWN, "Spawn meteors", PermissionDefault.FALSE),
