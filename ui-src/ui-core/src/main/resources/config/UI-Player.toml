@@ -972,6 +972,25 @@ skip_solid_blocks = false
 # Default: ["world"]
 included_worlds = ["world"]
 
+# Per-head overrides for the chance above. Keys are Bukkit material names;
+# only wearable heads (skull items) are accepted, other entries are warned
+# about and ignored. Heads not listed here use head_break_chance_percent.
+[sunburn.head_break_chances]
+# Default: 0.4
+SKELETON_SKULL = 0.4
+# Default: 0.2
+WITHER_SKELETON_SKULL = 0.2
+# Default: 0.1
+PLAYER_HEAD = 0.1
+# Default: 0.5
+ZOMBIE_HEAD = 0.5
+# Default: 0.6
+CREEPER_HEAD = 0.6
+# Default: 0.3
+PIGLIN_HEAD = 0.3
+# Default: 0.1
+DRAGON_HEAD = 0.1
+
 # /kill-style suicide command behaviour.
 [suicide]
 # Duration.

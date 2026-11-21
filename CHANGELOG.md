@@ -3,6 +3,17 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.25] - 2026-11-21
+
+### Changed
+- **Per-head sunburn break chances.** The single
+  `sunburn.head_break_chance_percent` (default `0.1`) now acts as the fallback
+  for heads not listed in the new `[sunburn.head_break_chances]` section. The
+  bundled defaults are `SKELETON_SKULL = 0.4`, `WITHER_SKELETON_SKULL = 0.2`,
+  `PLAYER_HEAD = 0.1`, `ZOMBIE_HEAD = 0.5`, `CREEPER_HEAD = 0.6`,
+  `PIGLIN_HEAD = 0.3`, `DRAGON_HEAD = 0.1`. Entries that are not wearable heads
+  are warned about and ignored; existing configs get the section on startup.
+
 ## [1.11.0-alpha.24] - 2026-11-21
 
 ### Added
