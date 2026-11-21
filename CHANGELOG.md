@@ -3,6 +3,16 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.19] - 2026-11-21
+
+### Changed
+- **The auth freeze clears the player's velocity.** On top of the existing
+  zeroed walk/fly speed the freeze now sets the velocity to zero, so a player
+  who joins or logs out while falling (or with knockback/piston/elytra
+  momentum) stops being predicted as moving by the client: no visible plunge
+  behind the auth screen, and no leftover momentum to slip away from the frozen
+  position. No flight is granted — the previous hover attempt stays reverted.
+
 ## [1.11.0-alpha.18] - 2026-11-21
 
 ### Changed

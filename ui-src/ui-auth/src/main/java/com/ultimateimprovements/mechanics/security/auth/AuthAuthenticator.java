@@ -886,6 +886,12 @@ public class AuthAuthenticator {
         player.setAllowFlight(true);
         player.setFlySpeed(0.0f);
         player.setFlying(false);
+
+        // Drop any velocity the player joined with (falling, knockback, a piston,
+        // an elytra dive). The client stops predicting the motion immediately, so
+        // it no longer looks like it is plummeting while the auth screen is up,
+        // and leftover momentum cannot be used to escape the frozen position.
+        player.setVelocity(new org.bukkit.util.Vector());
     }
 
     private void unfreezePlayer(Player player) {
