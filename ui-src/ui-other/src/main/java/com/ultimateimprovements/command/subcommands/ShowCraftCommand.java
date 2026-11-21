@@ -53,9 +53,9 @@ public final class ShowCraftCommand {
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage(msg("showcraft.usage",
+            sender.sendMessage(MessageUtil.parse(msg("showcraft.usage",
                     "<red>❌ Usage: </red><white>/ui showcraft <namespace:key></white>"
-                            + " <gray>(tab-complete lists all)</gray>"));
+                            + " <gray>(tab-complete lists all)</gray>")));
             return true;
         }
 
@@ -63,40 +63,40 @@ public final class ShowCraftCommand {
         NamespacedKey key = parseKey(input);
         Recipe recipe = key == null ? null : Bukkit.getRecipe(key);
         if (recipe == null) {
-            sender.sendMessage(msg("showcraft.not_found",
+            sender.sendMessage(MessageUtil.parse(msg("showcraft.not_found",
                             "<red>❌ Recipe not found: </red><white>%recipe%</white>"
                                     + " <gray>(use namespace:key; tab-complete lists all)</gray>")
-                    .replace("%recipe%", input));
+                    .replace("%recipe%", input)));
             return true;
         }
 
         ItemStack result = recipe.getResult();
         if (result == null || result.getType().isAir()) {
-            sender.sendMessage(msg("showcraft.no_result",
-                    "<red>❌ This recipe has no craftable result.</red>"));
+            sender.sendMessage(MessageUtil.parse(msg("showcraft.no_result",
+                    "<red>❌ This recipe has no craftable result.</red>")));
             return true;
         }
 
         boolean custom = RecipeRegistry.getCustomRecipes().contains(key);
 
         sender.sendMessage(MessageUtil.parse("<gold>═══════════════════════════════════════════════════"));
-        sender.sendMessage(msg("showcraft.header",
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.header",
                         "<gold>  ✦ <white>Recipe </white><dark_gray>%recipe%</dark_gray>")
-                .replace("%recipe%", key.toString()));
+                .replace("%recipe%", key.toString())));
         sender.sendMessage(MessageUtil.parse("<gold>═══════════════════════════════════════════════════"));
 
-        sender.sendMessage(msg("showcraft.result",
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.result",
                         "<gray>Result: <white>%item%</white> <gray>×</gray><yellow>%amount%</yellow>")
                 .replace("%item%", itemName(result))
-                .replace("%amount%", String.valueOf(result.getAmount())));
+                .replace("%amount%", String.valueOf(result.getAmount()))));
 
-        sender.sendMessage(msg("showcraft.station",
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.station",
                         "<gray>Crafted in: <yellow>%station%</yellow>")
-                .replace("%station%", station(recipe, custom)));
+                .replace("%station%", station(recipe, custom))));
         if (custom) {
-            sender.sendMessage(msg("showcraft.crafter_only",
+            sender.sendMessage(MessageUtil.parse(msg("showcraft.crafter_only",
                     "<gray>Custom item: <red>Crafter block only</red>"
-                            + " <gray>— it cannot be made on a crafting table.</gray>"));
+                            + " <gray>— it cannot be made on a crafting table.</gray>")));
         }
 
         renderContent(sender, recipe);
@@ -144,7 +144,7 @@ public final class ShowCraftCommand {
     }
 
     private static void renderShaped(CommandSender sender, ShapedRecipe recipe) {
-        sender.sendMessage(msg("showcraft.pattern_header", "<gray>Pattern:</gray>"));
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.pattern_header", "<gray>Pattern:</gray>")));
         Map<Character, RecipeChoice> map = recipe.getChoiceMap();
         for (String row : recipe.getShape()) {
             StringBuilder line = new StringBuilder(" <dark_gray>▪</dark_gray> ");
@@ -164,50 +164,50 @@ public final class ShowCraftCommand {
     }
 
     private static void renderShapeless(CommandSender sender, ShapelessRecipe recipe) {
-        sender.sendMessage(msg("showcraft.ingredients_header", "<gray>Ingredients:</gray>"));
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.ingredients_header", "<gray>Ingredients:</gray>")));
         for (RecipeChoice ingredient : recipe.getChoiceList()) {
-            sender.sendMessage(msg("showcraft.ingredient",
+            sender.sendMessage(MessageUtil.parse(msg("showcraft.ingredient",
                             " <dark_gray>▪</dark_gray> <white>%item%</white>")
-                    .replace("%item%", choiceName(ingredient)));
+                    .replace("%item%", choiceName(ingredient))));
         }
     }
 
     private static void renderCooking(CommandSender sender, CookingRecipe<?> recipe) {
-        sender.sendMessage(msg("showcraft.ingredients_header", "<gray>Ingredients:</gray>"));
-        sender.sendMessage(msg("showcraft.ingredient",
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.ingredients_header", "<gray>Ingredients:</gray>")));
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.ingredient",
                         " <dark_gray>▪</dark_gray> <white>%item%</white>")
-                .replace("%item%", choiceName(recipe.getInputChoice())));
+                .replace("%item%", choiceName(recipe.getInputChoice()))));
 
-        sender.sendMessage(msg("showcraft.params_header", "<gray>Parameters:</gray>"));
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.params_header", "<gray>Parameters:</gray>")));
         int ticks = recipe.getCookingTime();
-        sender.sendMessage(msg("showcraft.cook_time",
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.cook_time",
                         "<gray> ▪ Cook time: <yellow>%seconds%s</yellow> <dark_gray>(%ticks% ticks)</dark_gray>")
                 .replace("%seconds%", String.format(Locale.ROOT, "%.1f", ticks / 20.0))
-                .replace("%ticks%", String.valueOf(ticks)));
-        sender.sendMessage(msg("showcraft.experience",
+                .replace("%ticks%", String.valueOf(ticks))));
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.experience",
                         "<gray> ▪ Experience: <yellow>%xp%</yellow>")
-                .replace("%xp%", String.format(Locale.ROOT, "%.1f", recipe.getExperience())));
+                .replace("%xp%", String.format(Locale.ROOT, "%.1f", recipe.getExperience()))));
     }
 
     private static void renderStonecutting(CommandSender sender, StonecuttingRecipe recipe) {
-        sender.sendMessage(msg("showcraft.ingredients_header", "<gray>Ingredients:</gray>"));
-        sender.sendMessage(msg("showcraft.ingredient",
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.ingredients_header", "<gray>Ingredients:</gray>")));
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.ingredient",
                         " <dark_gray>▪</dark_gray> <white>%item%</white>")
-                .replace("%item%", choiceName(recipe.getInputChoice())));
+                .replace("%item%", choiceName(recipe.getInputChoice()))));
     }
 
     private static void renderSmithing(CommandSender sender,
                                        RecipeChoice template, RecipeChoice base, RecipeChoice addition) {
-        sender.sendMessage(msg("showcraft.ingredients_header", "<gray>Ingredients:</gray>"));
-        sender.sendMessage(msg("showcraft.template",
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.ingredients_header", "<gray>Ingredients:</gray>")));
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.template",
                         "<gray> ▪ Template: </gray><white>%item%</white>")
-                .replace("%item%", choiceName(template)));
-        sender.sendMessage(msg("showcraft.base",
+                .replace("%item%", choiceName(template))));
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.base",
                         "<gray> ▪ Base: </gray><white>%item%</white>")
-                .replace("%item%", choiceName(base)));
-        sender.sendMessage(msg("showcraft.addition",
+                .replace("%item%", choiceName(base))));
+        sender.sendMessage(MessageUtil.parse(msg("showcraft.addition",
                         "<gray> ▪ Addition: </gray><white>%item%</white>")
-                .replace("%item%", choiceName(addition)));
+                .replace("%item%", choiceName(addition))));
     }
 
     // =========================
