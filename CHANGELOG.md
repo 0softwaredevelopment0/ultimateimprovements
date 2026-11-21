@@ -3,6 +3,22 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.24] - 2026-11-21
+
+### Added
+- **Mob/player heads worn in the helmet slot now burn away in the sun.** Heads
+  have no durability, so `player.damageItemStack` never wore them down and they
+  protected from sunburn forever. Instead, every helmet degrade step
+  (`sunburn.helmet_degrade_interval`) now rolls
+  `sunburn.head_break_chance_percent` (default `0.1`, `0` disables it). On a hit
+  the head is removed from the armour slot, the player hears the item-break and
+  fire-extinguish sounds, catches fire like a bare head and gets a chat message
+  in the active language (`messages.sunburn.head_broken` /
+  `messages_en.sunburn.head_broken`, `%head%` placeholder). Every vanilla skull
+  and head counts (player, zombie, creeper, dragon, piglin, skeleton, wither
+  skeleton), including custom-textured `PLAYER_HEAD` items; wall-mounted block
+  variants are ignored.
+
 ## [1.11.0-alpha.23] - 2026-11-21
 
 ### Added

@@ -915,6 +915,12 @@ helmet_degrade_interval = 80
 # Durability points the helmet loses per degrade.
 # Default: 1
 helmet_durability_loss = 1
+# Chance in percent, per degrade step (helmet_degrade_interval), that a
+# mob/player head worn instead of a helmet is destroyed by the sun. Heads have
+# no durability, so this roll replaces the helmet wear: on a hit the head is
+# removed from the armour slot and a chat message is sent. 0 disables it.
+# Default: 0.1
+head_break_chance_percent = 0.1
 # Blacklist of transparent blocks that do NOT shelter from the sun. The
 # plugin scans the block column above the player's head itself: air, liquids
 # and passable blocks are skipped, listed blocks are ignored (sunlight passes
@@ -1016,6 +1022,12 @@ interval_ticks = 80
 # Default: true
 ignore_creative = true
 
+# sunburn section.
+# Placeholders: %head%
+[messages.sunburn]
+# Default: <red>☀</red> <white>От солнца ваша голова</white> <yellow>%head%</yellow> <white>сгорела!</white>
+head_broken = "<red>☀</red> <white>От солнца ваша голова</white> <yellow>%head%</yellow> <white>сгорела!</white>"
+
 # suicide section.
 # Placeholders: %seconds%, %timeout%
 [messages.suicide]
@@ -1070,6 +1082,12 @@ title = "<dark_red>☠</dark_red> <red>Суицид через</red> <yellow>%se
 [messages.elytra_wear]
 # Default: <red>✦</red> <white>Ваши элитры треснули! Осталось прочности: </white><red>%durability%</red>
 torn = "<red>✦</red> <white>Ваши элитры треснули! Осталось прочности: </white><red>%durability%</red>"
+
+# sunburn section.
+# Placeholders: %head%
+[messages_en.sunburn]
+# Default: <red>☀</red> <white>Your</white> <yellow>%head%</yellow> <white>burned away in the sun!</white>
+head_broken = "<red>☀</red> <white>Your</white> <yellow>%head%</yellow> <white>burned away in the sun!</white>"
 
 # suicide section.
 # Placeholders: %seconds%, %timeout%, %sender%, %target%

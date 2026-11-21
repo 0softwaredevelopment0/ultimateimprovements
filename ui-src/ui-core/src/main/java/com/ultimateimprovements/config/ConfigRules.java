@@ -793,6 +793,7 @@ final class ConfigRules {
             bool("sunburn.extinguish_when_safe"),
             integer("sunburn.helmet_degrade_interval", 1, 72000, "Helmet degrade interval in ticks"),
             integer("sunburn.helmet_durability_loss", 1, 100, "Durability points lost per helmet degrade"),
+            dbl("sunburn.head_break_chance_percent", 0, 100),
             stringList("sunburn.block_blacklist"),
             bool("sunburn.skip_non_solid_blocks"),
             bool("sunburn.skip_solid_blocks"),
