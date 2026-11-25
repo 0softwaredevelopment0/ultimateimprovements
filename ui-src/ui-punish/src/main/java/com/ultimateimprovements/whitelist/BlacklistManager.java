@@ -106,16 +106,16 @@ public class BlacklistManager implements Listener {
             int rows = st.executeUpdate();
             if (rows > 0) {
                 ConsoleLogger.info("[Blacklist] Added: " + name);
-
-                // If the player is online — kick them
-                Player online = PlayerLookup.online(name);
-                if (online != null && online.isOnline()) {
-                    online.kick(MessageUtil.parse(PunishmentMessages.buildBlacklistKickMessage(
-                            name, PunishmentMessages.getDiscordUrl())));
-                }
-                return true;
             }
-            return false;
+
+            // If the player is online — kick them. This also covers a repeated
+            // add for an entry that already exists under a different casing.
+            Player online = PlayerLookup.online(name);
+            if (online != null && online.isOnline()) {
+                online.kick(MessageUtil.parse(PunishmentMessages.buildBlacklistKickMessage(
+                        online.getName(), PunishmentMessages.getDiscordUrl())));
+            }
+            return rows > 0;
         } catch (SQLException e) {
             Main.getInstance().getLogger().log(Level.WARNING, "[Blacklist] Failed to add: " + name, e);
             return false;

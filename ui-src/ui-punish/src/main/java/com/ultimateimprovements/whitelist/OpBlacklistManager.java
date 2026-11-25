@@ -146,13 +146,13 @@ public class OpBlacklistManager implements Listener {
             int rows = st.executeUpdate();
             if (rows > 0) {
                 ConsoleLogger.info("[OpBlacklist] Added: " + name);
-
-                // Strip OP immediately if the player is online
-                Player online = PlayerLookup.online(name);
-                checkAndDeop(online);
-                return true;
             }
-            return false; // already present
+
+            // Strip OP immediately if the player is online. This also covers a
+            // repeated add for an entry that already exists under another casing.
+            Player online = PlayerLookup.online(name);
+            checkAndDeop(online);
+            return rows > 0;
         } catch (SQLException e) {
             Main.getInstance().getLogger().log(Level.WARNING, "[OpBlacklist] Failed to add: " + name, e);
             return false;

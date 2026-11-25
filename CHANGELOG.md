@@ -3,6 +3,18 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.30] - 2026-11-25
+
+### Fixed
+- **Access-list follow-ups after the nickname-casing change.** A repeated
+  `/ui blacklist add` or `/ui opblacklist add` now still kicks / de-ops the
+  online target when the entry already exists under another casing (the
+  duplicate add returns “already in the list” but no longer skips the online
+  action). Whitelist-removal countdown state is now keyed by the lower-cased
+  player name, so rejoining with a mixed-case stored name (`Smile_W`) correctly
+  resets the cadence and re-announces the exact remaining time instead of
+  keeping stale warning state.
+
 ## [1.11.0-alpha.29] - 2026-11-25
 
 ### Fixed
