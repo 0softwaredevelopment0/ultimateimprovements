@@ -23,8 +23,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * Later joins in the same session stay silent. The in-memory flag set
  * resets naturally on the next server restart (fresh classloader).
  * <p>
- * Feature toggle: {@code loaded_alert.enabled} (default true, read live —
- * /ui reload applies it without a restart).
+ * The same one-shot pass also warns alert holders when LuckPerms is not
+ * installed — the plugin is built around its permission/permission metadata
+ * model, so LuckPerms is highly recommended.
+ * <p>
+ * Feature toggles: {@code loaded_alert.enabled} and
+ * {@code luckperms_warning.enabled} (both default true, read live —
+ * /ui reload applies them without a restart).
  */
 public final class LoadedAlertListener implements Listener {
 
@@ -44,18 +49,44 @@ public final class LoadedAlertListener implements Listener {
     }
 
     private static void notifyIfNeeded(Player player) {
-        if (!isEnabled()) return;
         if (!AlertBroadcast.hasAlertPermission(player)) return;
+
+        boolean sendLoaded = isLoadedAlertEnabled();
+        boolean sendLuckPermsWarning = isLuckPermsWarningEnabled() && !isLuckPermsInstalled();
+        if (!sendLoaded && !sendLuckPermsWarning) return;
+
         if (!NOTIFIED.add(player.getUniqueId())) return; // already shown this session
-        player.sendMessage(MessageUtil.parse(
-                MessageUtil.PREFIX + "<white>UltimateImprovements loaded successfully!"));
+
+        if (sendLoaded) {
+            player.sendMessage(MessageUtil.parse(
+                    MessageUtil.PREFIX + "<white>UltimateImprovements loaded successfully!"));
+        }
+        if (sendLuckPermsWarning) {
+            player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX
+                    + "<yellow>LuckPerms was not found on this server. "
+                    + "It is highly recommended for UltimateImprovements: "
+                    + "permissions, groups and placeholders depend on it."));
+            player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX
+                    + "<yellow>Download: <white>https://luckperms.net/download"));
+        }
     }
 
     /** Feature toggle: {@code loaded_alert.enabled} (default true). */
-    private static boolean isEnabled() {
+    private static boolean isLoadedAlertEnabled() {
         Main plugin = Main.getInstance();
         return plugin == null
                 || plugin.getConfig().getBoolean("loaded_alert.enabled", true);
     }
-}
 
+    /** Feature toggle: {@code luckperms_warning.enabled} (default true). */
+    private static boolean isLuckPermsWarningEnabled() {
+        Main plugin = Main.getInstance();
+        return plugin == null
+                || plugin.getConfig().getBoolean("luckperms_warning.enabled", true);
+    }
+
+    /** True when the LuckPerms plugin is installed on the server. */
+    private static boolean isLuckPermsInstalled() {
+        return Bukkit.getPluginManager().getPlugin("LuckPerms") != null;
+    }
+}

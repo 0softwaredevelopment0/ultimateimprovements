@@ -167,7 +167,8 @@ public class VersionCheckModule extends PluginModule {
         ConsoleLogger.warn("!  LUCKPERMS NOT FOUND!                                       !");
         ConsoleLogger.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         ConsoleLogger.warn("!                                                                 !");
-        ConsoleLogger.warn("!  This plugin uses LuckPerms for full permission management.    !");
+        ConsoleLogger.warn("!  LuckPerms is HIGHLY RECOMMENDED for this plugin: it is the   !");
+        ConsoleLogger.warn("!  permission system the whole plugin family is built around.    !");
         ConsoleLogger.warn("!  Without LuckPerms, many permission-based features will       !");
         ConsoleLogger.warn("!  NOT work correctly:                                          !");
         ConsoleLogger.warn("!    - /ui sethome, /ui home, /ui delhome                       !");
