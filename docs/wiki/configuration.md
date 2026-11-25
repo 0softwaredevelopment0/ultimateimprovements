@@ -166,7 +166,7 @@ These options are consumed during startup bootstrap. Restart after changing the 
 
 ### Whitelist removal warnings
 
-\`UI-Punish.toml\` has an \`[access_control.warnings]\` section for scheduled whitelist removals (\`/ui whitelist remove <player> -t <time>\` and expiring \`add-temp\` entries). \`enabled\` (default \`true\`) is the master switch. \`warning_times\` is a list of countdown thresholds with \`s\`/\`m\`/\`h\`/\`d\` units (default \`["1h", "30m", "15m", "5m", "1m", "45s", "30s", "15s"]\`); \`second_report_from\` (default \`"10s"\`, or \`0\`/\`off\`) starts a per-second report at the end. The messages are \`messages[_en].punishment.timed.removal_warning\` and \`removal_kick\` in \`UI-Core.toml\`, with \`%list%\`, \`%time%\` and \`%unit%\` placeholders (unit words are \`unit_seconds|minutes|hours|days\` in the same section).
+\`UI-Punish.toml\` has an \`[access_control.warnings]\` section for scheduled whitelist removals (\`/ui whitelist remove <player> -t <time>\` and expiring \`add-temp\` entries). \`enabled\` (default \`true\`) is the master switch. \`warning_times\` is a list of countdown thresholds with \`s\`/\`m\`/\`h\`/\`d\` units (default \`["1h", "30m", "15m", "5m", "1m", "45s", "30s", "15s"]\`); \`second_report_from\` (default \`"10s"\`, or \`0\`/\`off\`) starts a per-second report at the end. The messages are \`messages[_en].punishment.timed.removal_warning\`, \`removal_kick\` and \`readded_notice\` in \`UI-Core.toml\`, with \`%list%\`, \`%time%\` and \`%unit%\` placeholders (unit words are \`unit_seconds|minutes|hours|days\` in the same section).
 
 ## Source of truth
 

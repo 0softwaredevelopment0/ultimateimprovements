@@ -1,10 +1,15 @@
 package com.ultimateimprovements.whitelist;
 
 import com.ultimateimprovements.core.Main;
+import com.ultimateimprovements.database.StateStore;
 import com.ultimateimprovements.punish.PunishmentMessages;
 import com.ultimateimprovements.util.ConsoleLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -13,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,15 +33,23 @@ import java.util.Set;
  * <p>
  * Warning progress is keyed by player + execution time, so a replaced
  * schedule starts a fresh countdown and a finished/cancelled one is dropped
- * automatically. A player who goes offline is forgotten, so rejoining sends
- * the exact current remaining time again.
+ * automatically. A player who goes offline is forgotten, and joining resets
+ * the cadence, so the next tick sends the exact current remaining time again.
+ * <p>
+ * The same listener delivers the "added back" notice: when an add cancels a
+ * pending removal, the online player is told immediately; an offline player
+ * gets the notice on the next join (persisted in {@code ui_state} for a week).
  * <p>
  * Config lives in {@code UI-Punish.toml} under {@code [access_control.warnings]}.
  */
-public final class TimedListWarnings extends BukkitRunnable {
+public final class TimedListWarnings extends BukkitRunnable implements Listener {
 
     private static final long TICK_PERIOD = 20L;
     private static final String CFG = "access_control.warnings.";
+
+    /** Persisted "added back while a removal was pending" notices. */
+    private static final String NOTICE_NAMESPACE = "whitelist_readded";
+    private static final long NOTICE_TTL_MS = 7L * 86_400_000L;
 
     /** Announcement progress by {@code player:executeAt}. */
     private static final Map<String, WarningCadence.State> STATES = new HashMap<>();
@@ -44,6 +58,7 @@ public final class TimedListWarnings extends BukkitRunnable {
     private static long secondReportFrom = 10L;
     private static Main plugin;
     private static BukkitTask task;
+    private static TimedListWarnings listener;
 
     private TimedListWarnings() {}
 
@@ -55,6 +70,11 @@ public final class TimedListWarnings extends BukkitRunnable {
     public static void start(Main plugin) {
         stop();
         TimedListWarnings.plugin = plugin;
+
+        // The join listener also delivers persisted "re-added" notices, so it
+        // stays registered even when the countdown itself is disabled.
+        listener = new TimedListWarnings();
+        Bukkit.getPluginManager().registerEvents(listener, plugin);
 
         if (!plugin.getConfig().getBoolean(CFG + "enabled", true)) {
             ConsoleLogger.info("[WhitelistWarnings] Disabled in config (" + CFG + "enabled: false).");
@@ -80,6 +100,10 @@ public final class TimedListWarnings extends BukkitRunnable {
         if (task != null) {
             task.cancel();
             task = null;
+        }
+        if (listener != null) {
+            HandlerList.unregisterAll(listener);
+            listener = null;
         }
         STATES.clear();
         thresholds = List.of();
@@ -128,6 +152,72 @@ public final class TimedListWarnings extends BukkitRunnable {
         }
 
         STATES.keySet().retainAll(seen);
+    }
+
+    /** Delivers offline notices and makes the next tick re-announce the exact time. */
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        resetCadence(player.getName());
+        deliverReAddedNotice(player);
+    }
+
+    // =========================
+    // RE-ADDED NOTICES
+    // =========================
+
+    /**
+     * Records that the player was added back while a whitelist removal was
+     * pending. Online players are told immediately; offline players get the
+     * notice on their next join (persisted for {@link #NOTICE_TTL_MS}).
+     */
+    public static void recordReAddedNotice(String playerName) {
+        if (playerName == null || playerName.isBlank()) return;
+
+        Player online = onlinePlayer(playerName);
+        if (online != null) {
+            sendReAddedNotice(online);
+            return;
+        }
+
+        String key = playerName.toLowerCase(Locale.ROOT).trim();
+        StateStore.put(NOTICE_NAMESPACE, key,
+                String.valueOf(System.currentTimeMillis() + NOTICE_TTL_MS));
+    }
+
+    /** Drops a stored re-added notice (a new removal supersedes it). */
+    public static void clearReAddedNotice(String playerName) {
+        if (playerName == null || playerName.isBlank()) return;
+        StateStore.remove(NOTICE_NAMESPACE, playerName.toLowerCase(Locale.ROOT).trim());
+    }
+
+    private static void deliverReAddedNotice(Player player) {
+        String key = player.getName().toLowerCase(Locale.ROOT);
+        String raw = StateStore.get(NOTICE_NAMESPACE, key);
+        if (raw == null) return;
+
+        StateStore.remove(NOTICE_NAMESPACE, key);
+
+        long expiresAt;
+        try {
+            expiresAt = Long.parseLong(raw.trim());
+        } catch (NumberFormatException e) {
+            return;
+        }
+        if (System.currentTimeMillis() > expiresAt) return;
+        sendReAddedNotice(player);
+    }
+
+    private static void sendReAddedNotice(Player player) {
+        if (!WhitelistManager.isWhitelisted(player.getName())) return;
+        player.sendMessage(PunishmentMessages.buildReAddedNotice(
+                TimedAccessLists.AccessList.WHITELIST.displayName()));
+    }
+
+    /** Forgets any in-memory cadence for this player so the next tick starts fresh. */
+    private static void resetCadence(String playerName) {
+        String prefix = playerName.toLowerCase(Locale.ROOT) + ":";
+        STATES.keySet().removeIf(key -> key.startsWith(prefix));
     }
 
     private static void announce(Player player, long seconds) {

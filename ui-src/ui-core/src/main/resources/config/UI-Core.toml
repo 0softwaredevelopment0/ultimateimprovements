@@ -765,6 +765,10 @@ temp_requires_time = ["<red>❌ Этой команде требуется фл�
 # Placeholders: %list%, %time%, %unit% (the unit words below).
 # Default: ["<yellow>⚠</yellow> <white>Вы будете удалены из</white> <yellow>%list%</yellow> <white>через</white> <yellow>%time%</yellow> <white>%unit%</white>."]
 removal_warning = ["<yellow>⚠</yellow> <white>Вы будете удалены из</white> <yellow>%list%</yellow> <white>через</white> <yellow>%time%</yellow> <white>%unit%</white>."]
+# The player was added back while a removal was pending.
+# Placeholders: %list%.
+# Default: ["<green>✔</green> <white>Вы снова добавлены в</white> <yellow>%list%</yellow> <white>и не будете удалены.</white>"]
+readded_notice = ["<green>✔</green> <white>Вы снова добавлены в</white> <yellow>%list%</yellow> <white>и не будете удалены.</white>"]
 # Kick screen when the scheduled whitelist removal executes.
 # Placeholders: %player%, %list%, %discord_url%.
 # Default: ["<red>Ваш доступ к вайтлисту истёк.</red>", "<gray>Вы были удалены из</gray> <yellow>%list%</yellow><gray>.</gray>"]
@@ -1535,6 +1539,10 @@ temp_requires_time = ["<red>❌ This command requires the time flag </red><white
 # Placeholders: %list%, %time%, %unit% (the unit words below).
 # Default: ["<yellow>⚠</yellow> <white>You will be removed from the</white> <yellow>%list%</yellow> <white>in</white> <yellow>%time%</yellow> <white>%unit%</white>."]
 removal_warning = ["<yellow>⚠</yellow> <white>You will be removed from the</white> <yellow>%list%</yellow> <white>in</white> <yellow>%time%</yellow> <white>%unit%</white>."]
+# The player was added back while a removal was pending.
+# Placeholders: %list%.
+# Default: ["<green>✔</green> <white>You were added back to the</white> <yellow>%list%</yellow> <white>and will not be removed.</white>"]
+readded_notice = ["<green>✔</green> <white>You were added back to the</white> <yellow>%list%</yellow> <white>and will not be removed.</white>"]
 # Kick screen when the scheduled whitelist removal executes.
 # Placeholders: %player%, %list%, %discord_url%.
 # Default: ["<red>Your whitelist access has expired.</red>", "<gray>You were removed from the</gray> <yellow>%list%</yellow><gray>.</gray>"]

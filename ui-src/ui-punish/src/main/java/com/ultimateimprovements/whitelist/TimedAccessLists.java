@@ -260,14 +260,18 @@ public final class TimedAccessLists {
      * Cancels the pending player operation when its effect opposes the given
      * intent (an ADD intent cancels a pending REMOVE and vice versa).
      * Called on every player-targeted command so the latest intent wins.
+     *
+     * @return true when a pending operation was actually cancelled
      */
-    public static void cancelOpposingPlayer(AccessList list, String player, boolean addIntent) {
-        if (player == null || player.isBlank()) return;
+    public static boolean cancelOpposingPlayer(AccessList list, String player, boolean addIntent) {
+        if (player == null || player.isBlank()) return false;
         String opposing = addIntent ? "remove" : "add";
         PendingEntry entry = PENDING.get(playerKey(list, player));
         if (entry != null && entry.effect().equals(opposing)) {
             cancelEntry(list, "player", player);
+            return true;
         }
+        return false;
     }
 
     /**
@@ -311,6 +315,10 @@ public final class TimedAccessLists {
 
     /** Schedules a player add/remove after the delay. */
     public static void schedulePlayer(AccessList list, String player, boolean addEffect, long delayMs) {
+        // A new removal invalidates an earlier "you were re-added" notice.
+        if (list == AccessList.WHITELIST && !addEffect) {
+            TimedListWarnings.clearReAddedNotice(player);
+        }
         schedule(list, "player", player.toLowerCase(Locale.ROOT).trim(),
                 addEffect ? "add" : "remove", delayMs);
     }
