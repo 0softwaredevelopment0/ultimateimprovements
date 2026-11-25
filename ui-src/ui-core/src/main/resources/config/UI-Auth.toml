@@ -33,6 +33,19 @@ max_accounts_per_ip = 3
 # Default: false
 reject_loopback_ips = false
 
+# "Request a force login" button on the login dialog.
+# The button only asks staff for help (/ui auth forcelogin <nick>) — it never
+# authenticates the player. Requests are announced in the console and in chat
+# to online holders of ui.alerts / OP; they can mute the chat notices with
+# /ui auth forceloginrequest <on|off>.
+[auth.forcelogin_request]
+# Master switch (true = show the button and send requests).
+# Default: true
+enabled = true
+# Minimum seconds between two request clicks from the same player (0 = no delay).
+# Default: 15
+cooldown_seconds = 15
+
 # Password requirements. Applies to registration, self password change and admin resets.
 [auth.password]
 # Minimum password length in characters.
@@ -199,7 +212,7 @@ not_initialized = "<red>❌ Система авторизации не иниц�
 
 [messages.auth.admin]
 # Default: <red>❌ Использование: </red><white>/ui auth login|2fa|logout|changepassword|forcelogin|resetauth|chgpass|delsession</white>
-usage = "<red>❌ Использование: </red><white>/ui auth login|2fa|logout|changepassword|forcelogin|resetauth|chgpass|delsession</white>"
+usage = "<red>❌ Использование: </red><white>/ui auth login|2fa|logout|changepassword|forcelogin|forceloginrequest|resetauth|chgpass|delsession</white>"
 # Default: <yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Сессия сброшена.</red>\n<gray>Вы вышли из аккаунта — при следующем входе введите пароль заново.</gray>
 kick_logout = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Сессия сброшена.</red>\n<gray>Вы вышли из аккаунта — при следующем входе введите пароль заново.</gray>"
 # Default: <red>❌ Ник игрока и новый пароль обязательны.</red>
@@ -382,6 +395,8 @@ continue_button = "<green>✔ Продолжить</green>"
 cancel_button = "<red>❌ Отмена</red>"
 # Default: <red>❌ Выйти с сервера</red>
 exit_button = "<red>❌ Выйти с сервера</red>"
+# Default: <yellow>✦ Запросить принудительный вход</yellow>
+forcelogin_request_button = "<yellow>✦ Запросить принудительный вход</yellow>"
 # Default: <green>✔ Выйти</green>
 logout_confirm_button = "<green>✔ Выйти</green>"
 # Title text (MiniMessage).
@@ -426,6 +441,26 @@ body = "<white>Укажите ник игрока и новый пароль:</w
 [messages.auth.dialog.twofa]
 # Default: <white>Подтвердите вход через GitHub.</white>\n<gray>Аккаунт: <white>%account%</white>. Ссылка действительна 5 минут.</gray>
 body = "<white>Подтвердите вход через GitHub.</white>\n<gray>Аккаунт: <white>%account%</white>. Ссылка действительна 5 минут.</gray>"
+
+# force-login request section.
+# Placeholders: %player%, %command%, %seconds%
+
+[messages.auth.forcelogin_request]
+# Default: <green>✔</green> <white>Запрос на принудительный вход отправлен администрации.</white>
+sent = "<green>✔</green> <white>Запрос на принудительный вход отправлен администрации.</white>"
+# Default: <red>❌ Подождите </red><yellow>%seconds%</yellow> <red>секунд до следующего запроса!</red>
+cooldown = "<red>❌ Подождите </red><yellow>%seconds%</yellow> <red>секунд до следующего запроса!</red>"
+# Sent to the console and to alert holders; the chat copy is clickable.
+# Default: <gold>✦</gold> <white>Игрок</white> <yellow>%player%</yellow> <white>запрашивает принудительный вход.</white> <gray>Подтвердить:</gray> <yellow>%command%</yellow>
+notify = "<gold>✦</gold> <white>Игрок</white> <yellow>%player%</yellow> <white>запрашивает принудительный вход.</white> <gray>Подтвердить:</gray> <yellow>%command%</yellow>"
+# Default: <green>Нажмите, чтобы выполнить</green>\n<gray>%command%</gray>
+hover = "<green>Нажмите, чтобы выполнить</green>\n<gray>%command%</gray>"
+# Default: <green>✔</green> <white>Уведомления о запросах принудительного входа включены.</white>
+toggle_on = "<green>✔</green> <white>Уведомления о запросах принудительного входа включены.</white>"
+# Default: <yellow>✦</yellow> <white>Уведомления о запросах принудительного входа отключены.</white>
+toggle_off = "<yellow>✦</yellow> <white>Уведомления о запросах принудительного входа отключены.</white>"
+# Default: <red>❌ Использование: </red><white>/ui auth forceloginrequest <on|off></white>
+usage = "<red>❌ Использование: </red><white>/ui auth forceloginrequest <on|off></white>"
 
 # protection section.
 # Placeholders: %radius%, %value%, %points%, %r%, %cost%, %name%, %subcommand%, %player%, %password%, %seconds%, %attempts%, %details%
@@ -564,7 +599,7 @@ not_initialized = "<red>❌ Authorization system is not initialized!</red>"
 
 [messages_en.auth.admin]
 # Default: <red>❌ Usage: </red><white>/ui auth 2fa|logout|forcelogin|resetauth|chgpass|delsession</white>
-usage = "<red>❌ Usage: </red><white>/ui auth 2fa|logout|forcelogin|resetauth|chgpass|delsession</white>"
+usage = "<red>❌ Usage: </red><white>/ui auth 2fa|logout|forcelogin|forceloginrequest|resetauth|chgpass|delsession</white>"
 # Default: <green>✔</green> You have successfully logged out!\n<gray>On next login you will need to enter your password …
 kick_logout = "<yellow>✦</yellow> UltimateImprovements\n\n<red>❌ Session reset.</red>\n<gray>You logged out — enter your password again on the next login.</gray>"
 # Default: <red>❌ Player nickname and new password are required.</red>
@@ -754,6 +789,8 @@ continue_button = "<green>✔ Continue</green>"
 cancel_button = "<red>❌ Cancel</red>"
 # Default: <red>❌ Exit Server</red>
 exit_button = "<red>❌ Exit Server</red>"
+# Default: <yellow>✦ Request force login</yellow>
+forcelogin_request_button = "<yellow>✦ Request force login</yellow>"
 # Default: <green>✔ Log out</green>
 logout_confirm_button = "<green>✔ Log out</green>"
 # Title text (MiniMessage).
@@ -798,6 +835,26 @@ body = "<white>Enter the player nickname and the new password:</white>"
 [messages_en.auth.dialog.twofa]
 # Default: <white>Confirm the login through GitHub.</white>\n<gray>Account: <white>%account%</white>. The link is valid for 5 minutes.</gray>
 body = "<white>Confirm the login through GitHub.</white>\n<gray>Account: <white>%account%</white>. The link is valid for 5 minutes.</gray>"
+
+# force-login request section.
+# Placeholders: %player%, %command%, %seconds%
+
+[messages_en.auth.forcelogin_request]
+# Default: <green>✔</green> <white>Your force-login request was sent to the staff.</white>
+sent = "<green>✔</green> <white>Your force-login request was sent to the staff.</white>"
+# Default: <red>❌ Please wait </red><yellow>%seconds%</yellow> <red>seconds before the next request!</red>
+cooldown = "<red>❌ Please wait </red><yellow>%seconds%</yellow> <red>seconds before the next request!</red>"
+# Sent to the console and to alert holders; the chat copy is clickable.
+# Default: <gold>✦</gold> <white>Player</white> <yellow>%player%</yellow> <white>requests a force login.</white> <gray>Confirm with:</gray> <yellow>%command%</yellow>
+notify = "<gold>✦</gold> <white>Player</white> <yellow>%player%</yellow> <white>requests a force login.</white> <gray>Confirm with:</gray> <yellow>%command%</yellow>"
+# Default: <green>Click to run</green>\n<gray>%command%</gray>
+hover = "<green>Click to run</green>\n<gray>%command%</gray>"
+# Default: <green>✔</green> <white>Force-login request notifications enabled.</white>
+toggle_on = "<green>✔</green> <white>Force-login request notifications enabled.</white>"
+# Default: <yellow>✦</yellow> <white>Force-login request notifications disabled.</white>
+toggle_off = "<yellow>✦</yellow> <white>Force-login request notifications disabled.</white>"
+# Default: <red>❌ Usage: </red><white>/ui auth forceloginrequest <on|off></white>
+usage = "<red>❌ Usage: </red><white>/ui auth forceloginrequest <on|off></white>"
 
 # codepanel section.
 # Placeholders: %seconds%, %subcommand%, %flag%, %value%, %name%, %code%, %commands%, %players%, %color%, %remaining%, %max%, %duration%, %date%, %entity%

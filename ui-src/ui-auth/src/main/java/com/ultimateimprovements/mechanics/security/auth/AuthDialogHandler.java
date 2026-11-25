@@ -25,12 +25,16 @@ import java.util.UUID;
  * <ul>
  *   <li>{@code ultimateimprovements:auth_submit} — submit the password (Continue)</li>
  *   <li>{@code ultimateimprovements:auth_cancel} — cancel authentication (Exit → kick)</li>
+ *   <li>{@code ultimateimprovements:auth_forcelogin_request} — ask staff for a
+ *       force login (never authenticates by itself)</li>
  * </ul>
  */
 public class AuthDialogHandler implements Listener {
 
     private static final Key AUTH_SUBMIT_KEY = Key.key("ultimateimprovements", "auth_submit");
     private static final Key AUTH_CANCEL_KEY = Key.key("ultimateimprovements", "auth_cancel");
+    private static final Key AUTH_FORCELOGIN_REQUEST_KEY =
+            Key.key("ultimateimprovements", "auth_forcelogin_request");
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onCustomClick(PlayerCustomClickEvent event) {
@@ -44,8 +48,19 @@ public class AuthDialogHandler implements Listener {
         // The client closes a dialog the moment any button is pressed and never tells
         // the server — remember it, otherwise AuthPrompt would assume the auth screen
         // is still on the player's display.
-        if (identifier.equals(AUTH_SUBMIT_KEY) || identifier.equals(AUTH_CANCEL_KEY)) {
+        if (identifier.equals(AUTH_SUBMIT_KEY) || identifier.equals(AUTH_CANCEL_KEY)
+                || identifier.equals(AUTH_FORCELOGIN_REQUEST_KEY)) {
             AuthPrompt.markClosed(player);
+        }
+
+        // ─── Force-login request: notify staff, keep the player on the login screen ───
+        if (identifier.equals(AUTH_FORCELOGIN_REQUEST_KEY)) {
+            AuthForceLoginRequests.request(player);
+            // The client always closes the dialog on any button press, so re-send
+            // the form after a short delay instead of leaving the player frozen
+            // with no window at all.
+            AuthPrompt.openLater(player, 500L);
+            return;
         }
 
         // ─── GitHub 2FA challenge: cancel → back to the password window ───

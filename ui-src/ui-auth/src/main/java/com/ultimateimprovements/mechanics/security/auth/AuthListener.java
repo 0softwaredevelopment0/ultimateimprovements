@@ -95,6 +95,8 @@ public class AuthListener implements Listener {
         }
         // Drop the dialog-prompt bookkeeping (throttle timestamps) for a clean rejoin.
         AuthPrompt.removePlayer(uuid);
+        // Drop the force-login request cooldown (the persisted staff preference stays).
+        AuthForceLoginRequests.removePlayer(uuid);
         // Drop a pending GitHub 2FA challenge: the one-time state token would
         // otherwise sit in stateToUuid until the 5-minute expiry.
         Auth2FA twofa = Auth2FA.getInstance();

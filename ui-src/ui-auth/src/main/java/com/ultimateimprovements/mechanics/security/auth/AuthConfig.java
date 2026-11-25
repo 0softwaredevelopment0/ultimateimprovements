@@ -77,6 +77,16 @@ public class AuthConfig {
         return getRequestCooldownSeconds() * 1000L;
     }
 
+    /** Master switch for the "request a force login" button and its notifications. */
+    public static boolean isForceloginRequestEnabled() {
+        return getBool("auth.forcelogin_request.enabled", true);
+    }
+
+    /** Cooldown between two force-login request clicks from the same player. */
+    public static int getForceloginRequestCooldownSeconds() {
+        return getInt("auth.forcelogin_request.cooldown_seconds", 15);
+    }
+
     /** Growth factor of the wrong-password lock: 15 s → 30 s → 60 s ... (1 = constant). */
     public static int getLockoutBackoffMultiplier() {
         return Math.max(1, getInt("auth.lockout.backoff_multiplier", 2));

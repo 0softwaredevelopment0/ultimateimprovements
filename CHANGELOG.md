@@ -3,6 +3,29 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.13.0-alpha.1] - 2026-11-25
+
+### Added
+- **"Request a force login" button on the login dialog.** Below the confirmation
+  button, a registered player who cannot log in can now ask the staff for help.
+  Clicking it never authenticates anybody and changes no state: the plugin
+  announces `Player X requests a force login — confirm with
+  /ui auth forcelogin <nick>` in the console (plain text, no click/hover
+  possible there) and in chat to online holders of `ui.alerts` / OP, where the
+  whole line runs the command on click and shows a configurable hover hint.
+  The button is rate-limited per player (default 15 s, `[auth.forcelogin_request]`
+  `cooldown_seconds`, `enabled` master switch) so a frozen player cannot spam
+  staff; the client always closes a dialog on any button press, so the login
+  form is re-sent right after the click. The button is hidden on the
+  registration form (an unregistered account cannot be force-logged-in).
+- **`/ui auth forceloginrequest <on|off>`** lets alerts holders mute (or
+  re-enable) the chat notifications; the preference is persisted per player in
+  `ui_state` and the console log keeps recording every request. All texts —
+  button label, request line, hover, cooldown, toggle feedback and usage — are
+  configurable in both languages under `[messages.auth.forcelogin_request]` /
+  `[messages_en.auth.forcelogin_request]` plus
+  `auth.dialog.forcelogin_request_button`.
+
 ## [1.12.0-alpha.4] - 2026-11-25
 
 ### Added

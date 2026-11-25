@@ -37,6 +37,9 @@ public class AuthDialogScreen {
     public static final Identifier AUTH_SUBMIT_ID = Identifier.fromNamespaceAndPath("ultimateimprovements", "auth_submit");
     /** Identifier of the CustomAll action for cancellation (leave the server). */
     public static final Identifier AUTH_CANCEL_ID = Identifier.fromNamespaceAndPath("ultimateimprovements", "auth_cancel");
+    /** Identifier of the CustomAll action that asks staff for a force login. */
+    public static final Identifier AUTH_FORCELOGIN_REQUEST_ID =
+            Identifier.fromNamespaceAndPath("ultimateimprovements", "auth_forcelogin_request");
 
     private static final MiniMessage MM = MiniMessage.miniMessage();
 
@@ -103,6 +106,23 @@ public class AuthDialogScreen {
             Optional.of(new CustomAll(AUTH_CANCEL_ID, Optional.empty()))
         );
 
+        // "Request a force login" → CustomAll action. The click itself does nothing
+        // in the dialog (the client only closes it); the plugin notifies the staff
+        // in chat/console and re-sends the screen. Only registered players can be
+        // force-logged-in, so the button is hidden on the registration form.
+        java.util.List<ActionButton> mainButtons = new java.util.ArrayList<>();
+        mainButtons.add(continueBtn);
+        if (isRegistered && AuthConfig.isForceloginRequestEnabled()) {
+            net.minecraft.network.chat.Component requestLabel = toNative(
+                MM.deserialize(MessagesManager.getString("auth.dialog.forcelogin_request_button",
+                    "<yellow>✦ Request force login</yellow>"))
+            );
+            mainButtons.add(new ActionButton(
+                new CommonButtonData(requestLabel, 150),
+                Optional.of(new CustomAll(AUTH_FORCELOGIN_REQUEST_ID, Optional.empty()))
+            ));
+        }
+
         // ─── Dialog assembly ───
         CommonDialogData data = new CommonDialogData(
             title,
@@ -116,7 +136,7 @@ public class AuthDialogScreen {
 
         MultiActionDialog dialog = new MultiActionDialog(
             data,
-            List.of(continueBtn),   // mainActions
+            mainButtons,            // mainActions (Continue, then the force-login request)
             Optional.of(exitBtn),   // exitAction (exit button press)
             1                       // columns
         );

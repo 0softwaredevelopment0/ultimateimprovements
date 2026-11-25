@@ -100,6 +100,7 @@ public class HelpSubCommand implements SubCommand {
                 .u("logout", "confirm in a dialog, then the session is reset and you are kicked")
                 .u("changepassword", "change your password in a dialog (old + new)")
                 .u("forcelogin <player>", "log the player in server-side")
+                .u("forceloginrequest <on|off>", "mute/unmute force-login request alerts (ui.alerts holders)")
                 .u("resetauth <player>", "delete the player's registration")
                 .u("delsession <player>", "reset the player's stored session")
                 .u("chgpass [player] [new]", "password reset: dialog for players, arguments for the console");
