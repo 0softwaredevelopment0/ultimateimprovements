@@ -80,7 +80,7 @@ Vanilla `/stop` and `/restart` also remain available but are deprecated. A playe
 
 The generic command policy (`command_policy.enabled`, off by default) blocks every prefix listed in `command_policy.disabled_commands` (empty by default) with error 011. It applies to players and the console/RCON equally; the list is fully configurable.
 
-Vanilla `/op` and `/deop` keep their vanilla behaviour and are not overridden. The plugin only watches the dispatch: it prints a deprecation notice with clickable `/ui op` / `/ui deop` suggestions and, after the command has run, reconciles the plugin's OP list against the real `ops.json` set — so the database list and the real OP flag stay in sync. The existing OP whitelist/blacklist checks continue to run on their own. Both commands are in the sudo dangerous-command list by default; the sudo gate uses `ui.command.op` / `ui.command.deop` (OP-only by default).
+Vanilla `/op` and `/deop` keep their vanilla behaviour and are not overridden. The plugin only gates the dispatch: the first player execution is cancelled with a deprecation notice (clickable `/ui op` / `/ui deop` suggestions) and a request to repeat the exact command within `op.vanilla_confirm_seconds` (default 15 s); the repeated command runs as vanilla (permissions, argument handling, `ops.json` update, target notification), after which the plugin's OP list is reconciled against the real `ops.json` set. Without a repeat the action is cancelled by a timeout notice. The console is not asked to confirm. The existing OP whitelist/blacklist checks continue to run on their own. Both commands are in the sudo dangerous-command list by default; the sudo gate uses `ui.command.op` / `ui.command.deop` (OP-only by default).
 
 ## Anti-cheat and server guards
 

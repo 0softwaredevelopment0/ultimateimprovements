@@ -26,6 +26,19 @@ enabled = false
 [economy.income.mobs]
 
 # ─────────────────────────────────────────────────────────────────
+# OP — vanilla /op and /deop. The commands keep their vanilla
+# behaviour, but a player must first confirm by repeating the same
+# command within the window below (the console is not asked). After
+# confirmation vanilla runs and the plugin's OP list is reconciled
+# with the real ops.json set.
+# ─────────────────────────────────────────────────────────────────
+
+[op]
+# How long (seconds) a player has to repeat the exact command to confirm it.
+# Default: 15
+vanilla_confirm_seconds = 15
+
+# ─────────────────────────────────────────────────────────────────
 # OP SELF — /ui opself: a player requests operator status for
 # themselves. The request must be confirmed from the console
 # (/ui opself confirm | /ui opself cancel) or it expires.
@@ -187,6 +200,12 @@ admin_denied = "<gold>⚡ OP self:</gold> <white>request of</white> <yellow>%pla
 # ── Vanilla /op and /deop (deprecated but allowed) ──
 # %command% is "/op" or "/deop"; the /ui names are clickable (suggest_command).
 vanilla_deprecated = "<yellow>⚠</yellow> <gray>Команда <white>%command%</white> устарела.</gray>\n<gray>Используйте <hover:show_text:'<gray>Нажмите, чтобы вставить /ui op в чат</gray>'><click:suggest_command:'/ui op'><white>/ui op</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Нажмите, чтобы вставить /ui deop в чат</gray>'><click:suggest_command:'/ui deop'><white>/ui deop</white></click></hover>.</gray>\n<gray>Список операторов плагина будет синхронизирован после выполнения команды.</gray>"
+# %command%, %seconds%
+vanilla_confirm = "<gray>Введите <white>%command%</white> ещё раз в течение <white>%seconds% сек</white>, чтобы подтвердить действие. Иначе оно будет отменено.</gray>"
+# %command%
+vanilla_confirmed = "<green>✔</green> <gray>Подтверждено: <white>%command%</white>. Список операторов будет синхронизирован.</gray>"
+# %command%
+vanilla_timeout = "<red>⌛</red> <gray>Подтверждение для <white>%command%</white> истекло — действие отменено.</gray>"
 # %added%, %removed%
 vanilla_sync_done = "<gray>Список операторов синхронизирован: добавлено <white>%added%</white>, удалено <white>%removed%</white>.</gray>"
 vanilla_sync_failed = "<red>⚠</red> <gray>Не удалось прочитать список операторов (ошибка базы данных) — синхронизация пропущена.</gray>"
@@ -286,6 +305,12 @@ next_disabled = "<dark_gray>[>]</dark_gray>"
 # ── Vanilla /op and /deop (deprecated but allowed) ──
 # %command% is "/op" or "/deop"; the /ui names are clickable (suggest_command).
 vanilla_deprecated = "<yellow>⚠</yellow> <gray>The <white>%command%</white> command is deprecated.</gray>\n<gray>Use <hover:show_text:'<gray>Click to insert /ui op into chat</gray>'><click:suggest_command:'/ui op'><white>/ui op</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Click to insert /ui deop into chat</gray>'><click:suggest_command:'/ui deop'><white>/ui deop</white></click></hover> instead.</gray>\n<gray>The plugin's operator list will be synchronized after the command runs.</gray>"
+# %command%, %seconds%
+vanilla_confirm = "<gray>Type <white>%command%</white> again within <white>%seconds% s</white> to confirm. Otherwise the action will be cancelled.</gray>"
+# %command%
+vanilla_confirmed = "<green>✔</green> <gray>Confirmed: <white>%command%</white>. The operator list will be synchronized.</gray>"
+# %command%
+vanilla_timeout = "<red>⌛</red> <gray>Confirmation for <white>%command%</white> expired — the action was cancelled.</gray>"
 # %added%, %removed%
 vanilla_sync_done = "<gray>Operator list synchronized: added <white>%added%</white>, removed <white>%removed%</white>.</gray>"
 vanilla_sync_failed = "<red>⚠</red> <gray>Could not read the operator list (database error) — synchronization skipped.</gray>"
