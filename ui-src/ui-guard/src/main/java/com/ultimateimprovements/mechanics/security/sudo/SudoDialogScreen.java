@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,6 +40,8 @@ public class SudoDialogScreen {
     public static final Identifier SUDO_SUBMIT_ID = Identifier.fromNamespaceAndPath("ultimateimprovements", "sudo_submit");
     /** Identifier of the CustomAll action for cancellation (close the dialog). */
     public static final Identifier SUDO_CANCEL_ID = Identifier.fromNamespaceAndPath("ultimateimprovements", "sudo_cancel");
+    /** Identifier of the CustomAll action that requests a password reset from the console. */
+    public static final Identifier SUDO_RESET_ID = Identifier.fromNamespaceAndPath("ultimateimprovements", "sudo_reset");
 
     private static final MiniMessage MM = MiniMessage.miniMessage();
 
@@ -102,6 +105,20 @@ public class SudoDialogScreen {
             Optional.of(new CustomAll(SUDO_CANCEL_ID, Optional.empty()))
         );
 
+        // ─── Actions: Continue + (registered only) Reset password ───
+        List<ActionButton> actionButtons = new ArrayList<>();
+        actionButtons.add(continueBtn);
+        if (registered) {
+            net.minecraft.network.chat.Component resetLabel = toNative(
+                MM.deserialize(Main.getInstance().getConfig().getString("messages.sudo.dialog.reset_button",
+                    "<yellow>Reset password</yellow>"))
+            );
+            actionButtons.add(new ActionButton(
+                new CommonButtonData(resetLabel, 150),
+                Optional.of(new CustomAll(SUDO_RESET_ID, Optional.empty()))
+            ));
+        }
+
         // ─── Dialog assembly ───
         CommonDialogData data = new CommonDialogData(
             title,
@@ -115,7 +132,7 @@ public class SudoDialogScreen {
 
         MultiActionDialog dialog = new MultiActionDialog(
             data,
-            List.of(continueBtn),
+            actionButtons,
             Optional.of(cancelBtn),
             1
         );

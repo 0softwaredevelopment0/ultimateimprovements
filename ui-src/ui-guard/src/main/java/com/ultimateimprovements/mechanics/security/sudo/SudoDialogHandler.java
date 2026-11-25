@@ -14,11 +14,12 @@ import org.bukkit.event.Listener;
 
 /**
  * SudoDialogHandler — listens to {@link PlayerCustomClickEvent} and handles
- * sudo password submission or cancellation from the Custom Screen.
+ * sudo password submission, reset requests or cancellation from the Custom Screen.
  * <p>
- * Two modes:
+ * Three actions:
  * <ul>
  *   <li>{@code ultimateimprovements:sudo_submit} — password submission (Continue)</li>
+ *   <li>{@code ultimateimprovements:sudo_reset} — request a password reset from the console</li>
  *   <li>{@code ultimateimprovements:sudo_cancel} — cancel (close the dialog, no kick)</li>
  * </ul>
  */
@@ -26,6 +27,7 @@ public class SudoDialogHandler implements Listener {
 
     private static final Key SUDO_SUBMIT_KEY = Key.key("ultimateimprovements", "sudo_submit");
     private static final Key SUDO_CANCEL_KEY = Key.key("ultimateimprovements", "sudo_cancel");
+    private static final Key SUDO_RESET_KEY = Key.key("ultimateimprovements", "sudo_reset");
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onCustomClick(PlayerCustomClickEvent event) {
@@ -43,6 +45,16 @@ public class SudoDialogHandler implements Listener {
             }
             player.sendMessage(com.ultimateimprovements.util.MessageUtil.parse(
                     "<gray>❌ Sudo cancelled. The command was not executed.</gray>"));
+            return;
+        }
+
+        // ─── Reset password (send a request to the console) ───
+        if (identifier.equals(SUDO_RESET_KEY)) {
+            SudoDialogScreen.close(player);
+            SudoManager manager = SudoManager.getInstance();
+            if (manager != null) {
+                manager.requestReset(player);
+            }
             return;
         }
 

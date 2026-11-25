@@ -3,6 +3,17 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.13.0-alpha.7] - 2026-11-26
+
+### Changed
+- **Sudo password reset moved from chat into the sudo dialog.** After a wrong
+  password the chat now only shows "Try again in Ns" — no clickable reset
+  link. A registered player instead gets a "Reset password" button in the
+  sudo dialog (next to Continue), which closes the dialog and sends the same
+  reset request to the console; console confirmation is still required.
+  The attempt cooldown default is now 15 seconds (was 10) in both code and
+  `UI-Guard.toml`.
+
 ## [1.13.0-alpha.6] - 2026-11-26
 
 ### Fixed
