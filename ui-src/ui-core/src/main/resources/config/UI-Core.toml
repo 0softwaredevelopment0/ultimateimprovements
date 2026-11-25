@@ -113,6 +113,22 @@ lang = "en"
 # MESSAGES — RUSSIAN (active when lang = "ru")
 # ==================================================================
 
+# Startup chat alerts for alerts holders (ui.alerts / OP).
+# Placeholders: none
+[messages.loaded_alert]
+# One-shot "UltimateImprovements loaded successfully!" chat line.
+# Default: <white>UltimateImprovements успешно загружен!</white>
+message = "<white>UltimateImprovements успешно загружен!</white>"
+
+# Warning shown once per session when LuckPerms is not installed.
+# Placeholders: none
+[messages.luckperms_warning]
+# Default: <yellow>LuckPerms не найден на сервере. Он настоятельно рекомендуется для UltimateImprovements: от него зависят права, группы и плейсхолдеры.</yellow>
+message = "<yellow>LuckPerms не найден на сервере. Он настоятельно рекомендуется для UltimateImprovements: от него зависят права, группы и плейсхолдеры.</yellow>"
+# Second line with the download link.
+# Default: <yellow>Скачать: <white>https://luckperms.net/download</white></yellow>
+download = "<yellow>Скачать: <white>https://luckperms.net/download</white></yellow>"
+
 # energy crafting section.
 # Placeholders: %amount%
 [messages.energy_crafting]
@@ -894,6 +910,22 @@ all_passed = "[ConfigValidator] ✓ Все значения конфига пр�
 # Legacy monolithic config.toml found in the data folder.
 # Default: [Config] Найден устаревший монолитный config.toml в %dir% — настройки теперь хранятся в configs/UI-<Addon>.toml
 legacy_monolithic = "[Config] Найден устаревший монолитный config.toml в %dir% — настройки теперь хранятся в configs/UI-<Addon>.toml"
+
+# Startup chat alerts for alerts holders (ui.alerts / OP).
+# Placeholders: none
+[messages_en.loaded_alert]
+# One-shot "UltimateImprovements loaded successfully!" chat line.
+# Default: <white>UltimateImprovements loaded successfully!</white>
+message = "<white>UltimateImprovements loaded successfully!</white>"
+
+# Warning shown once per session when LuckPerms is not installed.
+# Placeholders: none
+[messages_en.luckperms_warning]
+# Default: <yellow>LuckPerms was not found on this server. It is highly recommended for UltimateImprovements: permissions, groups and placeholders depend on it.</yellow>
+message = "<yellow>LuckPerms was not found on this server. It is highly recommended for UltimateImprovements: permissions, groups and placeholders depend on it.</yellow>"
+# Second line with the download link.
+# Default: <yellow>Download: <white>https://luckperms.net/download</white></yellow>
+download = "<yellow>Download: <white>https://luckperms.net/download</white></yellow>"
 
 # energy crafting section.
 # Placeholders: %amount%

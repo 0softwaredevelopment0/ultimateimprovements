@@ -3,6 +3,20 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.12.0-alpha.3] - 2026-11-25
+
+### Added
+- **Startup alert texts are configurable in both languages** (`UI-Core.toml`).
+  The loaded-success chat line and the missing-LuckPerms warning moved out of
+  hard-coded English into the message config:
+  - `[messages.loaded_alert]` / `[messages_en.loaded_alert]` — `message`
+  - `[messages.luckperms_warning]` / `[messages_en.luckperms_warning]` —
+    `message` and `download` (second line with the link)
+  `LoadedAlertListener` reads them through `MessageUtil.raw`, so `/ui reload`
+  applies edits live and the active language follows `messages.lang` like the
+  rest of the plugin. New `StartupAlertMessagesTest` guards both language
+  sections and MiniMessage rendering.
+
 ## [1.12.0-alpha.2] - 2026-11-25
 
 ### Changed
