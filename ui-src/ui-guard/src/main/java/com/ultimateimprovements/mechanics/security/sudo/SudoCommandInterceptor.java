@@ -81,6 +81,12 @@ public class SudoCommandInterceptor implements Listener {
 
         if (!manager.isDangerous(msg)) return;
 
+        // /ui sudo ... is self-service management, not a dangerous action: the
+        // reset request is the recovery path for a forgotten password, so it
+        // must never be blocked by the password dialog itself. The command's
+        // own ui.command.sudo guard still applies.
+        if (manager.isSudoSelfService(msg)) return;
+
         // ── No sudo rights: 002 (command permission) beats 003 (sudo) ──
         if (!player.hasPermission("ui.sudo")) {
             List<String> base = manager.getUiBasePermissions(msg);

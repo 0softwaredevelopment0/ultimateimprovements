@@ -189,8 +189,11 @@ attempt_cooldown_seconds = 10
 # Command.
 # Vanilla "op" and "deop" are listed too: those commands stay usable but must
 # pass sudo mode before the deprecation notice and the repeat-to-confirm step.
-# Default: ["ui punish", "ui power", "ui sudo", "ui op", "ui deop", "ui opself", "ui uninstall", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maintenance", "ui stresstest", "op", "deop", "stop", "restart", "lp", "luckperms"]
-dangerous_commands = ["ui punish", "ui power", "ui sudo", "ui op", "ui deop", "ui opself", "ui uninstall", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maintenance", "ui stresstest", "op", "deop", "stop", "restart", "lp", "luckperms"]
+# "/ui sudo ..." is intentionally absent: it manages sudo mode itself and its
+# reset subcommand must work when the password is forgotten. It is never
+# sudo-gated, even if an older config still lists it.
+# Default: ["ui punish", "ui power", "ui op", "ui deop", "ui opself", "ui uninstall", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maintenance", "ui stresstest", "op", "deop", "stop", "restart", "lp", "luckperms"]
+dangerous_commands = ["ui punish", "ui power", "ui op", "ui deop", "ui opself", "ui uninstall", "ui whitelist", "ui opwhitelist", "ui opblacklist", "ui blacklist", "ui maintenance", "ui stresstest", "op", "deop", "stop", "restart", "lp", "luckperms"]
 
 # Command policy: vanilla commands superseded by /ui equivalents.
 # Typing them reports error 011 ("command disabled on this server").

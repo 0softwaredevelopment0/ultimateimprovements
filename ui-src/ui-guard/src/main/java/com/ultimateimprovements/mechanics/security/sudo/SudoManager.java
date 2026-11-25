@@ -26,7 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *       (dialog) opens asking them to set a password and not forget it.</li>
  *   <li>Cooldown between attempts — 10 seconds, unlimited attempts.</li>
  *   <li>On a wrong password a reset is offered: the request goes to the console,
- *       the console confirms via {@code /ui sudo confirmreset <player>}.</li>
+ *       the console confirms via {@code /ui sudo confirmreset <player>}.
+ *       {@code /ui sudo ...} itself is never sudo-gated — the reset command is
+ *       the recovery path and must work exactly when no session exists.</li>
  * </ul>
  */
 public class SudoManager {
@@ -137,6 +139,19 @@ public class SudoManager {
             }
         }
         return false;
+    }
+
+    /**
+     * Self-service sudo management ({@code /ui sudo ...}) must stay reachable
+     * without an active session. In particular {@code /ui sudo reset} is the
+     * recovery path for a forgotten password: gating it behind the password
+     * dialog itself would make recovery impossible (the player is asked for
+     * the very password they are trying to reset). The command still enforces
+     * its own {@code ui.command.sudo} permission.
+     */
+    public boolean isSudoSelfService(String message) {
+        String normalized = normalize(message);
+        return normalized.equals("ui sudo") || normalized.startsWith("ui sudo ");
     }
 
     private static String normalize(String s) {

@@ -466,8 +466,10 @@ public final class AddonConfigManager {
      * <p>
      * This upgrade removes those four entries from the disabled list, appends
      * {@code op}/{@code deop}/{@code stop}/{@code restart} to the sudo list once,
-     * and turns the policy off when its list becomes empty. Idempotent — a
-     * config already in the new shape is untouched.
+     * turns the policy off when its list becomes empty, and drops the stale
+     * {@code ui sudo} entry (self-service management is never sudo-gated — its
+     * reset subcommand is the recovery path for a forgotten password).
+     * Idempotent — a config already in the new shape is untouched.
      *
      * @return number of upgraded values
      */
@@ -498,21 +500,42 @@ public final class AddonConfigManager {
         if (dangerous != null && !dangerous.isEmpty()) {
             List<String> updated = new ArrayList<>(dangerous);
             boolean changed = false;
+            boolean added = false;
             for (String entry : new String[]{"op", "deop", "stop", "restart", "ui uninstall"}) {
                 if (updated.stream().noneMatch(existing -> entry.equalsIgnoreCase(existing.trim()))) {
                     updated.add(entry);
-                    changed = true;
+                    added = true;
                 }
+            }
+            if (added) {
+                changed = true;
+                ConsoleLogger.info("[Config/UI-Guard] sudo.dangerous_commands: "
+                        + "added vanilla op/deop/stop/restart and ui uninstall");
+            }
+            // "/ui sudo ..." is self-service sudo management: /ui sudo reset is
+            // the recovery path for a forgotten password and must not be gated
+            // by the password dialog. Older configs still list it — drop it.
+            int beforeSelfService = updated.size();
+            updated.removeIf(AddonConfigManager::isSudoSelfServiceEntry);
+            if (updated.size() != beforeSelfService) {
+                changed = true;
+                ConsoleLogger.info("[Config/UI-Guard] sudo.dangerous_commands: "
+                        + "removed ui sudo — it is self-service and never sudo-gated");
             }
             if (changed) {
                 view.set("sudo.dangerous_commands", updated);
                 upgraded++;
-                ConsoleLogger.info("[Config/UI-Guard] sudo.dangerous_commands: "
-                        + "added vanilla op/deop/stop/restart and ui uninstall");
             }
         }
 
         return upgraded;
+    }
+
+    /** Whether a sudo-list entry points at the self-service {@code /ui sudo} command. */
+    private static boolean isSudoSelfServiceEntry(String entry) {
+        String normalized = entry.trim().toLowerCase(java.util.Locale.ROOT);
+        if (normalized.startsWith("/")) normalized = normalized.substring(1);
+        return normalized.equals("ui sudo") || normalized.startsWith("ui sudo ");
     }
 
     /** Whether a command-policy entry points at a command with a dedicated flow. */
