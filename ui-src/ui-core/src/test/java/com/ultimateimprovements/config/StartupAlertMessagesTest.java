@@ -77,6 +77,22 @@ class StartupAlertMessagesTest {
     }
 
     @Test
+    @DisplayName("Download lines carry a MiniMessage open_url click event by default")
+    void downloadLinesAreClickable() throws Exception {
+        YamlConfiguration cfg = loadBundledTemplate();
+        for (String path : new String[]{
+                "messages.luckperms_warning.download",
+                "messages_en.luckperms_warning.download"}) {
+            String value = cfg.getString(path);
+            assertNotNull(value, path + " missing");
+            assertTrue(value.contains("click:open_url:"),
+                    path + " must contain a MiniMessage open_url click event");
+            assertTrue(value.contains("https://luckperms.net/download"),
+                    path + " must contain the download URL");
+        }
+    }
+
+    @Test
     @DisplayName("Configured texts survive MiniMessage parsing (no broken tags)")
     void configuredTextsParse() throws Exception {
         YamlConfiguration cfg = loadBundledTemplate();

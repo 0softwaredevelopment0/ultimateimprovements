@@ -3,6 +3,19 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.12.0-alpha.4] - 2026-11-25
+
+### Added
+- **The LuckPerms download link is clickable in chat by default.** The
+  `luckperms_warning.download` defaults in both languages now wrap the URL in a
+  MiniMessage `<click:open_url:'https://luckperms.net/download'>` event with an
+  underlined, white label. Console output is unaffected: the startup banner
+  keeps printing the plain URL (consoles cannot open links). Installations that
+  never edited the line are upgraded once by
+  `AddonConfigManager.upgradeLuckPermsDownloadLink`; customised text is kept
+  as-is. `StartupAlertMessagesTest` now asserts the click event in both
+  language sections.
+
 ## [1.12.0-alpha.3] - 2026-11-25
 
 ### Added

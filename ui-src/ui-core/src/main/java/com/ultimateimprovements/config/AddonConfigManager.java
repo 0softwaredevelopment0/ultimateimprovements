@@ -368,6 +368,15 @@ public final class AddonConfigManager {
             "<gray>Time remaining <dark_gray>»</dark_gray> <white>%duration%</white>";
 
     /**
+     * Old plain (non-clickable) defaults of the LuckPerms download line, before
+     * the link gained a MiniMessage {@code open_url} click event in
+     * 1.12.0-alpha.4. Used once to upgrade untouched installs.
+     */
+    private static final Map<String, String> OLD_DOWNLOAD_LINES = Map.of(
+            "messages", "<yellow>Скачать: <white>https://luckperms.net/download</white></yellow>",
+            "messages_en", "<yellow>Download: <white>https://luckperms.net/download</white></yellow>");
+
+    /**
      * Upgrades values that already exist on disk but changed their default shape in a
      * newer plugin version. {@link #repairFromBundle(String, YamlConfiguration)} only
      * fills MISSING keys, so a list template that gained a line would otherwise stay
@@ -418,6 +427,31 @@ public final class AddonConfigManager {
             upgraded++;
             ConsoleLogger.info("[Config/UI-Core] Upgraded " + path
                     + ": inserted the \"Time remaining\" line into the block dialog template");
+        }
+        return upgraded + upgradeLuckPermsDownloadLink(view);
+    }
+
+    /**
+     * Adds the MiniMessage {@code open_url} click event to the LuckPerms download
+     * line when it still holds the old plain default. Any customised value is
+     * left untouched. Idempotent: a clickable line no longer matches.
+     *
+     * @return number of upgraded values
+     */
+    private static int upgradeLuckPermsDownloadLink(YamlConfiguration view) {
+        int upgraded = 0;
+        for (Map.Entry<String, String> entry : OLD_DOWNLOAD_LINES.entrySet()) {
+            String path = entry.getKey() + ".luckperms_warning.download";
+            String current = view.getString(path, null);
+            if (current == null || !current.equals(entry.getValue())) continue;
+            String updated = current
+                    .replace("<white>https://luckperms.net/download</white>",
+                            "<click:open_url:'https://luckperms.net/download'>"
+                                    + "<white><u>https://luckperms.net/download</u></white></click>");
+            view.set(path, updated);
+            upgraded++;
+            ConsoleLogger.info("[Config/UI-Core] Upgraded " + path
+                    + ": added a clickable open_url event to the LuckPerms download link");
         }
         return upgraded;
     }

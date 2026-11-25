@@ -73,7 +73,8 @@ public final class LoadedAlertListener implements Listener {
                             + "It is highly recommended for UltimateImprovements: "
                             + "permissions, groups and placeholders depend on it.</yellow>");
             String download = MessageUtil.raw("luckperms_warning.download",
-                    "<yellow>Download: <white>https://luckperms.net/download</white></yellow>");
+                    "<yellow>Download: <click:open_url:'https://luckperms.net/download'>"
+                            + "<white><u>https://luckperms.net/download</u></white></click></yellow>");
             player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX + text));
             player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX + download));
         }
