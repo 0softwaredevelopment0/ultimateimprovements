@@ -51,11 +51,14 @@ Staged updates are not active until the corresponding JARs are loaded on server 
 | \`/ui auth logout\` | Confirm logout and reset the session |
 | \`/ui auth changepassword\` | Change password through a dialog |
 | \`/ui auth forcelogin <player>\` | Force a player's authenticated state |
+| \`/ui auth forceloginrequest <on\|off>\` | Mute/re-enable force-login request alerts (alerts holders) |
 | \`/ui auth resetauth <player>\` | Reset a player's registration |
 | \`/ui auth delsession <player>\` | Delete a player's saved session |
 | \`/ui auth chgpass [player] [new_password]\` | Password recovery; console form takes arguments |
 
 Passwords are entered using the plugin's dialog flow, not in public chat. Do not put passwords into command logs, chat or screenshots.
+
+The login dialog also has a **Request force login** button (registered players, on the login form only). It never logs anybody in by itself — it asks staff for a manual `/ui auth forcelogin <player>` and is rate-limited (`[auth.forcelogin_request]`). The request is printed to the console and sent in chat to `ui.alerts` / OP holders as a clickable line; those holders can mute the chat copy with `/ui auth forceloginrequest <on|off>`.
 
 ## Moderation and server protection
 

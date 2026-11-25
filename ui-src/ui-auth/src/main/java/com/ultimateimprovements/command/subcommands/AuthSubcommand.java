@@ -7,9 +7,11 @@ import com.ultimateimprovements.core.Main;
 import com.ultimateimprovements.mechanics.security.auth.AuthConfig;
 import com.ultimateimprovements.mechanics.security.auth.AuthDatabase;
 import com.ultimateimprovements.mechanics.security.auth.AuthDialogs;
+import com.ultimateimprovements.mechanics.security.auth.AuthForceLoginRequests;
 import com.ultimateimprovements.mechanics.security.auth.AuthManager;
 import com.ultimateimprovements.mechanics.security.auth.AuthPrompt;
 import com.ultimateimprovements.mechanics.security.auth.PasswordPolicy;
+import com.ultimateimprovements.util.AlertBroadcast;
 import com.ultimateimprovements.util.MessageUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -49,7 +51,7 @@ public final class AuthSubcommand {
                 return handleLogin(player);
             }
             sender.sendMessage(MessageUtil.parse(MessagesManager.getString("auth.admin.usage",
-                    "<red>❌ Usage: </red><white>/ui auth login|2fa|logout|changepassword|forcelogin|resetauth|chgpass|delsession</white>")));
+                    "<red>❌ Usage: </red><white>/ui auth login|2fa|logout|changepassword|forcelogin|forceloginrequest|resetauth|chgpass|delsession</white>")));
             return true;
         }
 
@@ -57,6 +59,7 @@ public final class AuthSubcommand {
             case "login" -> handleLogin(sender);
             case "2fa" -> handle2FA(sender, args);
             case "forcelogin" -> handleForceLogin(sender, args);
+            case "forceloginrequest" -> handleForceLoginRequestToggle(sender, args);
             case "resetauth" -> handleResetAuth(sender, args);
             case "delsession" -> handleDelSession(sender, args);
             case "logout" -> handleLogout(sender, args);
@@ -126,6 +129,9 @@ public final class AuthSubcommand {
                 if (args.length == 3) return onlinePlayerNames();
                 return List.of(""); // password field — never suggest player names
             }
+            case "forceloginrequest" -> {
+                return args.length == 3 ? List.of("on", "off") : List.of("");
+            }
             default -> {
                 return List.of("");
             }
@@ -139,6 +145,9 @@ public final class AuthSubcommand {
             return List.of("login");
         }
         List<String> names = new ArrayList<>(List.of("2fa", "logout", "changepassword"));
+        if (sender instanceof Player player && AlertBroadcast.hasAlertPermission(player)) {
+            names.add("forceloginrequest");
+        }
         if (sender.hasPermission("ui.command.auth.forcelogin")) names.add("forcelogin");
         if (sender.hasPermission("ui.command.auth.resetauth")) names.add("resetauth");
         if (sender.hasPermission("ui.command.auth.delsession")) names.add("delsession");
@@ -286,6 +295,46 @@ public final class AuthSubcommand {
                 : msg("auth.admin.forcelogin_fail",
                         "<red>❌ Failed to force login player</red> <yellow>%player%</yellow>",
                         "%player%", name));
+        return true;
+    }
+
+    /**
+     * {@code /ui auth forceloginrequest <on|off>} — opt out of (or back in to) the
+     * chat notifications sent when a player clicks "request a force login".
+     * Only recipients of the alert permission need it; the console log always
+     * keeps recording requests.
+     */
+    private static boolean handleForceLoginRequestToggle(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            CommandErrors.playerOnly(sender);
+            return true;
+        }
+        if (!AlertBroadcast.hasAlertPermission(player)) {
+            CommandErrors.noPermission(player, AlertBroadcast.PERMISSION);
+            return true;
+        }
+        if (args.length < 3) {
+            player.sendMessage(msg("auth.forcelogin_request.usage",
+                    "<red>❌ Usage: </red><white>/ui auth forceloginrequest <on|off></white>"));
+            return true;
+        }
+        String value = args[2].toLowerCase(Locale.ROOT);
+        boolean enabled;
+        if (value.equals("on") || value.equals("true") || value.equals("enable")) {
+            enabled = true;
+        } else if (value.equals("off") || value.equals("false") || value.equals("disable")) {
+            enabled = false;
+        } else {
+            player.sendMessage(msg("auth.forcelogin_request.usage",
+                    "<red>❌ Usage: </red><white>/ui auth forceloginrequest <on|off></white>"));
+            return true;
+        }
+        AuthForceLoginRequests.setAlertsEnabled(player.getUniqueId(), enabled);
+        player.sendMessage(enabled
+                ? msg("auth.forcelogin_request.toggle_on",
+                        "<green>✔</green> <white>Force-login request notifications enabled.</white>")
+                : msg("auth.forcelogin_request.toggle_off",
+                        "<yellow>✦</yellow> <white>Force-login request notifications disabled.</white>"));
         return true;
     }
 
