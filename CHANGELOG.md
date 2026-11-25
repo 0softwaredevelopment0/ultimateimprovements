@@ -3,6 +3,21 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.31] - 2026-11-25
+
+### Added
+- **`/ui uninstall` — remove the whole plugin family.** The command deletes
+  every `UI-*.jar` from the plugins directory and staged `UI-*.jar` files from
+  `UltimateImprovements/update/`; a restart finishes the removal (on Windows
+  the JARs of running plugins are locked and are reported for manual deletion).
+  It is disabled by default (`uninstall.enabled = false` in `UI-Other.toml`)
+  and answers with error `018` while off. Access requires the new
+  `ui.command.uninstall` permission (default `FALSE`, so neither players nor
+  OPs get it out of the box) **and** the `uninstall.mode` /
+  `uninstall.players` nickname list (whitelist by default, blacklist optional;
+  the console is exempt). The command is also in the default
+  `sudo.dangerous_commands` list, so players need an active sudo session.
+
 ## [1.11.0-alpha.30] - 2026-11-25
 
 ### Fixed

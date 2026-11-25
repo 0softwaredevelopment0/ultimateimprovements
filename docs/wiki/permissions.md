@@ -229,6 +229,7 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.suicide`
 - `ui.command.swapjar`
 - `ui.command.turret`
+- `ui.command.uninstall`
 - `ui.command.unlock`
 - `ui.command.updatejar`
 - `ui.command.uuid`

@@ -163,6 +163,27 @@ enabled = false
 # Default: true
 log_to_console = true
 
+# Full family uninstall (/ui uninstall) — removes every UI-*.jar from plugins/
+# (and staged UI-*.jar files from UltimateImprovements/update/).
+# The command is always registered; while enabled = false it answers with
+# error 018 ("the command belongs to a disabled module").
+[uninstall]
+# Master switch (true = the command may remove the JARs).
+# Default: false
+enabled = false
+# Access mode for PLAYERS (the console is always allowed):
+#   "whitelist" — only the nicknames in players may run the command (default);
+#   "blacklist" — every player EXCEPT the listed nicknames may run it.
+# The special permission ui.command.uninstall is required in both modes and is
+# not granted to anyone by default (not even to OPs). The command is also
+# listed in sudo.dangerous_commands (UI-Guard.toml), so a player needs an
+# active sudo session.
+# Default: "whitelist"
+mode = "whitelist"
+# Nicknames for the selected mode (case-insensitive).
+# Default: []
+players = []
+
 # Dimension change command (/ui changedimmension) and its dialog.
 [changedimmension]
 # World name.

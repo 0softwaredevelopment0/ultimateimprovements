@@ -108,6 +108,10 @@ final class ConfigRules {
 
             bool("debug.startup_scans"),
 
+            bool("uninstall.enabled"),
+            stringEnum("uninstall.mode", "whitelist", "blacklist"),
+            stringList("uninstall.players"),
+
             bool("energy.generator.enabled"),
             integer("energy.generator.energy_per_fuel", 0, Integer.MAX_VALUE, "Энергия за тик горения"),
             integer("energy.generator.fuel_burn_ticks", 1, 72000, "Длительность горения топлива"),
