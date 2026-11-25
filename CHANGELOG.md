@@ -3,6 +3,17 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.13.0-alpha.4] - 2026-11-26
+
+### Fixed
+- **CI no longer fails on a machine-specific JDK path.** `gradle.properties`
+  no longer pins `org.gradle.java.home` to a local Windows installation
+  (`C:/Program Files/Eclipse Adoptium/...`), which made every GitHub Actions
+  build fail with "Java home supplied is invalid". Gradle now uses
+  `JAVA_HOME` (set by `actions/setup-java` on CI) and the Java 26 toolchain
+  from the root `build.gradle`. Personal overrides belong in the user-level
+  `~/.gradle/gradle.properties`, which is not committed.
+
 ## [1.13.0-alpha.3] - 2026-11-26
 
 ### Fixed
