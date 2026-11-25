@@ -4,6 +4,7 @@ import com.ultimateimprovements.core.Main;
 import com.ultimateimprovements.database.DatabaseManager;
 import com.ultimateimprovements.util.ConsoleLogger;
 import com.ultimateimprovements.util.MessageUtil;
+import com.ultimateimprovements.util.PlayerLookup;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -132,44 +133,48 @@ public class OpBlacklistManager implements Listener {
     // ════════════════════════════════════════
     public static boolean add(String playerName) {
         if (playerName == null || playerName.isBlank()) return false;
-        String lower = playerName.toLowerCase().trim();
+        // Store the nickname as typed (display casing); match it case-insensitively.
+        String name = playerName.trim();
 
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "INSERT OR IGNORE INTO op_blacklist (player_name) VALUES (?)")) {
-            st.setString(1, lower);
+                     "INSERT INTO op_blacklist (player_name) "
+                             + "SELECT ? WHERE NOT EXISTS "
+                             + "(SELECT 1 FROM op_blacklist WHERE player_name = ? COLLATE NOCASE)")) {
+            st.setString(1, name);
+            st.setString(2, name);
             int rows = st.executeUpdate();
             if (rows > 0) {
-                ConsoleLogger.info("[OpBlacklist] Added: " + lower);
+                ConsoleLogger.info("[OpBlacklist] Added: " + name);
 
                 // Strip OP immediately if the player is online
-                Player online = Bukkit.getPlayerExact(playerName);
+                Player online = PlayerLookup.online(name);
                 checkAndDeop(online);
                 return true;
             }
             return false; // already present
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.WARNING, "[OpBlacklist] Failed to add: " + lower, e);
+            Main.getInstance().getLogger().log(Level.WARNING, "[OpBlacklist] Failed to add: " + name, e);
             return false;
         }
     }
 
     public static boolean remove(String playerName) {
         if (playerName == null || playerName.isBlank()) return false;
-        String lower = playerName.toLowerCase().trim();
+        String name = playerName.trim();
 
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "DELETE FROM op_blacklist WHERE player_name = ?")) {
-            st.setString(1, lower);
+                     "DELETE FROM op_blacklist WHERE player_name = ? COLLATE NOCASE")) {
+            st.setString(1, name);
             int rows = st.executeUpdate();
             if (rows > 0) {
-                ConsoleLogger.info("[OpBlacklist] Removed: " + lower);
+                ConsoleLogger.info("[OpBlacklist] Removed: " + name);
                 return true;
             }
             return false; // not found
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.WARNING, "[OpBlacklist] Failed to remove: " + lower, e);
+            Main.getInstance().getLogger().log(Level.WARNING, "[OpBlacklist] Failed to remove: " + name, e);
             return false;
         }
     }
@@ -202,16 +207,17 @@ public class OpBlacklistManager implements Listener {
     // CHECK
     // ════════════════════════════════════════
     public static boolean isBlacklisted(String playerName) {
-        String lower = playerName.toLowerCase().trim();
+        if (playerName == null || playerName.isBlank()) return false;
+        String name = playerName.trim();
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "SELECT 1 FROM op_blacklist WHERE player_name = ?")) {
-            st.setString(1, lower);
+                     "SELECT 1 FROM op_blacklist WHERE player_name = ? COLLATE NOCASE")) {
+            st.setString(1, name);
             try (ResultSet rs = st.executeQuery()) {
                 return rs.next();
             }
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.FINE, "[OpBlacklist] Check error for: " + lower, e);
+            Main.getInstance().getLogger().log(Level.FINE, "[OpBlacklist] Check error for: " + name, e);
             return false;
         }
     }

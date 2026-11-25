@@ -147,7 +147,7 @@ public class OpWhitelistManager implements Listener {
                     try (PreparedStatement st = con.prepareStatement(
                             "INSERT OR IGNORE INTO op_whitelist (player_name) VALUES (?)")) {
                         for (String p : parts) {
-                            p = p.trim().replaceAll("^\"|\"$", "").toLowerCase();
+                            p = p.trim().replaceAll("^\"|\"$", "");
                             if (!p.isEmpty()) {
                                 st.setString(1, p);
                                 st.addBatch();
@@ -207,40 +207,44 @@ public class OpWhitelistManager implements Listener {
     // ════════════════════════════════════════
     public static boolean add(String playerName) {
         if (playerName == null || playerName.isBlank()) return false;
-        String lower = playerName.toLowerCase().trim();
+        // Store the nickname as typed (display casing); match it case-insensitively.
+        String name = playerName.trim();
 
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "INSERT OR IGNORE INTO op_whitelist (player_name) VALUES (?)")) {
-            st.setString(1, lower);
+                     "INSERT INTO op_whitelist (player_name) "
+                             + "SELECT ? WHERE NOT EXISTS "
+                             + "(SELECT 1 FROM op_whitelist WHERE player_name = ? COLLATE NOCASE)")) {
+            st.setString(1, name);
+            st.setString(2, name);
             int rows = st.executeUpdate();
             if (rows > 0) {
-                ConsoleLogger.info("[OpWhitelist] Added: " + lower);
+                ConsoleLogger.info("[OpWhitelist] Added: " + name);
                 return true;
             }
             return false; // already present
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.WARNING, "[OpWhitelist] Failed to add: " + lower, e);
+            Main.getInstance().getLogger().log(Level.WARNING, "[OpWhitelist] Failed to add: " + name, e);
             return false;
         }
     }
 
     public static boolean remove(String playerName) {
         if (playerName == null || playerName.isBlank()) return false;
-        String lower = playerName.toLowerCase().trim();
+        String name = playerName.trim();
 
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "DELETE FROM op_whitelist WHERE player_name = ?")) {
-            st.setString(1, lower);
+                     "DELETE FROM op_whitelist WHERE player_name = ? COLLATE NOCASE")) {
+            st.setString(1, name);
             int rows = st.executeUpdate();
             if (rows > 0) {
-                ConsoleLogger.info("[OpWhitelist] Removed: " + lower);
+                ConsoleLogger.info("[OpWhitelist] Removed: " + name);
                 return true;
             }
             return false; // not found
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.WARNING, "[OpWhitelist] Failed to remove: " + lower, e);
+            Main.getInstance().getLogger().log(Level.WARNING, "[OpWhitelist] Failed to remove: " + name, e);
             return false;
         }
     }
@@ -275,16 +279,17 @@ public class OpWhitelistManager implements Listener {
     // CHECK HELPERS
     // ════════════════════════════════════════
     public static boolean isWhitelisted(String playerName) {
-        String lower = playerName.toLowerCase().trim();
+        if (playerName == null || playerName.isBlank()) return false;
+        String name = playerName.trim();
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "SELECT 1 FROM op_whitelist WHERE player_name = ?")) {
-            st.setString(1, lower);
+                     "SELECT 1 FROM op_whitelist WHERE player_name = ? COLLATE NOCASE")) {
+            st.setString(1, name);
             try (ResultSet rs = st.executeQuery()) {
                 return rs.next();
             }
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.FINE, "[OpWhitelist] Check error for: " + lower, e);
+            Main.getInstance().getLogger().log(Level.FINE, "[OpWhitelist] Check error for: " + name, e);
             return false;
         }
     }

@@ -5,6 +5,7 @@ import com.ultimateimprovements.database.DatabaseManager;
 import com.ultimateimprovements.punish.PunishmentMessages;
 import com.ultimateimprovements.util.MessageUtil;
 import com.ultimateimprovements.util.ConsoleLogger;
+import com.ultimateimprovements.util.PlayerLookup;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -92,47 +93,51 @@ public class BlacklistManager implements Listener {
     // =========================
     public static boolean add(String playerName) {
         if (playerName == null || playerName.isBlank()) return false;
-        String lower = playerName.toLowerCase().trim();
+        // Store the nickname as typed (display casing); match it case-insensitively.
+        String name = playerName.trim();
 
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "INSERT OR IGNORE INTO blacklist (player_name) VALUES (?)")) {
-            st.setString(1, lower);
+                     "INSERT INTO blacklist (player_name) "
+                             + "SELECT ? WHERE NOT EXISTS "
+                             + "(SELECT 1 FROM blacklist WHERE player_name = ? COLLATE NOCASE)")) {
+            st.setString(1, name);
+            st.setString(2, name);
             int rows = st.executeUpdate();
             if (rows > 0) {
-                ConsoleLogger.info("[Blacklist] Added: " + lower);
+                ConsoleLogger.info("[Blacklist] Added: " + name);
 
                 // If the player is online — kick them
-                Player online = org.bukkit.Bukkit.getPlayerExact(playerName);
+                Player online = PlayerLookup.online(name);
                 if (online != null && online.isOnline()) {
                     online.kick(MessageUtil.parse(PunishmentMessages.buildBlacklistKickMessage(
-                            playerName, PunishmentMessages.getDiscordUrl())));
+                            name, PunishmentMessages.getDiscordUrl())));
                 }
                 return true;
             }
             return false;
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.WARNING, "[Blacklist] Failed to add: " + lower, e);
+            Main.getInstance().getLogger().log(Level.WARNING, "[Blacklist] Failed to add: " + name, e);
             return false;
         }
     }
 
     public static boolean remove(String playerName) {
         if (playerName == null || playerName.isBlank()) return false;
-        String lower = playerName.toLowerCase().trim();
+        String name = playerName.trim();
 
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "DELETE FROM blacklist WHERE player_name = ?")) {
-            st.setString(1, lower);
+                     "DELETE FROM blacklist WHERE player_name = ? COLLATE NOCASE")) {
+            st.setString(1, name);
             int rows = st.executeUpdate();
             if (rows > 0) {
-                ConsoleLogger.info("[Blacklist] Removed: " + lower);
+                ConsoleLogger.info("[Blacklist] Removed: " + name);
                 return true;
             }
             return false;
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.WARNING, "[Blacklist] Failed to remove: " + lower, e);
+            Main.getInstance().getLogger().log(Level.WARNING, "[Blacklist] Failed to remove: " + name, e);
             return false;
         }
     }
@@ -160,16 +165,17 @@ public class BlacklistManager implements Listener {
     // CHECK
     // =========================
     public static boolean isBlacklisted(String playerName) {
-        String lower = playerName.toLowerCase().trim();
+        if (playerName == null || playerName.isBlank()) return false;
+        String name = playerName.trim();
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "SELECT 1 FROM blacklist WHERE player_name = ?")) {
-            st.setString(1, lower);
+                     "SELECT 1 FROM blacklist WHERE player_name = ? COLLATE NOCASE")) {
+            st.setString(1, name);
             try (ResultSet rs = st.executeQuery()) {
                 return rs.next();
             }
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.FINE, "[Blacklist] Check error for: " + lower, e);
+            Main.getInstance().getLogger().log(Level.FINE, "[Blacklist] Check error for: " + name, e);
             return false;
         }
     }

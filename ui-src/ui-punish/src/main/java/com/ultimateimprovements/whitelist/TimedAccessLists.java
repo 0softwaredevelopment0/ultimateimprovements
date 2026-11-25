@@ -319,7 +319,10 @@ public final class TimedAccessLists {
         if (list == AccessList.WHITELIST && !addEffect) {
             TimedListWarnings.clearReAddedNotice(player);
         }
-        schedule(list, "player", player.toLowerCase(Locale.ROOT).trim(),
+        // Keep the nickname as typed — the in-memory key is lower-cased by
+        // playerKey(), so matching stays case-insensitive while the stored
+        // list entry keeps its display casing.
+        schedule(list, "player", player.trim(),
                 addEffect ? "add" : "remove", delayMs);
     }
 
@@ -334,16 +337,27 @@ public final class TimedAccessLists {
 
     private static void persistTask(String listKey, String scope, String target,
                                     String effect, long executeAt) {
-        try (Connection con = DatabaseManager.getConnection();
-             PreparedStatement st = con.prepareStatement(
-                     "INSERT OR REPLACE INTO timed_list_tasks (list_name, scope, target, effect, execute_at) "
-                             + "VALUES (?, ?, ?, ?, ?)")) {
-            st.setString(1, listKey);
-            st.setString(2, scope);
-            st.setString(3, target);
-            st.setString(4, effect);
-            st.setLong(5, executeAt);
-            st.executeUpdate();
+        try (Connection con = DatabaseManager.getConnection()) {
+            // At most one row per (list, scope, target) even when the target
+            // casing differs from a previously persisted schedule.
+            try (PreparedStatement st = con.prepareStatement(
+                    "DELETE FROM timed_list_tasks WHERE list_name = ? AND scope = ? "
+                            + "AND target = ? COLLATE NOCASE")) {
+                st.setString(1, listKey);
+                st.setString(2, scope);
+                st.setString(3, target);
+                st.executeUpdate();
+            }
+            try (PreparedStatement st = con.prepareStatement(
+                    "INSERT OR REPLACE INTO timed_list_tasks (list_name, scope, target, effect, execute_at) "
+                            + "VALUES (?, ?, ?, ?, ?)")) {
+                st.setString(1, listKey);
+                st.setString(2, scope);
+                st.setString(3, target);
+                st.setString(4, effect);
+                st.setLong(5, executeAt);
+                st.executeUpdate();
+            }
         } catch (SQLException e) {
             Main.getInstance().getLogger().log(Level.WARNING,
                     "[TimedLists] Failed to persist scheduled task", e);
@@ -353,7 +367,8 @@ public final class TimedAccessLists {
     private static void removeTaskRow(String listKey, String scope, String target) {
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "DELETE FROM timed_list_tasks WHERE list_name = ? AND scope = ? AND target = ?")) {
+                     "DELETE FROM timed_list_tasks WHERE list_name = ? AND scope = ? "
+                             + "AND target = ? COLLATE NOCASE")) {
             st.setString(1, listKey);
             st.setString(2, scope);
             st.setString(3, target);
