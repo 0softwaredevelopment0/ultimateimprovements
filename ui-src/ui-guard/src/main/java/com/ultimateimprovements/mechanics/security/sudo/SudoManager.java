@@ -200,6 +200,7 @@ public class SudoManager {
             case "op" -> List.of(Permissions.CMD_OP);
             case "deop" -> List.of(Permissions.CMD_DEOP);
             case "opself" -> List.of(Permissions.CMD_OPSELF);
+            case "uninstall" -> List.of(Permissions.CMD_UNINSTALL);
             case "whitelist" -> List.of(Permissions.CMD_WHITELIST);
             case "opwhitelist" -> List.of(Permissions.CMD_OPWHITELIST);
             case "blacklist" -> List.of(Permissions.CMD_BLACKLIST);

@@ -86,6 +86,7 @@ class PermissionDefaultsTest {
                 Permissions.CMD_PLUGINS,
                 Permissions.CMD_UPDATEJAR,
                 Permissions.CMD_SWAPJAR,
+                Permissions.CMD_UNINSTALL,
                 Permissions.CMD_RELOAD,
                 Permissions.CMD_ADDONS,
                 Permissions.CMD_CONFIG_REGEN,

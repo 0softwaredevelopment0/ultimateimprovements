@@ -43,6 +43,8 @@ public final class Permissions {
     public static final String CMD_CHECKVER = "ui.command.checkver";
     public static final String CMD_UPDATEJAR = "ui.command.updatejar";
     public static final String CMD_SWAPJAR = "ui.command.swapjar";
+    /** /ui uninstall — remove every UI-* plugin JAR (destructive, sudo-gated). */
+    public static final String CMD_UNINSTALL = "ui.command.uninstall";
     public static final String CMD_PLUGIN = "ui.command.plugin";
     public static final String CMD_PLUGINS = "ui.command.plugins";
     public static final String CMD_ADDONS = "ui.command.addons";
@@ -385,6 +387,7 @@ public final class Permissions {
                 new Permission(CMD_CHECKVER, "Check for plugin updates", PermissionDefault.FALSE),
                 new Permission(CMD_UPDATEJAR, "Download and install plugin updates", PermissionDefault.FALSE),
                 new Permission(CMD_SWAPJAR, "Swap plugin jar", PermissionDefault.FALSE),
+                new Permission(CMD_UNINSTALL, "Remove every UI-* plugin JAR (/ui uninstall) — destructive, also gated by the uninstall access list and sudo mode", PermissionDefault.FALSE),
                 new Permission(CMD_PLUGIN, "Manage other plugins", PermissionDefault.FALSE),
                 new Permission(CMD_PLUGINS, "List plugins", PermissionDefault.FALSE),
                 new Permission(CMD_ADDONS, "Manage UltimateImprovements addons (/ui addon)", PermissionDefault.FALSE),

@@ -78,6 +78,7 @@ The command set includes:
 - \`/ui updatejar\` — download the current plugin update and schedule the JAR swap.
 - \`/ui update [tag]\` — download release JARs into the suite's update staging directory; downloading does not itself apply them.
 - \`/ui swapjar\` — move staged JARs into the server's \`plugins/\` directory. Restart to load the replacement JARs.
+- \`/ui uninstall\` — delete every \`UI-*.jar\` from \`plugins/\` and the staged update JARs. Disabled by default, requires \`ui.command.uninstall\`, the \`uninstall\` nickname list in \`UI-Other.toml\` and an active sudo session; restart to finish the removal.
 
 Read the command's confirmation and status messages before proceeding. Keep a manual backup even when using the updater.
 

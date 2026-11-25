@@ -88,6 +88,9 @@ public class HelpSubCommand implements SubCommand {
                 .u("", "compare the current version with the latest release");
         cmd("updatejar", "Download & install the plugin update")
                 .u("", "downloads the latest JAR and schedules a swap");
+        cmd("uninstall", "Remove every UI plugin JAR from the server")
+                .u("", "deletes plugins/UI-*.jar and staged update JARs (restart required; disabled by default — error 018; whitelist/blacklist in UI-Other.toml; requires sudo mode)")
+                .perm("ui.command.uninstall");
         cmd("modules", "Manage modules")
                 .u("list", "show all modules and their state")
                 .u("enable <module>", "enable a module")

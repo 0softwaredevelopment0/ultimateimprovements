@@ -80,7 +80,7 @@ public final class AddonCatalog {
         route("UI-Items", "concrete_bucket", "netherite_upgrade", "particle_accelerator",
                 "remote_detonator", "fireball", "portable_workbench");
         // ── UI-Other (features umbrella + mechanics) ──
-        route("UI-Other", "features", "death_logger", "changedimmension", "kits");
+        route("UI-Other", "features", "death_logger", "changedimmension", "uninstall", "kits");
 
         // ── Sub-path routing ──
         // Some `features.*` blocks and a few standalone roots are owned by the

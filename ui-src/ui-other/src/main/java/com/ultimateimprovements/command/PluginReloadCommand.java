@@ -133,6 +133,8 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
                 CraftRecipeSubcommand::execute,
                 tc((s, a) -> CraftRecipeSubcommand.tabComplete(a))));
         registry.register(LegacySubCommandAdapter.of("swapjar", SwapJarSubcommand::execute));
+        // ── /ui uninstall — remove every UI-*.jar (disabled by default, 018) ──
+        registry.register(new UninstallSubcommand());
         // ── /ui update — download release JARs into UltimateImprovements/update (apply with /ui swapjar) ──
         registry.register(LegacySubCommandAdapter.of("update", UpdateSubcommand::execute));
         registry.register(LegacySubCommandAdapter.of("meteor", MeteorSubcommand::execute,

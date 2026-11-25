@@ -464,7 +464,7 @@ public final class AddonConfigManager {
         if (dangerous != null && !dangerous.isEmpty()) {
             List<String> updated = new ArrayList<>(dangerous);
             boolean changed = false;
-            for (String entry : new String[]{"op", "deop", "stop", "restart"}) {
+            for (String entry : new String[]{"op", "deop", "stop", "restart", "ui uninstall"}) {
                 if (updated.stream().noneMatch(existing -> entry.equalsIgnoreCase(existing.trim()))) {
                     updated.add(entry);
                     changed = true;
@@ -474,7 +474,7 @@ public final class AddonConfigManager {
                 view.set("sudo.dangerous_commands", updated);
                 upgraded++;
                 ConsoleLogger.info("[Config/UI-Guard] sudo.dangerous_commands: "
-                        + "added vanilla op/deop/stop/restart");
+                        + "added vanilla op/deop/stop/restart and ui uninstall");
             }
         }
 

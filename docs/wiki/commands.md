@@ -34,9 +34,12 @@ Config regeneration/reset requires the relevant permission, the config-command f
 | \`/ui updatejar\` | Download an update and schedule the replacement |
 | \`/ui update [tag]\` | Download release JARs into the update staging directory |
 | \`/ui swapjar\` | Apply staged JAR files to the plugins directory |
+| \`/ui uninstall\` | Delete every \`UI-*.jar\` from the plugins directory and staged update JARs |
 | \`/ui plugin\` | Manage other installed plugins |
 
 Staged updates are not active until the corresponding JARs are loaded on server restart.
+
+\`/ui uninstall\` is disabled by default (\`uninstall.enabled = false\` in \`UI-Other.toml\`) and answers with error \`018\` while off. It needs the special \`ui.command.uninstall\` permission (default \`FALSE\` — neither players nor OPs get it without an explicit permissions-plugin grant) and the \`uninstall.mode\`/\`uninstall.players\` nickname list (whitelist by default). Because \`ui uninstall\` is in \`sudo.dangerous_commands\`, players also need an active sudo session. A restart finishes the removal; on Windows running JARs are locked and are listed for manual deletion after the server stops.
 
 ## Authentication
 
