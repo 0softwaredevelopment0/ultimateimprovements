@@ -2,6 +2,7 @@ package com.ultimateimprovements.command.subcommands;
 
 import com.ultimateimprovements.util.MessageUtil;
 import com.ultimateimprovements.whitelist.TimedAccessLists;
+import com.ultimateimprovements.whitelist.TimedListWarnings;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -101,12 +102,13 @@ public final class AccessListCommands {
         }
 
         // The latest intent wins: kill the opposing pending schedule first.
-        TimedAccessLists.cancelOpposingPlayer(list, player, addEffect);
+        boolean canceledPending = TimedAccessLists.cancelOpposingPlayer(list, player, addEffect);
 
         // Instant (legacy behavior)
         if (!temp && delay == 0) {
             boolean ok = addEffect ? list.add(player) : list.remove(player);
             if (addEffect) {
+                notifyReAdded(list, player, canceledPending);
                 if (ok) {
                     sender.sendMessage(MessageUtil.parse(
                             "<green>✔</green> <white>Player</white> <yellow>" + player + "</yellow> <white>added to "
@@ -134,6 +136,9 @@ public final class AccessListCommands {
         // change something, otherwise report the conflict.
         boolean conflict = addEffect ? list.contains(player) : !list.contains(player);
         if (conflict) {
+            // An add that conflicts with the current list state still cancelled
+            // the pending removal, so the player keeps access.
+            if (addEffect) notifyReAdded(list, player, canceledPending);
             sender.sendMessage(TimedAccessLists.timedMessage(list,
                     addEffect ? "already_in_list" : "not_in_list", player, null));
             return true;
@@ -153,9 +158,22 @@ public final class AccessListCommands {
 
         // Delayed: apply after the delay
         TimedAccessLists.schedulePlayer(list, player, addEffect, delay);
+        if (addEffect) notifyReAdded(list, player, canceledPending);
         sender.sendMessage(TimedAccessLists.timedMessage(list,
                 addEffect ? "add_scheduled" : "remove_scheduled", player, delay));
         return true;
+    }
+
+    /**
+     * Tells the affected player that a pending whitelist removal was cancelled
+     * by an add. Only permanent adds reach here; a successful add-temp schedules
+     * a new removal instead and must not claim the player will stay.
+     */
+    private static void notifyReAdded(TimedAccessLists.AccessList list, String player,
+                                      boolean canceledPending) {
+        if (canceledPending && list == TimedAccessLists.AccessList.WHITELIST) {
+            TimedListWarnings.recordReAddedNotice(player);
+        }
     }
 
     // =========================

@@ -170,6 +170,20 @@ public final class PunishmentMessages {
     }
 
     /**
+     * Chat notice sent when the player is added back while a whitelist removal
+     * was pending, so they know they will not be removed.
+     * Text: {@code messages[_en].punishment.timed.readded_notice}.
+     */
+    public static Component buildReAddedNotice(String listName) {
+        String msg = raw("timed.readded_notice");
+        if (msg.isEmpty()) {
+            msg = "<green>✔</green> <white>You were added back to the</white> "
+                    + "<yellow>%list%</yellow> <white>and will not be removed.</white>";
+        }
+        return MessageUtil.parse(msg.replace("%list%", listName == null ? "" : listName));
+    }
+
+    /**
      * Kick screen shown when a scheduled whitelist removal executes.
      * Text: {@code messages[_en].punishment.timed.removal_kick}.
      */

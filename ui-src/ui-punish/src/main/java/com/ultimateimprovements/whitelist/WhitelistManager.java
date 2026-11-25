@@ -137,6 +137,7 @@ public class WhitelistManager implements Listener {
             st.setString(1, lower);
             int rows = st.executeUpdate();
             if (rows > 0) {
+                TimedListWarnings.clearReAddedNotice(lower);
                 ConsoleLogger.info("[Whitelist] Removed: " + lower);
                 return true;
             }

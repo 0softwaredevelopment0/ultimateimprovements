@@ -3,6 +3,18 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.28] - 2026-11-25
+
+### Added
+- **“Added back” notice for cancelled whitelist removals.** When an add
+  cancels a pending whitelist removal, the affected player is told that they
+  were re-added and will not be removed (`timed.readded_notice`). Online
+  players get it immediately; offline players get it on their next join
+  (persisted in `ui_state` for up to seven days). A later removal clears the
+  stored notice. Rejoining while a removal is still pending now explicitly
+  resets the countdown, so the player always receives the exact remaining time
+  again instead of inheriting countdown state from before the disconnect.
+
 ## [1.11.0-alpha.27] - 2026-11-25
 
 ### Added
