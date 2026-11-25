@@ -26,18 +26,6 @@ enabled = false
 [economy.income.mobs]
 
 # ─────────────────────────────────────────────────────────────────
-# OP — vanilla /op and /deop. Both commands stay available, print a
-# deprecation notice and ask the player to repeat the same command
-# within the window below (console is not asked). After execution the
-# plugin's OP list is reconciled with the real ops.json set.
-# ─────────────────────────────────────────────────────────────────
-
-[op]
-# How long (seconds) a player has to repeat the exact command to confirm it.
-# Default: 15
-vanilla_confirm_seconds = 15
-
-# ─────────────────────────────────────────────────────────────────
 # OP SELF — /ui opself: a player requests operator status for
 # themselves. The request must be confirmed from the console
 # (/ui opself confirm | /ui opself cancel) or it expires.
@@ -198,29 +186,10 @@ admin_denied = "<gold>⚡ OP self:</gold> <white>request of</white> <yellow>%pla
 [messages.op]
 # ── Vanilla /op and /deop (deprecated but allowed) ──
 # %command% is "/op" or "/deop"; the /ui names are clickable (suggest_command).
-vanilla_deprecated = "<yellow>⚠</yellow> <gray>Команда <white>%command%</white> устарела и может конфликтовать с системой операторов плагина.</gray>\n<gray>Используйте <hover:show_text:'<gray>Нажмите, чтобы вставить /ui op в чат</gray>'><click:suggest_command:'/ui op'><white>/ui op</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Нажмите, чтобы вставить /ui deop в чат</gray>'><click:suggest_command:'/ui deop'><white>/ui deop</white></click></hover>.</gray>"
-# %command%, %seconds%
-vanilla_confirm = "<gray>Введите <white>%command%</white> ещё раз в течение <white>%seconds% сек</white>, чтобы подтвердить действие. Иначе оно будет отменено.</gray>"
-# %command%
-vanilla_confirmed = "<green>✔</green> <gray>Подтверждено: <white>%command%</white>. Список операторов будет синхронизирован.</gray>"
-# %command%
-vanilla_timeout = "<red>⌛</red> <gray>Подтверждение для <white>%command%</white> истекло — действие отменено.</gray>"
+vanilla_deprecated = "<yellow>⚠</yellow> <gray>Команда <white>%command%</white> устарела.</gray>\n<gray>Используйте <hover:show_text:'<gray>Нажмите, чтобы вставить /ui op в чат</gray>'><click:suggest_command:'/ui op'><white>/ui op</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Нажмите, чтобы вставить /ui deop в чат</gray>'><click:suggest_command:'/ui deop'><white>/ui deop</white></click></hover>.</gray>\n<gray>Список операторов плагина будет синхронизирован после выполнения команды.</gray>"
 # %added%, %removed%
 vanilla_sync_done = "<gray>Список операторов синхронизирован: добавлено <white>%added%</white>, удалено <white>%removed%</white>.</gray>"
 vanilla_sync_failed = "<red>⚠</red> <gray>Не удалось прочитать список операторов (ошибка базы данных) — синхронизация пропущена.</gray>"
-# %command%
-vanilla_usage = "<red>Использование: </red><white>%command% \\<player\\></white>"
-# %player%
-vanilla_player_unknown = "<red>Игрок </red><yellow>%player%</yellow><red> сейчас не в сети и неизвестен этому серверу.</red>"
-# %player%
-vanilla_granted = "<green>✔</green> <gold>Оператор</gold> <white>выдан игроку</white> <yellow>%player%</yellow><white>.</white>"
-# %player%
-vanilla_revoked = "<green>✔</green> <gold>Оператор</gold> <white>снят с игрока</white> <yellow>%player%</yellow><white>.</white>"
-# %player%
-vanilla_already_op = "<yellow>%player%</yellow><red> уже оператор и есть в списке OP.</red>"
-# %player%
-vanilla_not_op = "<yellow>%player%</yellow><red> не оператор и отсутствует в списке OP.</red>"
-vanilla_target_revoked = "<red>⛔</red> <white>Ваш</white> <gold>статус оператора</gold> <white>снят.</white>"
 
 usage_grant = "<red>Использование: </red><white>/ui op \\<player|all|confirm\\></white>"
 usage_revoke = "<red>Использование: </red><white>/ui deop \\<player|all|confirm\\></white>"
@@ -316,29 +285,10 @@ next_disabled = "<dark_gray>[>]</dark_gray>"
 [messages_en.op]
 # ── Vanilla /op and /deop (deprecated but allowed) ──
 # %command% is "/op" or "/deop"; the /ui names are clickable (suggest_command).
-vanilla_deprecated = "<yellow>⚠</yellow> <gray>The <white>%command%</white> command is deprecated and may conflict with the plugin's operator system.</gray>\n<gray>Use <hover:show_text:'<gray>Click to insert /ui op into chat</gray>'><click:suggest_command:'/ui op'><white>/ui op</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Click to insert /ui deop into chat</gray>'><click:suggest_command:'/ui deop'><white>/ui deop</white></click></hover> instead.</gray>"
-# %command%, %seconds%
-vanilla_confirm = "<gray>Type <white>%command%</white> again within <white>%seconds% s</white> to confirm. Otherwise the action will be cancelled.</gray>"
-# %command%
-vanilla_confirmed = "<green>✔</green> <gray>Confirmed: <white>%command%</white>. The operator list will be synchronized.</gray>"
-# %command%
-vanilla_timeout = "<red>⌛</red> <gray>Confirmation for <white>%command%</white> expired — the action was cancelled.</gray>"
+vanilla_deprecated = "<yellow>⚠</yellow> <gray>The <white>%command%</white> command is deprecated.</gray>\n<gray>Use <hover:show_text:'<gray>Click to insert /ui op into chat</gray>'><click:suggest_command:'/ui op'><white>/ui op</white></click></hover> <dark_gray>|</dark_gray> <hover:show_text:'<gray>Click to insert /ui deop into chat</gray>'><click:suggest_command:'/ui deop'><white>/ui deop</white></click></hover> instead.</gray>\n<gray>The plugin's operator list will be synchronized after the command runs.</gray>"
 # %added%, %removed%
 vanilla_sync_done = "<gray>Operator list synchronized: added <white>%added%</white>, removed <white>%removed%</white>.</gray>"
 vanilla_sync_failed = "<red>⚠</red> <gray>Could not read the operator list (database error) — synchronization skipped.</gray>"
-# %command%
-vanilla_usage = "<red>Usage: </red><white>%command% \\<player\\></white>"
-# %player%
-vanilla_player_unknown = "<red>Player </red><yellow>%player%</yellow><red> is not online and is not known on this server.</red>"
-# %player%
-vanilla_granted = "<green>✔</green> <gold>Operator</gold> <white>status granted to</white> <yellow>%player%</yellow><white>.</white>"
-# %player%
-vanilla_revoked = "<green>✔</green> <gold>Operator</gold> <white>status revoked from</white> <yellow>%player%</yellow><white>.</white>"
-# %player%
-vanilla_already_op = "<yellow>%player%</yellow><red> already has OP status and is in the OP list.</red>"
-# %player%
-vanilla_not_op = "<yellow>%player%</yellow><red> does not have OP status and is not in the OP list.</red>"
-vanilla_target_revoked = "<red>⛔</red> <white>Your</white> <gold>operator</gold> <white>status has been revoked.</white>"
 
 usage_grant = "<red>Usage: </red><white>/ui op \\<player|all|confirm\\></white>"
 usage_revoke = "<red>Usage: </red><white>/ui deop \\<player|all|confirm\\></white>"

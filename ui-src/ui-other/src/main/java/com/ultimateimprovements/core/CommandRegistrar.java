@@ -2,7 +2,6 @@ package com.ultimateimprovements.core;
 
 import com.ultimateimprovements.command.MsgCommand;
 import com.ultimateimprovements.command.TrollCommand;
-import com.ultimateimprovements.command.VanillaOpCommand;
 import com.ultimateimprovements.command.VanillaPowerCommand;
 import com.ultimateimprovements.command.VanishListCommand;
 import com.ultimateimprovements.core.Main;
@@ -47,10 +46,9 @@ public class CommandRegistrar {
         total++; registered += register(plugin, "forceop", trollCmd, trollCmd) ? 1 : 0; // fake OP grant
         total++; registered += register(plugin, "crash", trollCmd, trollCmd) ? 1 : 0;   // fake server crash + kick
         total++; registered += registerOverride(plugin, "list", new VanishListCommand()) ? 1 : 0;
-        // Vanilla /op and /deop stay available but deprecated: the override
-        // handles the repeat-to-confirm step and keeps the OP list in sync.
-        total++; registered += registerOverride(plugin, "op", new VanillaOpCommand("op", true)) ? 1 : 0;
-        total++; registered += registerOverride(plugin, "deop", new VanillaOpCommand("deop", false)) ? 1 : 0;
+        // Vanilla /op and /deop are NOT overridden — they keep their vanilla
+        // behaviour. OpCommandWatcher prints the deprecation notice and syncs
+        // the plugin's OP list after the command has run.
         // Vanilla /stop and /restart stay available but deprecated: the override
         // asks the console to confirm by typing the same command again.
         VanillaPowerCommand.reset();

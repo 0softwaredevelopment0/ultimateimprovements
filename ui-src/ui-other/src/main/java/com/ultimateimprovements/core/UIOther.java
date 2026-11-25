@@ -156,7 +156,7 @@ public class UIOther extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new com.ultimateimprovements.listener.WhitelistCommandBlocker(), this);
         getServer().getPluginManager().registerEvents(
-                new com.ultimateimprovements.listener.OpCommandBlocker(), this);
+                new com.ultimateimprovements.listener.OpCommandWatcher(), this);
         getServer().getPluginManager().registerEvents(
                 new com.ultimateimprovements.listener.LuckPermsCommandBlocker(), this);
 
