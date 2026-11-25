@@ -3,6 +3,19 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.13.0-alpha.6] - 2026-11-26
+
+### Fixed
+- **Sudo password recovery is no longer blocked by the sudo password dialog.**
+  `/ui sudo ...` was listed in `sudo.dangerous_commands`, so every subcommand —
+  including `/ui sudo reset` — was intercepted and asked for the sudo password
+  before it ran. A player who forgot the password could therefore never send a
+  reset request to the console: the recovery path asked for the very password
+  it was supposed to recover. `/ui sudo ...` is now always exempt from the sudo
+  gate (the command's own `ui.command.sudo` permission still applies), the
+  stale entry is removed from the default config, and existing installations
+  get it dropped automatically on the next start.
+
 ## [1.13.0-alpha.5] - 2026-11-26
 
 ### Fixed
