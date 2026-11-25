@@ -125,9 +125,9 @@ message = "<white>UltimateImprovements успешно загружен!</white>"
 [messages.luckperms_warning]
 # Default: <yellow>LuckPerms не найден на сервере. Он настоятельно рекомендуется для UltimateImprovements: от него зависят права, группы и плейсхолдеры.</yellow>
 message = "<yellow>LuckPerms не найден на сервере. Он настоятельно рекомендуется для UltimateImprovements: от него зависят права, группы и плейсхолдеры.</yellow>"
-# Second line with the download link.
-# Default: <yellow>Скачать: <white>https://luckperms.net/download</white></yellow>
-download = "<yellow>Скачать: <white>https://luckperms.net/download</white></yellow>"
+# Second line with the download link (clickable in chat).
+# Default: <yellow>Скачать: <click:open_url:'https://luckperms.net/download'><white><u>https://luckperms.net/download</u></white></click></yellow>
+download = "<yellow>Скачать: <click:open_url:'https://luckperms.net/download'><white><u>https://luckperms.net/download</u></white></click></yellow>"
 
 # energy crafting section.
 # Placeholders: %amount%
@@ -923,9 +923,9 @@ message = "<white>UltimateImprovements loaded successfully!</white>"
 [messages_en.luckperms_warning]
 # Default: <yellow>LuckPerms was not found on this server. It is highly recommended for UltimateImprovements: permissions, groups and placeholders depend on it.</yellow>
 message = "<yellow>LuckPerms was not found on this server. It is highly recommended for UltimateImprovements: permissions, groups and placeholders depend on it.</yellow>"
-# Second line with the download link.
-# Default: <yellow>Download: <white>https://luckperms.net/download</white></yellow>
-download = "<yellow>Download: <white>https://luckperms.net/download</white></yellow>"
+# Second line with the download link (clickable in chat).
+# Default: <yellow>Download: <click:open_url:'https://luckperms.net/download'><white><u>https://luckperms.net/download</u></white></click></yellow>
+download = "<yellow>Download: <click:open_url:'https://luckperms.net/download'><white><u>https://luckperms.net/download</u></white></click></yellow>"
 
 # energy crafting section.
 # Placeholders: %amount%
