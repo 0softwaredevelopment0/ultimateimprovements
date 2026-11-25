@@ -660,6 +660,10 @@ final class ConfigRules {
             integer("stresstest.max_entities", 0, 100000, "Hard cap on entities spawned by the entity load"),
 
             integer("access_control.check_interval_ticks", 1, 72000),
+            // Countdown warnings before scheduled whitelist removals
+            bool("access_control.warnings.enabled"),
+            stringList("access_control.warnings.warning_times"),
+            string("access_control.warnings.second_report_from", false, 16),
 
             // Unified pardon (/ui punish pardon): a batch above this many active
             // records needs -confirm (a mass pardon of "all" always does).

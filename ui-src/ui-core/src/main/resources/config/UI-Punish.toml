@@ -15,6 +15,26 @@
 # Default: 20
 check_interval_ticks = 20
 
+# Countdown warnings before a scheduled whitelist removal
+# (/ui whitelist remove <player> -t <time> or a temp entry expiring).
+# The affected player receives repeated chat messages: one at every configured
+# threshold, then every second once second_report_from is reached, mirroring
+# the scheduled-restart announcements. The messages live in UI-Core.toml under
+# messages[_en].punishment.timed.removal_warning / removal_kick.
+[access_control.warnings]
+# Master switch. false = no countdown warnings (removals still happen).
+# Default: true
+enabled = true
+# Announce thresholds, measured before the removal. Any order; duplicates and
+# invalid entries are ignored. Units: s (seconds), m (minutes), h (hours),
+# d (days).
+# Default: ["1h", "30m", "15m", "5m", "1m", "45s", "30s", "15s"]
+warning_times = ["1h", "30m", "15m", "5m", "1m", "45s", "30s", "15s"]
+# Start the per-second countdown when this much time is left (10s = 10, 9, 8
+# ... seconds). 0, 0s or "off" disables the per-second report.
+# Default: "10s"
+second_report_from = "10s"
+
 # BLOCK punishment — soft, dialog-only lock.
 # The blocked player is NOT kicked: they stay online behind a modal dialog and
 # cannot move, interact, chat or run commands until the block expires or an

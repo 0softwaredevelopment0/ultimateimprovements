@@ -143,6 +143,62 @@ public final class PunishmentMessages {
     }
 
     // =========================
+    // WHITELIST REMOVAL COUNTDOWN
+    // =========================
+
+    /**
+     * Builds one chat countdown message for a scheduled whitelist removal.
+     * Text: {@code messages[_en].punishment.timed.removal_warning}, unit word:
+     * {@code ...timed.unit_seconds|minutes|hours|days}.
+     *
+     * @param listName localized list name ({@code %list%})
+     * @param amount   number to show ({@code %time%})
+     * @param unitKey  unit message key, e.g. {@code unit_minutes}
+     */
+    public static Component buildAccessRemovalWarning(String listName, long amount, String unitKey) {
+        String unit = unitWord(unitKey);
+        String msg = raw("timed.removal_warning");
+        if (msg.isEmpty()) {
+            msg = "<yellow>⚠</yellow> <white>You will be removed from the</white> "
+                    + "<yellow>%list%</yellow> <white>in</white> "
+                    + "<yellow>%time%</yellow> <white>%unit%</white>.";
+        }
+        msg = msg.replace("%list%", listName == null ? "" : listName)
+                .replace("%time%", String.valueOf(amount))
+                .replace("%unit%", unit);
+        return MessageUtil.parse(msg);
+    }
+
+    /**
+     * Kick screen shown when a scheduled whitelist removal executes.
+     * Text: {@code messages[_en].punishment.timed.removal_kick}.
+     */
+    public static Component buildWhitelistRemovalKickMessage(String player, String listName,
+                                                              String discordUrl) {
+        String msg = raw("timed.removal_kick");
+        if (msg.isEmpty()) {
+            msg = "<red>Your whitelist access has expired.</red>\n"
+                    + "<gray>You were removed from the</gray> <yellow>%list%</yellow><gray>.</gray>";
+        }
+        msg = msg.replace(PLAYER, player == null ? "" : player)
+                .replace("%list%", listName == null ? "" : listName)
+                .replace(DISCORD, discordUrl == null ? "" : discordUrl);
+        return MessageUtil.parse(msg);
+    }
+
+    /** Localized unit word with an English fallback. */
+    private static String unitWord(String unitKey) {
+        String fallback = switch (unitKey == null ? "" : unitKey) {
+            case "unit_minutes" -> "minutes";
+            case "unit_hours" -> "hours";
+            case "unit_days" -> "days";
+            default -> "seconds";
+        };
+        String value = scalar("timed." + unitKey, fallback);
+        return value == null || value.isEmpty() ? fallback : value;
+    }
+
+    // =========================
     // TIMED WHITELIST/BLACKLIST (command feedback)
     // =========================
 
