@@ -3,6 +3,21 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.13.0-alpha.5] - 2026-11-26
+
+### Fixed
+- **Players no longer stay immortal after a successful login.** The pre-auth
+  snapshot read `Player#isInvulnerable()`, which on Paper also reports the
+  implicit CREATIVE/SPECTATOR immunity. A creative player therefore had
+  `invulnerable = true` stored as their "original" state; after login the
+  freeze was rolled back with `setInvulnerable(true)` and persisted into
+  `player.dat`, so hits never registered and the bug survived restarts. The
+  snapshot now reads the real NBT flag via `isMarkedInvulnerable()`, and the
+  recovery snapshot is written *before* the frozen body (ADVENTURE, zero
+  movement speeds, `Invulnerable:1b`) is applied. A new
+  `clearStaleInvulnerability` also drops an obsolete flag left by an older
+  build on the next join, repairing already-broken players.
+
 ## [1.13.0-alpha.4] - 2026-11-26
 
 ### Fixed

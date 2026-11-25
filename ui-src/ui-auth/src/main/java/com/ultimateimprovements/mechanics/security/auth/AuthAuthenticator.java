@@ -159,6 +159,25 @@ public class AuthAuthenticator {
         player.setInvulnerable(false);
     }
 
+    /**
+     * Drops a stale {@code Invulnerable} flag left in player.dat by an older
+     * build (the snapshot used to store CREATIVE/SPECTATOR immunity as the
+     * player's "original" state) or by an interrupted freeze. Without this the
+     * flag is captured as genuine god mode on the next join and restored after
+     * login, so the player stays immortal forever and nobody can damage him.
+     * <p>
+     * Must run at join time, after
+     * {@link #recoverPersistedPlayerState(Player)} and before
+     * {@link #freezePlayer(Player)}.
+     */
+    public void clearStaleInvulnerability(Player player) {
+        if (player == null || !player.isMarkedInvulnerable()) return;
+        player.setInvulnerable(false);
+        savePlayerData(player);
+        ConsoleLogger.warn("[Auth] Cleared a stale Invulnerable flag for " + player.getName()
+                + " — the player was immortal since a previous authentication freeze.");
+    }
+
     public AuthAuthenticator(AuthPlayerState playerState, AuthRateLimiter rateLimiter, AuthTimeoutManager timeoutManager) {
         this.playerState = playerState;
         this.rateLimiter = rateLimiter;
@@ -860,14 +879,25 @@ public class AuthAuthenticator {
         }
 
         // Capture the real state once, before changing any movement or flight flag.
+        // Invulnerability MUST be read through isMarkedInvulnerable(): the plain
+        // isInvulnerable() also reports CREATIVE/SPECTATOR immunity, so an operator
+        // who joined in creative used to have `true` stored as his "original"
+        // state and got setInvulnerable(true) after login — a permanently immortal
+        // player whose hits/knockback never registered, persisted into player.dat.
         SavedPlayerState saved = new SavedPlayerState(
                 player.getGameMode(),
                 player.getWalkSpeed(),
                 player.getFlySpeed(),
                 player.getAllowFlight(),
                 player.isFlying(),
-                player.isInvulnerable());
+                player.isMarkedInvulnerable());
         savedStates.put(uuid, saved);
+
+        // Persist the snapshot BEFORE the frozen flags are applied: player.dat must
+        // never contain the temporary ADVENTURE / zero-speed / Invulnerable:1b
+        // body. An abrupt stop between the two used to leave a frozen body on disk
+        // that the next join would restore as the player's "real" state.
+        persistSavedState(player, saved);
 
         player.setGameMode(GameMode.ADVENTURE);
         player.setWalkSpeed(0.0f);
@@ -875,9 +905,6 @@ public class AuthAuthenticator {
         player.setAllowFlight(false);
         player.setFlying(false);
         player.setInvulnerable(true);
-
-        // Store a durable snapshot before the temporary permission is enabled.
-        persistSavedState(player, saved);
 
         // allow-flight=false in server.properties otherwise treats the auth freeze
         // as unauthorized flight and kicks with "Flying is not enabled". The player
