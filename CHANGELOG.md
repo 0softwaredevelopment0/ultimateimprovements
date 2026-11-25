@@ -3,6 +3,20 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.13.0-alpha.3] - 2026-11-26
+
+### Fixed
+- **Vanilla `/op` and `/deop` keep the repeat-to-confirm gate while running
+  as vanilla afterwards.** The CommandMap override stays removed: the first
+  player execution is cancelled with the deprecation notice and the
+  repeat-to-confirm prompt (`op.vanilla_confirm_seconds`, default 15 s); the
+  repeated command is not cancelled, so vanilla executes it unchanged
+  (permissions, argument handling, `ops.json` update, target notification),
+  and the plugin's OP list is reconciled against the fresh `ops.json` one tick
+  later. A missing repeat expires with the timeout notice; the console is not
+  asked to confirm. Restored the `vanilla_confirm`, `vanilla_confirmed` and
+  `vanilla_timeout` messages and the `op.vanilla_confirm_seconds` config key.
+
 ## [1.13.0-alpha.2] - 2026-11-26
 
 ### Fixed

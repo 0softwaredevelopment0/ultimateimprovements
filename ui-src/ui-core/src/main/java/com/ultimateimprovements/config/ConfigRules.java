@@ -687,6 +687,10 @@ final class ConfigRules {
             integer("kits.max_description_length", 0, 512, "Max kit description length (MiniMessage tags included)"),
             integer("kits.max_cooldown_seconds", 0, 31536000, "Max kit cooldown in seconds (0 = cooldowns cannot be set)"),
 
+            // Vanilla /op and /deop confirmation window (seconds).
+            integer("op.vanilla_confirm_seconds", 1, 3600,
+                    "Сколько секунд у игрока есть, чтобы повторить /op или /deop и подтвердить действие"),
+
             // Operator lists ([op_lists]) — OP whitelist + OP blacklist,
             // one combined periodic check task
             integer("op_lists.check_interval_ticks", 0, 1728000, "Shared OP-lists check interval (ticks, 0 = off)"),
