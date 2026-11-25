@@ -30,6 +30,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * Feature toggles: {@code loaded_alert.enabled} and
  * {@code luckperms_warning.enabled} (both default true, read live —
  * /ui reload applies them without a restart).
+ * <p>
+ * Message texts are configurable per language in {@code UI-Core.toml}:
+ * {@code [messages.loaded_alert]} / {@code [messages_en.loaded_alert]}
+ * and {@code [messages.luckperms_warning]} / {@code [messages_en.luckperms_warning]}
+ * ({@code message} + {@code download} keys).
  */
 public final class LoadedAlertListener implements Listener {
 
@@ -58,16 +63,19 @@ public final class LoadedAlertListener implements Listener {
         if (!NOTIFIED.add(player.getUniqueId())) return; // already shown this session
 
         if (sendLoaded) {
-            player.sendMessage(MessageUtil.parse(
-                    MessageUtil.PREFIX + "<white>UltimateImprovements loaded successfully!"));
+            String text = MessageUtil.raw("loaded_alert.message",
+                    "<white>UltimateImprovements loaded successfully!</white>");
+            player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX + text));
         }
         if (sendLuckPermsWarning) {
-            player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX
-                    + "<yellow>LuckPerms was not found on this server. "
-                    + "It is highly recommended for UltimateImprovements: "
-                    + "permissions, groups and placeholders depend on it."));
-            player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX
-                    + "<yellow>Download: <white>https://luckperms.net/download"));
+            String text = MessageUtil.raw("luckperms_warning.message",
+                    "<yellow>LuckPerms was not found on this server. "
+                            + "It is highly recommended for UltimateImprovements: "
+                            + "permissions, groups and placeholders depend on it.</yellow>");
+            String download = MessageUtil.raw("luckperms_warning.download",
+                    "<yellow>Download: <white>https://luckperms.net/download</white></yellow>");
+            player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX + text));
+            player.sendMessage(MessageUtil.parse(MessageUtil.PREFIX + download));
         }
     }
 
