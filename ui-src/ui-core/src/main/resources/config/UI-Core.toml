@@ -80,7 +80,8 @@ enabled = true
 # server session when LuckPerms is missing. LuckPerms is highly recommended —
 # permissions, groups and %prefix%/%suffix%/%group% placeholders depend on it.
 [luckperms_warning]
-# Master switch (true = feature on).
+# Master switch for the LuckPerms warning (true = feature on). Applies to both
+# the one-shot chat warning for alerts holders and the console startup banner.
 # Default: true
 enabled = true
 
