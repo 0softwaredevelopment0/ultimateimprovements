@@ -3,6 +3,17 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.12.0-alpha.2] - 2026-11-25
+
+### Changed
+- **`[luckperms_warning] enabled` now gates every LuckPerms warning**, like
+  `[loaded_alert] enabled` gates the loaded-success alert: the one-shot chat
+  warning for alerts holders **and** the console startup banner are both
+  silenced when it is false. With the toggle off the startup log shows only
+  `[VersionCheck] LuckPerms not found — warning disabled`. Both toggles are
+  now registered in `ConfigRules`, so config validation covers them and the
+  bundled `UI-Core.toml` template is checked by `ConfigRepairTest`.
+
 ## [1.12.0-alpha.1] - 2026-11-25
 
 ### Added

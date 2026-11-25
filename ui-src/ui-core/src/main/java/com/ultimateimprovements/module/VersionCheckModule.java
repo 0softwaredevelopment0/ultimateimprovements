@@ -162,6 +162,16 @@ public class VersionCheckModule extends PluginModule {
             return;
         }
 
+        // Same feature toggle as the one-shot chat warning: disabling
+        // [luckperms_warning] silences both the console banner and the alert.
+        boolean warnEnabled = Main.getInstance().getConfig()
+                .getBoolean("luckperms_warning.enabled", true);
+        if (!warnEnabled) {
+            ConsoleLogger.info("[VersionCheck] LuckPerms not found — warning disabled "
+                    + "(luckperms_warning.enabled = false).");
+            return;
+        }
+
         ConsoleLogger.warn("");
         ConsoleLogger.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         ConsoleLogger.warn("!  LUCKPERMS NOT FOUND!                                       !");

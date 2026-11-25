@@ -108,6 +108,10 @@ final class ConfigRules {
 
             bool("debug.startup_scans"),
 
+            // Startup chat alerts (LoadedAlertListener)
+            bool("loaded_alert.enabled"),
+            bool("luckperms_warning.enabled"),
+
             bool("uninstall.enabled"),
             stringEnum("uninstall.mode", "whitelist", "blacklist"),
             stringList("uninstall.players"),
