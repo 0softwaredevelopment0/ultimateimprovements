@@ -3,6 +3,20 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.12.0-alpha.1] - 2026-11-25
+
+### Added
+- **One-shot "LuckPerms not found" startup warning** (ui-core). The
+  load-success alert pass now also tells alerts holders (`ui.alerts` / OP)
+  once per server session when LuckPerms is missing, with a download link:
+  permissions, groups and `%prefix%`/`%suffix%`/`%group%` placeholders depend
+  on it, so LuckPerms is highly recommended. The console startup check
+  (`VersionCheckModule`) now states the same "HIGHLY RECOMMENDED" wording.
+  New toggle `[luckperms_warning] enabled` (default true, `UI-Core.toml`,
+  read live).
+- **Console success line `UltimateImprovements loaded successfully!`** printed
+  at the end of the startup sequence, matching the in-game alert text.
+
 ## [1.11.0-alpha.31] - 2026-11-25
 
 ### Added

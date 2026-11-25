@@ -68,6 +68,7 @@ public class PluginStartup {
         initOpState();
         printBanner();
         ConsoleLogger.success("[PLUGIN] UI-Core enabled!");
+        ConsoleLogger.success("[PLUGIN] UltimateImprovements loaded successfully!");
     }
 
     private void initInfrastructure() {
