@@ -309,7 +309,7 @@ public final class OpManager {
      *   <li>a list entry without real OP is dropped (the OP whitelist/blacklist
      *       revoke through {@link #revoke}, so such an entry is genuinely stale).</li>
      * </ul>
-     * Called right after a confirmed vanilla {@code /op} or {@code /deop}.
+     * Called one tick after a vanilla {@code /op} or {@code /deop} has run.
      *
      * @return counts of repaired entries; {@code failed} when the DB is unavailable
      */

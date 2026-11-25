@@ -3,6 +3,19 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.13.0-alpha.2] - 2026-11-26
+
+### Fixed
+- **Vanilla `/op` and `/deop` are no longer overridden.** The plugin no
+  longer registers them through the CommandMap, so they keep their vanilla
+  behaviour (permissions, argument handling, `ops.json` update, target
+  notification). `OpCommandWatcher` now only watches the dispatch: it prints
+  the deprecation notice with clickable `/ui op` / `/ui deop` suggestions and,
+  after the command has run, reconciles the plugin's OP list against the real
+  `ops.json` set. The OP whitelist/blacklist checks keep running as before and
+  now work together with the vanilla command instead of a plugin replacement.
+  The repeat-to-confirm flow and `op.vanilla_confirm_seconds` were removed.
+
 ## [1.13.0-alpha.1] - 2026-11-25
 
 ### Added
