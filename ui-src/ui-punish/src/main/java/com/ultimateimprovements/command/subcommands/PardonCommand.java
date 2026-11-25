@@ -7,6 +7,7 @@ import com.ultimateimprovements.punish.PardonMessages;
 import com.ultimateimprovements.punish.PunishmentManager;
 import com.ultimateimprovements.util.AlertBroadcast;
 import com.ultimateimprovements.util.MessageUtil;
+import com.ultimateimprovements.util.PlayerLookup;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -143,7 +144,7 @@ public final class PardonCommand {
     /** Resolves an online player, or an offline target via the shared name→UUID resolver. */
     private static PardonManager.Target resolveTarget(String targetName) {
         @SuppressWarnings("deprecation")
-        Player online = Bukkit.getPlayerExact(targetName);
+        Player online = PlayerLookup.online(targetName);
         if (online != null) {
             return PardonManager.Target.of(online.getUniqueId().toString(), online.getName());
         }
@@ -309,7 +310,7 @@ public final class PardonCommand {
             }
         }
         @SuppressWarnings("deprecation")
-        Player byName = name != null ? Bukkit.getPlayerExact(name) : null;
+        Player byName = name != null ? PlayerLookup.online(name) : null;
         return byName != null && byName.isOnline() ? byName : null;
     }
 

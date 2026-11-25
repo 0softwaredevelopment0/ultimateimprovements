@@ -3,6 +3,22 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.29] - 2026-11-25
+
+### Fixed
+- **Access lists keep player nicknames in their original casing.** The
+  whitelist, blacklist, OP whitelist and OP blacklist used to lower-case every
+  added nickname (`Smile_W` was stored as `smile_w`), and all lookups were
+  plain lower-case comparisons. Names are now stored exactly as typed, while
+  matching stays case-insensitive: adding `smile_w` after `Smile_W` is still
+  rejected as a duplicate, `/ui whitelist remove SMILE_W` removes the stored
+  `Smile_W` entry, and the list view shows the saved casing. Scheduled
+  (delayed/temp) changes preserve the typed casing too, and their persisted
+  rows are deduplicated case-insensitively. Punishment commands now resolve
+  online targets case-insensitively as well, so `/ui punish ban smile_w`
+  correctly kicks and records the online `Smile_W` instead of falling back to
+  the offline path.
+
 ## [1.11.0-alpha.28] - 2026-11-25
 
 ### Added

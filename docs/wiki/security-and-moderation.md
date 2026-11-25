@@ -66,7 +66,7 @@ Punishment messages are MiniMessage templates in **UI-Punish.toml**; documented 
 
 ## Whitelists and access control
 
-The plugin maintains its own database-backed whitelist and blacklist systems, separate from the vanilla whitelist. There are also OP whitelist and OP blacklist controls.
+The plugin maintains its own database-backed whitelist and blacklist systems, separate from the vanilla whitelist. There are also OP whitelist and OP blacklist controls. Player nicknames are stored exactly as typed (`Smile_W` stays `Smile_W`), while all membership checks and duplicate detection compare them case-insensitively.
 
 The vanilla `/whitelist` command keeps working, but every execution prints a deprecation notice asking to use `/ui whitelist | /ui blacklist` instead: running two independent whitelists side by side can cause confusing access conflicts. For players both command names are clickable — hover shows a hint and click inserts the command into chat. The notice text is `messages.plugin_hide.whitelist_deprecated` in **UI-Core.toml**.
 

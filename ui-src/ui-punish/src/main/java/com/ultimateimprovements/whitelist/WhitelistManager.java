@@ -109,41 +109,45 @@ public class WhitelistManager implements Listener {
     // =========================
     public static boolean add(String playerName) {
         if (playerName == null || playerName.isBlank()) return false;
-        String lower = playerName.toLowerCase().trim();
+        // Store the nickname as typed (display casing); match it case-insensitively.
+        String name = playerName.trim();
 
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "INSERT OR IGNORE INTO whitelist (player_name) VALUES (?)")) {
-            st.setString(1, lower);
+                     "INSERT INTO whitelist (player_name) "
+                             + "SELECT ? WHERE NOT EXISTS "
+                             + "(SELECT 1 FROM whitelist WHERE player_name = ? COLLATE NOCASE)")) {
+            st.setString(1, name);
+            st.setString(2, name);
             int rows = st.executeUpdate();
             if (rows > 0) {
-                ConsoleLogger.info("[Whitelist] Added: " + lower);
+                ConsoleLogger.info("[Whitelist] Added: " + name);
                 return true;
             }
             return false;
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.WARNING, "[Whitelist] Failed to add: " + lower, e);
+            Main.getInstance().getLogger().log(Level.WARNING, "[Whitelist] Failed to add: " + name, e);
             return false;
         }
     }
 
     public static boolean remove(String playerName) {
         if (playerName == null || playerName.isBlank()) return false;
-        String lower = playerName.toLowerCase().trim();
+        String name = playerName.trim();
 
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "DELETE FROM whitelist WHERE player_name = ?")) {
-            st.setString(1, lower);
+                     "DELETE FROM whitelist WHERE player_name = ? COLLATE NOCASE")) {
+            st.setString(1, name);
             int rows = st.executeUpdate();
             if (rows > 0) {
-                TimedListWarnings.clearReAddedNotice(lower);
-                ConsoleLogger.info("[Whitelist] Removed: " + lower);
+                TimedListWarnings.clearReAddedNotice(name);
+                ConsoleLogger.info("[Whitelist] Removed: " + name);
                 return true;
             }
             return false;
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.WARNING, "[Whitelist] Failed to remove: " + lower, e);
+            Main.getInstance().getLogger().log(Level.WARNING, "[Whitelist] Failed to remove: " + name, e);
             return false;
         }
     }
@@ -173,16 +177,17 @@ public class WhitelistManager implements Listener {
     // CHECK
     // =========================
     public static boolean isWhitelisted(String playerName) {
-        String lower = playerName.toLowerCase().trim();
+        if (playerName == null || playerName.isBlank()) return false;
+        String name = playerName.trim();
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement st = con.prepareStatement(
-                     "SELECT 1 FROM whitelist WHERE player_name = ?")) {
-            st.setString(1, lower);
+                     "SELECT 1 FROM whitelist WHERE player_name = ? COLLATE NOCASE")) {
+            st.setString(1, name);
             try (ResultSet rs = st.executeQuery()) {
                 return rs.next();
             }
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.FINE, "[Whitelist] Check error for: " + lower, e);
+            Main.getInstance().getLogger().log(Level.FINE, "[Whitelist] Check error for: " + name, e);
             return false;
         }
     }

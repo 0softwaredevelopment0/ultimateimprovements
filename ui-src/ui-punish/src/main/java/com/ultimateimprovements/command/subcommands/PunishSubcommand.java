@@ -9,6 +9,7 @@ import com.ultimateimprovements.punish.PunishmentManager;
 import com.ultimateimprovements.punish.PunishJoinListener;
 import com.ultimateimprovements.util.AlertBroadcast;
 import com.ultimateimprovements.util.MessageUtil;
+import com.ultimateimprovements.util.PlayerLookup;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -141,7 +142,7 @@ public final class PunishSubcommand {
 
         String targetName = args[2];
         @SuppressWarnings("deprecation")
-        Player target = Bukkit.getPlayerExact(targetName);
+        Player target = PlayerLookup.online(targetName);
         String uuid;
         String name;
 
@@ -243,7 +244,7 @@ public final class PunishSubcommand {
 
         String targetName = args[2];
         @SuppressWarnings("deprecation")
-        Player target = Bukkit.getPlayerExact(targetName);
+        Player target = PlayerLookup.online(targetName);
         String uuid;
         String name;
 
@@ -337,7 +338,7 @@ public final class PunishSubcommand {
         String reason = flags.reason;
 
         @SuppressWarnings("deprecation")
-        Player target = Bukkit.getPlayerExact(targetName);
+        Player target = PlayerLookup.online(targetName);
         if (target == null) {
             sender.sendMessage(MessageUtil.parse(
                     "<red>❌ Player</red> <yellow>" + targetName + "</yellow> <red>not found or not online!</red>"
@@ -403,7 +404,7 @@ public final class PunishSubcommand {
 
         String targetName = args[2];
         @SuppressWarnings("deprecation")
-        Player target = Bukkit.getPlayerExact(targetName);
+        Player target = PlayerLookup.online(targetName);
         String uuid;
         String name;
 
@@ -496,7 +497,7 @@ public final class PunishSubcommand {
 
         String targetName = args[2];
         @SuppressWarnings("deprecation")
-        Player target = Bukkit.getPlayerExact(targetName);
+        Player target = PlayerLookup.online(targetName);
         String uuid;
         String name;
 
@@ -617,7 +618,7 @@ public final class PunishSubcommand {
         }
 
         @SuppressWarnings("deprecation")
-        Player target = Bukkit.getPlayerExact(targetName);
+        Player target = PlayerLookup.online(targetName);
         String uuid;
         String name;
 
@@ -929,7 +930,7 @@ public final class PunishSubcommand {
 
         String targetName = args[3];
         @SuppressWarnings("deprecation")
-        Player target = Bukkit.getPlayerExact(targetName);
+        Player target = PlayerLookup.online(targetName);
         if (target == null) {
             sender.sendMessage(MessageUtil.parse(
                     "<red>❌ Player</red> <yellow>" + targetName + "</yellow> <red>not found or not online!</red>"
@@ -1011,7 +1012,7 @@ public final class PunishSubcommand {
         }
 
         @SuppressWarnings("deprecation")
-        Player target = Bukkit.getPlayerExact(pending.targetName());
+        Player target = PlayerLookup.online(pending.targetName());
         if (target == null) {
             sender.sendMessage(MessageUtil.parse(
                     "<red>❌ Player</red> <yellow>" + pending.targetName() + "</yellow> <red>is no longer online!</red>"
