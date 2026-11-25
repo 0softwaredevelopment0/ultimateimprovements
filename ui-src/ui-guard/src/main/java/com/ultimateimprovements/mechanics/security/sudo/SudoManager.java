@@ -24,11 +24,12 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>Dangerous commands are defined in config.yml {@code features.sudo.dangerous_commands}.</li>
  *   <li>If the player has no sudo password — a «second authorization window»
  *       (dialog) opens asking them to set a password and not forget it.</li>
- *   <li>Cooldown between attempts — 10 seconds, unlimited attempts.</li>
- *   <li>On a wrong password a reset is offered: the request goes to the console,
- *       the console confirms via {@code /ui sudo confirmreset <player>}.
- *       {@code /ui sudo ...} itself is never sudo-gated — the reset command is
- *       the recovery path and must work exactly when no session exists.</li>
+ *   <li>Cooldown between attempts — 15 seconds, unlimited attempts.</li>
+ *   <li>On a wrong password a reset is offered (a button in the dialog): the
+ *       request goes to the console, the console confirms via
+ *       {@code /ui sudo confirmreset <player>}. {@code /ui sudo ...} itself is
+ *       never sudo-gated — the reset path must work exactly when no session
+ *       exists.</li>
  * </ul>
  */
 public class SudoManager {
@@ -74,7 +75,7 @@ public class SudoManager {
 
     public static int getAttemptCooldownSeconds() {
         return Math.max(cfg().getInt("sudo.attempt_cooldown_seconds",
-                cfg().getInt("features.sudo.attempt_cooldown_seconds", 10)), 1);
+                cfg().getInt("features.sudo.attempt_cooldown_seconds", 15)), 1);
     }
 
     /** List of dangerous commands (prefixes, without a slash). */
@@ -341,12 +342,11 @@ public class SudoManager {
                 "<red>❌ Incorrect sudo password!</red>"));
         player.sendMessage(MessageUtil.parse(
                 "<gray>Try again in </gray><yellow>" + getAttemptCooldownSeconds()
-                        + "</yellow><gray>s. </gray>"
-                        + "<click:run_command:'/ui sudo reset'><hover:show_text:'<gray>Reset sudo password</gray>'><yellow>[Reset password]</yellow></hover></click>"));
+                        + "</yellow><gray>s.</gray>"));
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.3f, 0.7f);
         ConsoleLogger.info("[Sudo] Wrong sudo password attempt by " + player.getName());
 
-        // Automatically re-open the dialog after the cooldown — «another attempt in 10 sec»
+        // Automatically re-open the dialog after the cooldown — «another attempt in 15 sec»
         reopenDialogLater(player, getAttemptCooldownSeconds());
     }
 

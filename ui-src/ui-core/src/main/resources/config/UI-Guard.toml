@@ -184,8 +184,8 @@ enabled = true
 # Default: 15
 session_minutes = 15
 # Cooldown.
-# Default: 10
-attempt_cooldown_seconds = 10
+# Default: 15
+attempt_cooldown_seconds = 15
 # Command.
 # Vanilla "op" and "deop" are listed too: those commands stay usable but must
 # pass sudo mode before the deprecation notice and the repeat-to-confirm step.
