@@ -125,7 +125,9 @@ public final class TimedListWarnings extends BukkitRunnable implements Listener 
         for (TimedAccessLists.PendingRemoval removal
                 : TimedAccessLists.pendingRemovals(TimedAccessLists.AccessList.WHITELIST)) {
             String playerName = removal.player();
-            String key = playerName + ":" + removal.executeAt();
+            // The stored target keeps its display casing; cadence keys are
+            // case-insensitive so resetCadence() (join) can clear them.
+            String key = playerName.toLowerCase(Locale.ROOT) + ":" + removal.executeAt();
 
             Player player = onlinePlayer(playerName);
             if (player == null || !WhitelistManager.isEnabled()
