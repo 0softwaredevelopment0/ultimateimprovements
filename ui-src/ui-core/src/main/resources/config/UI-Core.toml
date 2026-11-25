@@ -761,6 +761,24 @@ invalid_time = ["<red>❌ Неверный формат времени!</red>", 
 # Default: ["<red>❌ Этой команде требуется флаг времени </red><white>-t</white><red>!</red>", "<gray>Укажите длительность: </gray><white>5m</white><gray>, </gray><white>2h</white><gray>, </gray><white>1d</gray>"]
 temp_requires_time = ["<red>❌ Этой команде требуется флаг времени </red><white>-t</white><red>!</red>", "<gray>Укажите длительность: </gray><white>5m</white><gray>, </gray><white>2h</white><gray>, </gray><white>1d</gray>"]
 
+# Countdown before a scheduled whitelist removal: repeated chat message.
+# Placeholders: %list%, %time%, %unit% (the unit words below).
+# Default: ["<yellow>⚠</yellow> <white>Вы будете удалены из</white> <yellow>%list%</yellow> <white>через</white> <yellow>%time%</yellow> <white>%unit%</white>."]
+removal_warning = ["<yellow>⚠</yellow> <white>Вы будете удалены из</white> <yellow>%list%</yellow> <white>через</white> <yellow>%time%</yellow> <white>%unit%</white>."]
+# Kick screen when the scheduled whitelist removal executes.
+# Placeholders: %player%, %list%, %discord_url%.
+# Default: ["<red>Ваш доступ к вайтлисту истёк.</red>", "<gray>Вы были удалены из</gray> <yellow>%list%</yellow><gray>.</gray>"]
+removal_kick = ["<red>Ваш доступ к вайтлисту истёк.</red>", "<gray>Вы были удалены из</gray> <yellow>%list%</yellow><gray>.</gray>"]
+# Unit words used by removal_warning.
+# Default: секунд
+unit_seconds = "секунд"
+# Default: минут
+unit_minutes = "минут"
+# Default: часов
+unit_hours = "часов"
+# Default: дней
+unit_days = "дней"
+
 # ==================================================================
 # Console texts of the startup config validation (ConfigValidator).
 # Placeholders: %key%, %message%, %type%, %value%, %min%, %max%, %description%,
@@ -1512,6 +1530,24 @@ invalid_time = ["<red>❌ Invalid time format!</red>", "<gray>Use: </gray><white
 # *-temp command called without the required -t flag.
 # Default: ["<red>❌ This command requires the time flag </red><white>-t</white><red>!</red>", "<gray>Specify a duration: </gray><white>5m</white><gray>, </gray><white>2h</white><gray>, </gray><white>1d</gray>"]
 temp_requires_time = ["<red>❌ This command requires the time flag </red><white>-t</white><red>!</red>", "<gray>Specify a duration: </gray><white>5m</white><gray>, </gray><white>2h</white><gray>, </gray><white>1d</gray>"]
+
+# Countdown before a scheduled whitelist removal: repeated chat message.
+# Placeholders: %list%, %time%, %unit% (the unit words below).
+# Default: ["<yellow>⚠</yellow> <white>You will be removed from the</white> <yellow>%list%</yellow> <white>in</white> <yellow>%time%</yellow> <white>%unit%</white>."]
+removal_warning = ["<yellow>⚠</yellow> <white>You will be removed from the</white> <yellow>%list%</yellow> <white>in</white> <yellow>%time%</yellow> <white>%unit%</white>."]
+# Kick screen when the scheduled whitelist removal executes.
+# Placeholders: %player%, %list%, %discord_url%.
+# Default: ["<red>Your whitelist access has expired.</red>", "<gray>You were removed from the</gray> <yellow>%list%</yellow><gray>.</gray>"]
+removal_kick = ["<red>Your whitelist access has expired.</red>", "<gray>You were removed from the</gray> <yellow>%list%</yellow><gray>.</gray>"]
+# Unit words used by removal_warning.
+# Default: seconds
+unit_seconds = "seconds"
+# Default: minutes
+unit_minutes = "minutes"
+# Default: hours
+unit_hours = "hours"
+# Default: days
+unit_days = "days"
 
 # Console texts of the startup config validation (ConfigValidator).
 # Placeholders: %key%, %message%, %type%, %value%, %min%, %max%, %description%,

@@ -9,12 +9,15 @@ import com.ultimateimprovements.util.MessageUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -143,8 +146,9 @@ public final class TimedAccessLists {
     // PENDING SCHEDULES
     // =========================
 
-    /** One pending deferred operation: its Bukkit task and the effect it will apply. */
-    private record PendingEntry(BukkitTask task, String effect) {}
+    /** One pending deferred operation: its Bukkit task, the effect it will apply and when. */
+    private record PendingEntry(BukkitTask task, AccessList list, String scope, String target,
+                                String effect, long executeAt) {}
 
     /**
      * Pending tasks by key: {@code <list>:p:<name>} (player scope, at most one
@@ -170,21 +174,22 @@ public final class TimedAccessLists {
 
         long executeAt = System.currentTimeMillis() + delayMs;
         persistTask(list.key(), scope, target, effect, executeAt);
-        armTask(list, scope, target, effect, Math.max(50L, delayMs));
+        armTask(list, scope, target, effect, executeAt);
     }
 
     /** Arms an in-memory task for an already-persisted DB row (used by restore). */
     private static void armTask(AccessList list, String scope, String target,
-                                String effect, long delayMs) {
+                                String effect, long executeAt) {
         String key = scope.equals("player") ? playerKey(list, target) : stateKey(list);
 
+        long delayMs = Math.max(50L, executeAt - System.currentTimeMillis());
         long delayTicks = Math.max(1L, delayMs / 50L);
         BukkitTask task = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             PENDING.remove(key);
             removeTaskRow(list.key(), scope, target);
             executeEffect(list, scope, target, effect);
         }, delayTicks);
-        PENDING.put(key, new PendingEntry(task, effect));
+        PENDING.put(key, new PendingEntry(task, list, scope, target, effect, executeAt));
     }
 
     /** Applies a stored effect and logs the outcome. */
@@ -199,6 +204,9 @@ public final class TimedAccessLists {
             case "remove" -> {
                 ok = list.remove(target);
                 what = "remove " + target;
+                if (ok && list == AccessList.WHITELIST) {
+                    kickRemovedWhitelistPlayer(target);
+                }
             }
             case "enable" -> {
                 ok = list.setEnabled(true);
@@ -214,6 +222,30 @@ public final class TimedAccessLists {
         }
         ConsoleLogger.info("[" + list.title() + "] Scheduled " + what
                 + (ok ? " done." : " skipped (already applied)."));
+    }
+
+    /**
+     * Kicks a player right after their scheduled whitelist removal executes, using
+     * the dedicated expiry message instead of waiting for the periodic access
+     * check. Skipped when the whitelist is disabled or the player is offline.
+     */
+    private static void kickRemovedWhitelistPlayer(String target) {
+        if (!WhitelistManager.isEnabled()) return;
+
+        Player player = Bukkit.getPlayerExact(target);
+        if (player == null) {
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                if (online.getName().equalsIgnoreCase(target)) {
+                    player = online;
+                    break;
+                }
+            }
+        }
+        if (player == null) return;
+
+        player.kick(PunishmentMessages.buildWhitelistRemovalKickMessage(
+                player.getName(), AccessList.WHITELIST.displayName(),
+                PunishmentMessages.getDiscordUrl()));
     }
 
     /** Cancels a pending entry (task + memory + DB row), if present. */
@@ -253,6 +285,24 @@ public final class TimedAccessLists {
     /** True when a pending state operation exists for the list. */
     public static boolean hasStatePending(AccessList list) {
         return PENDING.containsKey(stateKey(list));
+    }
+
+    /** One pending player removal, as seen by the countdown-warning ticker. */
+    public record PendingRemoval(String player, long executeAt) {}
+
+    /**
+     * Snapshot of the pending player removals for the given list.
+     * Used by {@link TimedListWarnings}; the caller must be on the main thread.
+     */
+    static List<PendingRemoval> pendingRemovals(AccessList list) {
+        List<PendingRemoval> result = new ArrayList<>();
+        for (PendingEntry entry : PENDING.values()) {
+            if (entry.list() == list && "player".equals(entry.scope())
+                    && "remove".equals(entry.effect())) {
+                result.add(new PendingRemoval(entry.target(), entry.executeAt()));
+            }
+        }
+        return result;
     }
 
     // =========================
@@ -336,9 +386,8 @@ public final class TimedAccessLists {
                     ConsoleLogger.info("[" + list.title() + "] Scheduled " + effect
                             + (scope.equals("player") ? " " + target : "")
                             + " is overdue — executing now.");
-                    delay = 50L;
                 }
-                armTask(list, scope, target, effect, delay);
+                armTask(list, scope, target, effect, executeAt);
                 restored++;
             }
         } catch (SQLException e) {

@@ -3,6 +3,27 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.11.0-alpha.27] - 2026-11-25
+
+### Added
+- **Countdown warnings before scheduled whitelist removals.** A removal
+  scheduled with `/ui whitelist remove <player> -t <time>` (or the automatic
+  expiry of an `add-temp` entry) now announces the remaining time to the
+  affected player with the same cadence as the scheduled restart: the first
+  message shows the exact time left, then messages fire at every configured
+  threshold (`access_control.warnings.warning_times`, default `1h`, `30m`,
+  `15m`, `5m`, `1m`, `45s`, `30s`, `15s`), followed by a per-second countdown
+  from `second_report_from` (default `10s`). Cadence state is tracked per
+  player and schedule: a replaced/cancelled removal starts fresh, and a
+  reconnecting player immediately sees the current remaining time. Warnings
+  stop while the whitelist is disabled or the player is no longer listed.
+  When the removal executes, an online player is kicked immediately with the
+  new `removal_kick` message instead of waiting for the periodic access check.
+  Texts live under `messages[_en].punishment.timed.removal_warning`,
+  `removal_kick` and `unit_seconds|minutes|hours|days` in **UI-Core.toml**;
+  the switch and thresholds are in **UI-Punish.toml** under
+  `[access_control.warnings]`.
+
 ## [1.11.0-alpha.26] - 2026-11-22
 
 ### Changed

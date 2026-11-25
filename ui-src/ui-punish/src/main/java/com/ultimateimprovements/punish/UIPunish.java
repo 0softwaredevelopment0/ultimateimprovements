@@ -22,6 +22,7 @@ public class UIPunish extends JavaPlugin {
         BlockEnforcer.shutdown();
         org.bukkit.event.HandlerList.unregisterAll(this);
         com.ultimateimprovements.server.OpListsCheckTask.stop();
+        com.ultimateimprovements.whitelist.TimedListWarnings.stop();
         getLogger().info("UI-Punish disabled!");
         instance = null;
     }
@@ -106,6 +107,10 @@ public class UIPunish extends JavaPlugin {
         // Re-arm persisted scheduled operations (timed_list_tasks) — after the
         // managers are up, so overdue effects can apply immediately.
         com.ultimateimprovements.whitelist.TimedAccessLists.restore(main);
+
+        // Per-second countdown warnings for scheduled whitelist removals
+        // (reads the pending schedules restored above).
+        com.ultimateimprovements.whitelist.TimedListWarnings.start(main);
 
         // ONE periodic check for both OP lists (opwhitelist + opblacklist),
         // interval op_lists.check_interval_ticks.
