@@ -3,6 +3,28 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.14.0-alpha.1] - 2026-11-27
+
+### Added
+- **Meteors now have types and a configurable size.** The shell of the sphere
+  is built from the weighted `[meteor.blocks]` section (default `DEEPSLATE`,
+  `COBBLED_DEEPSLATE`, `BASALT`, `MAGMA_BLOCK`, equal chances, replacing the
+  old `display_blocks` list). The single center block is chosen by the weighted
+  `[meteor.types]` section: `wet` (water), `hot` (lava), `basic` (blackstone),
+  `ore` (a random `[meteor.core_ores]` entry) and `ancient` (ancient debris).
+  All types are equally likely by default except `ancient`, which is five times
+  rarer (`0.2`).
+- **Meteor size mode.** `[meteor.size]` picks the sphere radius with
+  `static`/`list`/`range` modes (default `range` `1-8`), mirroring the spawn
+  cooldown. The explosion scales with the radius via `[meteor.explosion]`:
+  `power = base + per_size * size`, defaulting to `2 + 3 × size` capped at `30`
+  (radius 2 keeps the old power of 8).
+
+### Changed
+- The obsolete `meteor.sphere_radius`, `meteor.explosion_power` and
+  `meteor.display_blocks` keys are ignored; a one-time console notice points to
+  the new sections.
+
 ## [1.13.0-alpha.7] - 2026-11-26
 
 ### Changed
