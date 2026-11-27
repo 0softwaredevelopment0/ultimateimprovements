@@ -21,7 +21,6 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -74,9 +73,9 @@ public class MeteorTask extends BukkitRunnable {
 
     private final int sphereRadius;
     private final float explosionPower;
-    private final List<BlockData> shellBlocks;
-    private final Map<Material, Double> coreOres;
-    private final Material coreOre;
+    private final WeightedBlockPool shellBlocks;
+    /** Resolved center block of the meteor type (water, lava, ore, …). */
+    private final Material coreBlock;
 
     private final List<BlockDisplay> displays = new ArrayList<>();
     private final List<Vector> displayOffsets = new ArrayList<>();
@@ -106,8 +105,8 @@ public class MeteorTask extends BukkitRunnable {
                       int totalTicks,
                       int sphereRadius,
                       float explosionPower,
-                      List<BlockData> shellBlocks,
-                      Map<Material, Double> coreOres) {
+                      WeightedBlockPool shellBlocks,
+                      Material coreBlock) {
         this.plugin = plugin;
         this.world = world;
         this.startY = startY;
@@ -119,12 +118,10 @@ public class MeteorTask extends BukkitRunnable {
         this.sphereRadius = sphereRadius;
         this.explosionPower = explosionPower;
         this.shellBlocks = shellBlocks;
-        this.coreOres = coreOres;
+        this.coreBlock = coreBlock;
         this.random = new Random();
         this.chunkX = ((int) Math.floor(targetX)) >> 4;
         this.chunkZ = ((int) Math.floor(targetZ)) >> 4;
-        // Pick the core ore once so the falling visual matches what actually lands.
-        this.coreOre = pickCoreOre();
 
         // Keep the fall column loaded and ticking for the meteor's short lifetime.
         // Without the ticket the chunk may unload when no player is close enough:
@@ -378,7 +375,7 @@ public class MeteorTask extends BukkitRunnable {
 
         Location restLoc = new Location(world, targetX, currentY, targetZ);
 
-        // ── Spawn the meteor structure (block sphere + central ore) ──
+        // ── Spawn the meteor structure (block sphere + central type block) ──
         spawnMeteorStructure(restLoc);
 
         // Remove the Marker and the falling visualizers (real blocks replace them)
@@ -421,12 +418,10 @@ public class MeteorTask extends BukkitRunnable {
     }
 
     /**
-     * Spawns the spherical meteor structure from shellBlocks + a random ore in the center.
+     * Spawns the spherical meteor structure from the shell block pool plus the
+     * meteor type's center block.
      */
     private void spawnMeteorStructure(Location center) {
-        // Use the ore already picked at spawn so the landing matches the visual
-        Material coreOre = this.coreOre;
-
         int r = sphereRadius;
 
         for (int dx = -r; dx <= r; dx++) {
@@ -440,44 +435,17 @@ public class MeteorTask extends BukkitRunnable {
 
                     // The meteor REPLACES existing blocks (impact force).
 
-                    // Center — ore
+                    // Center — the meteor type's block (water, lava, ore, …)
                     if (dist <= 0.5) {
-                        setBlockDataSafely(b, coreOre.createBlockData());
+                        setBlockDataSafely(b, coreBlock.createBlockData());
                         continue;
                     }
 
-                    // Shell — a random block from display_blocks
-                    setBlockDataSafely(b, shellBlocks.get(random.nextInt(shellBlocks.size())));
+                    // Shell — a weighted random block from [meteor.blocks]
+                    setBlockDataSafely(b, shellBlocks.pick(random));
                 }
             }
         }
-    }
-
-    /**
-     * Picks the ore from core_ores by chances (weighted random).
-     */
-    private Material pickCoreOre() {
-        if (coreOres == null || coreOres.isEmpty()) {
-            return Material.DEEPSLATE_DIAMOND_ORE;
-        }
-
-        double totalWeight = 0;
-        for (double w : coreOres.values()) {
-            totalWeight += w;
-        }
-
-        double roll = random.nextDouble() * totalWeight;
-        double cumulative = 0;
-
-        for (Map.Entry<Material, Double> entry : coreOres.entrySet()) {
-            cumulative += entry.getValue();
-            if (roll <= cumulative) {
-                return entry.getKey();
-            }
-        }
-
-        // Fallback
-        return coreOres.keySet().iterator().next();
     }
 
     /**
@@ -594,7 +562,7 @@ public class MeteorTask extends BukkitRunnable {
 
     /**
      * Spawns a glowing sphere of BlockDisplay entities that visualize the
-     * falling meteor (shell blocks + the central ore).
+     * falling meteor (shell blocks + the central type block).
      */
     private void spawnBlockVisualizers(Location center) {
         int r = sphereRadius;
@@ -605,8 +573,8 @@ public class MeteorTask extends BukkitRunnable {
                     if (dist > r + 0.5) continue;
 
                     BlockData data = dist <= 0.5
-                            ? coreOre.createBlockData()
-                            : shellBlocks.get(random.nextInt(shellBlocks.size()));
+                            ? coreBlock.createBlockData()
+                            : shellBlocks.pick(random);
 
                     Location loc = center.clone().add(dx, dy, dz);
                     BlockDisplay display = world.spawn(loc, BlockDisplay.class, d -> d.setBlock(data));

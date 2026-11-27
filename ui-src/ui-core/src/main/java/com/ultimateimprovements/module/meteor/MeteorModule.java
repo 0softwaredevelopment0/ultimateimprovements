@@ -8,7 +8,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -56,8 +55,9 @@ public class MeteorModule extends PluginModule {
 
     private static MeteorModule instance;
 
-    /** One-time flag for the obsolete key notice (module re-inits on every soft reload). */
+    /** One-time flag for the obsolete key notices (module re-inits on every soft reload). */
     private static boolean obsoleteSpaceKeyLogged = false;
+    private static boolean obsoleteMeteorSizeKeyLogged = false;
 
     private BukkitTask scheduler;
     private final List<MeteorTask> activeMeteors = new ArrayList<>();
@@ -84,6 +84,7 @@ public class MeteorModule extends PluginModule {
         random = new Random();
 
         warnAboutObsoleteSpaceOnlyKey();
+        warnAboutObsoleteMeteorKeys();
         rescheduleNext(plugin);
     }
 
@@ -131,6 +132,30 @@ public class MeteorModule extends PluginModule {
                 ConsoleLogger.info("[Meteor] 'space.meteor_space_only' is obsolete and ignored — "
                         + "list the meteor worlds in [meteor] worlds = [\"world\", \"ui_space\"] instead "
                         + "(an empty list falls back to meteor.world).");
+            }
+        } catch (Exception ignored) {
+            // A deprecated key must never break module startup.
+        }
+    }
+
+    /**
+     * {@code meteor.sphere_radius} and {@code meteor.explosion_power} were
+     * replaced by the size rule ({@code [meteor.size]}) and the scaling formula
+     * ({@code [meteor.explosion]}). They stay in deployed configs because the
+     * repair only adds keys, so say it once.
+     */
+    private void warnAboutObsoleteMeteorKeys() {
+        if (obsoleteMeteorSizeKeyLogged) return;
+        obsoleteMeteorSizeKeyLogged = true;
+        try {
+            if (cfg().isSet("meteor.sphere_radius") || cfg().isSet("meteor.explosion_power")) {
+                ConsoleLogger.info("[Meteor] 'meteor.sphere_radius' and 'meteor.explosion_power' are obsolete "
+                        + "and ignored — use [meteor.size] (mode/static/list/range) and [meteor.explosion] "
+                        + "(base/per_size/max) instead.");
+            }
+            if (cfg().isSet("meteor.display_blocks")) {
+                ConsoleLogger.info("[Meteor] 'meteor.display_blocks' is obsolete and ignored — use the weighted "
+                        + "[meteor.blocks] section instead.");
             }
         } catch (Exception ignored) {
             // A deprecated key must never break module startup.
@@ -515,17 +540,15 @@ public class MeteorModule extends PluginModule {
         int fallDuration = cfg.getInt("meteor.fall_duration_ticks", 60);
         if (fallDuration < 1) fallDuration = 1;
         if (fallDuration > 20 * 60 * 10) fallDuration = 20 * 60 * 10; // 10 min hard cap
-        int sphereRadius = cfg.getInt("meteor.sphere_radius", 2);
-        if (sphereRadius < 1) sphereRadius = 1;
-        if (sphereRadius > 5) sphereRadius = 5;
 
-        // Explosion power — configurable, clamped to a sane range (TNT = 4.0)
-        float explosionPower = (float) cfg.getDouble("meteor.explosion_power", 8.0);
-        if (explosionPower < 0) explosionPower = 0;
-        if (explosionPower > 30) explosionPower = 30;
+        // Size rule (radius of the sphere); the explosion scales with it.
+        int sphereRadius = MeteorSize.fromConfig(cfg).nextSize(random);
+        float explosionPower = computeExplosionPower(cfg, sphereRadius);
 
-        List<BlockData> blockDataList = loadShellBlocks(cfg);
+        WeightedBlockPool shellBlocks = WeightedBlockPool.fromConfig(cfg);
         Map<Material, Double> coreOres = loadCoreOres(cfg);
+        MeteorType type = MeteorTypes.fromConfig(cfg).next(random);
+        Material coreBlock = resolveCoreBlock(type, coreOres);
 
         // Start the fall high in the sky, but keep the whole visual sphere inside
         // the world build limits: the displays reach sphereRadius blocks above the
@@ -555,8 +578,8 @@ public class MeteorModule extends PluginModule {
                     fallDuration,
                     sphereRadius,
                     explosionPower,
-                    blockDataList,
-                    coreOres
+                    shellBlocks,
+                    coreBlock
             );
         } catch (Exception e) {
             ConsoleLogger.warn("[Meteor] Failed to create the falling meteor at "
@@ -578,34 +601,58 @@ public class MeteorModule extends PluginModule {
 
         ConsoleLogger.info("[Meteor] Spawned meteor in '" + world.getName() + "' → ("
                 + targetX + ", " + targetY + ", " + targetZ + ") radius=" + sphereRadius
+                + " type=" + type.getKey() + " core=" + coreBlock.name()
                 + " power=" + explosionPower + " startY=" + (int) startY
                 + " displays=" + task.displayCount());
         return true;
     }
 
-    private List<BlockData> loadShellBlocks(FileConfiguration cfg) {
-        List<String> blockNames = cfg.getStringList("meteor.display_blocks");
-        if (blockNames.isEmpty()) {
-            blockNames = List.of("CRACKED_DEEPSLATE_BRICKS", "CRACKED_DEEPSLATE_TILES",
-                    "CHISELED_DEEPSLATE", "MAGMA_BLOCK");
+    /**
+     * Explosion power follows the size: {@code base + per_size * size}, clamped
+     * to {@code [meteor.explosion] max}. The default formula (2 + 3×size) keeps
+     * the old power of 8 for radius 2 while big meteors hit progressively harder.
+     */
+    private static float computeExplosionPower(FileConfiguration cfg, int size) {
+        double base = cfg.getDouble("meteor.explosion.base", 2.0);
+        double perSize = cfg.getDouble("meteor.explosion.per_size", 3.0);
+        double max = cfg.getDouble("meteor.explosion.max", 30.0);
+        if (!Double.isFinite(base) || base < 0) base = 2.0;
+        if (!Double.isFinite(perSize) || perSize < 0) perSize = 3.0;
+        if (!Double.isFinite(max) || max <= 0) max = 30.0;
+
+        double power = base + perSize * size;
+        if (power > max) power = max;
+        if (power < 0) power = 0;
+        return (float) power;
+    }
+
+    /** Maps a meteor type to the material of its single center block. */
+    private Material resolveCoreBlock(MeteorType type, Map<Material, Double> coreOres) {
+        return switch (type) {
+            case WET -> Material.WATER;
+            case HOT -> Material.LAVA;
+            case BASIC -> Material.BLACKSTONE;
+            case ORE -> pickCoreOre(coreOres);
+            case ANCIENT -> Material.ANCIENT_DEBRIS;
+        };
+    }
+
+    /** Picks an ore from {@code [meteor.core_ores]} by weighted random. */
+    private Material pickCoreOre(Map<Material, Double> coreOres) {
+        if (coreOres == null || coreOres.isEmpty()) {
+            return Material.DEEPSLATE_DIAMOND_ORE;
         }
-        List<BlockData> blockDataList = new ArrayList<>();
-        for (String name : blockNames) {
-            try {
-                Material mat = Material.valueOf(name.toUpperCase());
-                if (!mat.isBlock()) {
-                    ConsoleLogger.warn("[Meteor] Display block is not a block material: " + name);
-                    continue;
-                }
-                blockDataList.add(mat.createBlockData());
-            } catch (IllegalArgumentException e) {
-                ConsoleLogger.warn("[Meteor] Invalid display block: " + name);
-            }
+
+        double totalWeight = 0;
+        for (double weight : coreOres.values()) totalWeight += weight;
+
+        double roll = random.nextDouble() * totalWeight;
+        double cumulative = 0;
+        for (Map.Entry<Material, Double> entry : coreOres.entrySet()) {
+            cumulative += entry.getValue();
+            if (roll <= cumulative) return entry.getKey();
         }
-        if (blockDataList.isEmpty()) {
-            blockDataList.add(Material.CRACKED_DEEPSLATE_BRICKS.createBlockData());
-        }
-        return blockDataList;
+        return coreOres.keySet().iterator().next();
     }
 
     /**

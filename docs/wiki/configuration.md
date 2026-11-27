@@ -164,6 +164,12 @@ These options are consumed during startup bootstrap. Restart after changing the 
 
 `UI-World.toml` has a `[meteor.cooldown]` section that controls the spawn timer. `mode` is `static` (always `static`), `list` (a random entry of `list`) or `range` (a random number of seconds between the two bounds of `range`). Every time value is a number plus one suffix — `s` seconds, `m` minutes, `h` hours, `d` days — e.g. `30m`, `2h`, `1d`; a range is written `40m-50m`. The bundled defaults are `mode = "range"`, `static = "30m"`, `list = ["15m", "10m", "5m", "20m"]` and `range = "40m-50m"`. Invalid entries are reported in the console and replaced by the defaults. The timer starts over after every meteor and after every skipped meteor; `/ui meteor status|skip|unskip|reset` reads and controls it at runtime.
 
+### Meteor size, blocks and types
+
+`UI-World.toml` has `[meteor.size]` for the sphere radius. `mode` is `static` (always `static`), `list` (a random entry of `list`) or `range` (a random integer between the two bounds of `range`, written `1-8`). Sizes are clamped to `1..12`; the bundled defaults are `mode = "range"`, `static = 2`, `list = [1, 2, 3, 4]` and `range = "1-8"`. The explosion scales with the radius through `[meteor.explosion]`: `power = base + per_size * size`, capped by `max` (defaults `2.0`, `3.0` and `30.0`, so radius 2 keeps the old power of 8).
+
+`[meteor.blocks]` lists the shell materials with relative weights (default: `DEEPSLATE`, `COBBLED_DEEPSLATE`, `BASALT`, `MAGMA_BLOCK`, all `1.0`). `[meteor.types]` lists the center-block types with relative weights: `wet` (water), `hot` (lava), `basic` (blackstone), `ore` (random entry of `[meteor.core_ores]`) and `ancient` (ancient debris). Defaults are `1.0` for every type and `0.2` for `ancient`, which makes it five times rarer. The obsolete `meteor.sphere_radius`, `meteor.explosion_power` and `meteor.display_blocks` keys are ignored (a console notice is printed once).
+
 ### Punishment messages
 
 \`UI-Punish.toml\` stores Russian and English MiniMessage templates. Documented placeholders include \`%player%\`, \`%punisher%\`, \`%reason%\`, \`%duration%\` and \`%discord_url%\`.

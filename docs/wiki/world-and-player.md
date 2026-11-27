@@ -135,9 +135,11 @@ The status action is documented as public; changing state or mode is permission-
 
 ## Meteors
 
-The Meteor module periodically spawns a meteor near a random player in configured worlds. A meteor is represented by a falling block-display sphere, creates an impact/explosion and leaves a configured ore-centered deposit/crater.
+The Meteor module periodically spawns a meteor near a random player in configured worlds. A meteor is represented by a falling block-display sphere, creates an impact/explosion and leaves a meteorite deposit/crater.
 
-The `[meteor]` section in **UI-World.toml** controls worlds, display blocks, core ores, explosion power and maximum simultaneous meteors; `[meteor.cooldown]` controls the spawn timer (`static`, `list` or `range` mode, time values with `s`/`m`/`h`/`d` suffixes, default `40m-50m`). The `/ui meteor spawn [count]` command can force a spawn (OP by default); `/ui meteor status` shows the time until the next meteor for everyone, while `skip`, `unskip` and `reset` control the timer (OP). A skipped meteor does not spawn and the timer starts over.
+The shell of the meteorite is built from the weighted `[meteor.blocks]` table (default: deepslate, cobbled deepslate, basalt and magma block, all equally likely). Its single center block is chosen by the weighted `[meteor.types]` table: `wet` (water), `hot` (lava), `basic` (blackstone), `ore` (a random entry of `[meteor.core_ores]`) and `ancient` (ancient debris). Every type has the same chance except `ancient`, which is five times rarer by default (`0.2`).
+
+`[meteor.size]` picks the sphere radius (default `range` `1-8`) using the same `static`/`list`/`range` modes as the cooldown. The explosion scales with the radius through `[meteor.explosion]`: `power = base + per_size * size`, defaulting to `2 + 3 × size` with a hard cap of `30` (radius 2 still gives power 8). `[meteor.cooldown]` controls the spawn timer (`static`, `list` or `range` mode, time values with `s`/`m`/`h`/`d` suffixes, default `40m-50m`). The `/ui meteor spawn [count]` command can force a spawn (OP by default); `/ui meteor status` shows the time until the next meteor for everyone, while `skip`, `unskip` and `reset` control the timer (OP). A skipped meteor does not spawn and the timer starts over.
 
 ## Additional world and utility features
 

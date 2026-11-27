@@ -28,21 +28,73 @@ count_per_spawn = 1
 # Duration.
 # Default: 60
 fall_duration_ticks = 60
-# Radius in blocks.
-# Default: 2
-sphere_radius = 2
-# Power.
-# Default: 8.0
-explosion_power = 8.0
 # Maximum value.
 # Default: 10
 max_active = 10
-# Default: ["CRACKED_DEEPSLATE_BRICKS", "CRACKED_DEEPSLATE_TILES", "CHISELED_DEEPSLATE", "MAGMA_BLOCK"]
-display_blocks = ["CRACKED_DEEPSLATE_BRICKS", "CRACKED_DEEPSLATE_TILES", "CHISELED_DEEPSLATE", "MAGMA_BLOCK"]
 # Log the periodic scheduler lines to the console: "Next meteor in N minute(s)"
 # and "No players online in '<world>', skipping." (every cycle).
 # Default: false (silent)
 log_scheduler = false
+
+# Meteor size — the radius of the block sphere, in blocks (1 = the center block
+# alone, 8 = a 17-block-wide meteor), and the explosion scales with it.
+[meteor.size]
+# How the size of the NEXT meteor is chosen:
+#   "static" - always "static"
+#   "list"   - a random entry of "list" every time
+#   "range"  - a random integer between the two bounds of "range" (inclusive)
+# Default: "range"
+mode = "range"
+# Size used by mode = "static" (1..12).
+# Default: 2
+static = 2
+# Possible sizes picked by mode = "list" (each entry 1..12).
+# Default: [1, 2, 3, 4]
+list = [1, 2, 3, 4]
+# Size range used by mode = "range": "<min>-<max>", both 1..12 inclusive.
+# Default: "1-8"
+range = "1-8"
+
+# Explosion power scales with the meteor size: power = base + per_size * size.
+[meteor.explosion]
+# Power at size 0 (the "floor" of the formula).
+# Default: 2.0
+base = 2.0
+# Power added per block of radius.
+# Default: 3.0
+per_size = 3.0
+# Hard cap on the resulting explosion power.
+# Default: 30.0
+max = 30.0
+
+# Blocks the meteor sphere is built from, with relative weights (a block with
+# weight 2.0 appears twice as often as one with 1.0).
+[meteor.blocks]
+# Default: 1.0
+DEEPSLATE = 1.0
+# Default: 1.0
+COBBLED_DEEPSLATE = 1.0
+# Default: 1.0
+BASALT = 1.0
+# Default: 1.0
+MAGMA_BLOCK = 1.0
+
+# Meteor types — the material of the single center block. The shell is always
+# built from [meteor.blocks]. "ore" picks a random entry of [meteor.core_ores].
+[meteor.types]
+# wet = water, hot = lava, basic = blackstone, ore = random ore,
+# ancient = ancient debris. Weights are relative; by default every type except
+# ancient has the same chance, and ancient is 5x rarer (0.2).
+# Default: 1.0
+wet = 1.0
+# Default: 1.0
+hot = 1.0
+# Default: 1.0
+basic = 1.0
+# Default: 1.0
+ore = 1.0
+# Default: 0.2 (5x rarer than the other types)
+ancient = 0.2
 
 # cooldown section.
 [meteor.cooldown]
@@ -83,7 +135,7 @@ min = -64
 # Default: 320
 max = 320
 
-# core ores section.
+# Ores used by the "ore" meteor type (weighted; equal by default).
 [meteor.core_ores]
 # Default: 1.0
 DEEPSLATE_DIAMOND_ORE = 1.0
