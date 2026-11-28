@@ -3,6 +3,28 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.14.0-alpha.3] - 2026-11-28
+
+### Fixed
+- **Permission denials are no longer silent for the console, RCON and command
+  blocks.** `CommandErrors.noPermission` and `sudoRequired` used to skip any
+  non-player sender entirely, so a failed permission probe on a console-like
+  executor made a `/ui` subcommand look like it did nothing. Both now send the
+  `002`/`003` error to every sender type (the command-logger outcome is still
+  recorded for players only).
+- **The outdated `/ui auth` usage line is upgraded on existing installs.**
+  `auth.admin.usage` in `UI-Auth.toml` advertised a smaller subcommand set than
+  the command accepts (the EN line never listed `login`/`changepassword`, and
+  neither line listed `forceloginrequest` before it was added). `repairFromBundle`
+  only fills missing keys, so the stale value survived every update; a one-time
+  upgrade now replaces untouched old defaults with the full list in both
+  languages.
+
+### Tests
+- `PaperCommandTreeTest` — asserts that the `/ui` Brigadier tree parses
+  `ui auth forcelogin rizer001` into `sub = "auth"` plus the intact greedy tail,
+  so the legacy `String[]` contract used by the console/RCON path cannot regress.
+
 ## [1.14.0-alpha.2] - 2026-11-28
 
 ### Fixed

@@ -81,7 +81,10 @@ public final class CommandErrors {
 
     /** 002: insufficient permissions, requires the given permission node. */
     public static void noPermission(CommandSender sender, String permission) {
-        if (sender == null || !(sender instanceof Player)) return;
+        // Non-player senders (console, RCON, command blocks) must see the denial
+        // too: they used to be skipped silently, so a permission misconfiguration
+        // made a /ui subcommand look like it "did nothing".
+        if (sender == null) return;
         CommandOutcomeTracker.markDenied(sender);
         String body = MessagesManager.getString("general.errors.002",
                 "<red>Insufficient permissions to execute this command</red>");
@@ -97,7 +100,7 @@ public final class CommandErrors {
      * {@code ui.sudo}).
      */
     public static void sudoRequired(CommandSender sender, String permission) {
-        if (sender == null || !(sender instanceof Player)) return;
+        if (sender == null) return;
         CommandOutcomeTracker.markDenied(sender);
         String body = MessagesManager.getString("general.errors.003",
                 "<red>This command requires a sudo password, but you are not allowed to use sudo mode</red>");

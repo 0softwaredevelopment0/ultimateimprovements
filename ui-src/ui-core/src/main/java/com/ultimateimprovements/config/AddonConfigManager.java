@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * AddonConfigManager — one TOML config per addon under {@code plugins/UltimateImprovements/configs/}.
@@ -396,6 +397,7 @@ public final class AddonConfigManager {
         if ("UI-Player".equals(addon)) return upgradeAttributeUnits(view);
         if ("UI-MBS".equals(addon)) return upgradeMeltdownCountdowns(view);
         if ("UI-Guard".equals(addon)) return upgradeGuardCommandLists(view);
+        if ("UI-Auth".equals(addon)) return upgradeAuthUsageLine(view);
         if (!"UI-Core".equals(addon)) return 0;
         int upgraded = 0;
         for (String root : new String[]{"messages", "messages_en"}) {
@@ -558,6 +560,45 @@ public final class AddonConfigManager {
      *
      * @return number of upgraded values
      */
+    /**
+     * Refreshes an untouched {@code auth.admin.usage} line. The EN default never
+     * listed {@code login}/{@code changepassword}, and before the force-login
+     * request button neither language listed {@code forceloginrequest}, so
+     * existing installs advertise a different subcommand set than the command
+     * accepts. Repair cannot fix it: the key exists, only its default changed.
+     */
+    private static int upgradeAuthUsageLine(YamlConfiguration view) {
+        int upgraded = 0;
+        upgraded += upgradeAuthUsageValue(view, "messages_en.auth.admin.usage",
+                Set.of("<red>❌ Usage: </red><white>/ui auth 2fa|logout|forcelogin|resetauth|chgpass|delsession</white>",
+                        "<red>❌ Usage: </red><white>/ui auth 2fa|logout|forcelogin|forceloginrequest|resetauth|chgpass|delsession</white>"),
+                AUTH_USAGE_EN);
+        upgraded += upgradeAuthUsageValue(view, "messages.auth.admin.usage",
+                Set.of("<red>❌ Использование: </red><white>/ui auth login|2fa|logout|changepassword|forcelogin|resetauth|chgpass|delsession</white>"),
+                AUTH_USAGE_RU);
+        if (upgraded > 0) {
+            ConsoleLogger.info("[Config/UI-Auth] auth.admin.usage: refreshed the subcommand list");
+        }
+        return upgraded;
+    }
+
+    /** Current EN usage line — must match {@code UI-Auth.toml} verbatim. */
+    private static final String AUTH_USAGE_EN =
+            "<red>❌ Usage: </red><white>/ui auth login|2fa|logout|changepassword|forcelogin|forceloginrequest|resetauth|chgpass|delsession</white>";
+    /** Current RU usage line — must match {@code UI-Auth.toml} verbatim. */
+    private static final String AUTH_USAGE_RU =
+            "<red>❌ Использование: </red><white>/ui auth login|2fa|logout|changepassword|forcelogin|forceloginrequest|resetauth|chgpass|delsession</white>";
+
+    private static int upgradeAuthUsageValue(YamlConfiguration view, String path,
+                                             Set<String> oldValues, String newValue) {
+        if (!view.isSet(path)) return 0;
+        String stored = view.getString(path);
+        if (stored == null || !oldValues.contains(stored.trim())) return 0;
+        if (stored.trim().equals(newValue)) return 0;
+        view.set(path, newValue);
+        return 1;
+    }
+
     private static int upgradeMeltdownCountdowns(YamlConfiguration view) {
         int upgraded = 0;
         if (view.isSet("nuclear_reactor.meltdown_seconds")
