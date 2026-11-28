@@ -196,11 +196,16 @@ public class HelpSubCommand implements SubCommand {
         cmd("showcraft", "Show how a recipe is made")
                 .u("<namespace:key|item>", "station, ingredients and parameters; asks which recipe when the item has several")
                 .perm("ui.command.showcraft");
-        cmd("durability", "Scale the held item's durability")
-                .u("", "show the current vanilla durability")
-                .u("multiply|divide <value>", "scale the remaining durability (with gates)")
-                .u("raw multiply|divide <value>", "scale without unbreakable/unbreaking gates")
-                .perm("ui.command.durability");
+        cmd("item", "Item data tools (durability, NBT editing, read-only viewer)")
+                .u("durability", "show the held item's current vanilla durability")
+                .u("durability multiply|divide <value>", "scale the remaining durability (with gates)")
+                .u("durability raw multiply|divide <value>", "scale without unbreakable/unbreaking gates")
+                .u("nbt <…>", "edit item data components (name, lore, equipment, food, …)")
+                .u("view <player> [slot]", "print the full item data: name, enchants, components, PDC tags and NBT")
+                .sub("durability", "[raw] multiply|divide <value>", "scale the held item's durability")
+                .sub("nbt", "<…>", "edit item data components / NBT")
+                .sub("view", "<player> [slot]", "read-only full item data viewer")
+                .perm("ui.command.item", "ui.command.item.durability", "ui.command.item.nbt", "ui.command.item.view");
         cmd("unlock", "Unlockables")
                 .u("book", "unlock the book crafting")
                 .u("sign", "unlock the sign crafting");

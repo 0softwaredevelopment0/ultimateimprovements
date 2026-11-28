@@ -2,7 +2,7 @@ package com.ultimateimprovements.command.subcommands;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.ultimateimprovements.command.CommandErrors;
-import com.ultimateimprovements.command.SubCommand;
+import com.ultimateimprovements.core.Permissions;
 import com.ultimateimprovements.util.MessageUtil;
 import com.ultimateimprovements.util.Registries;
 import com.ultimateimprovements.util.PlayerDataIO;
@@ -100,65 +100,64 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * /ui itemnbt — edit item data components (NBT-level) of the item in your main hand.
+ * /ui item nbt — edit item data components (NBT-level) of the item in your main hand.
  *
  * <p>Works through the Paper DataComponent API, so every change is fully
  * vanilla-compatible and survives restarts / conversions.</p>
  *
  * <pre>
- *   /ui itemnbt setname "&lt;miniMessage&gt;"                     — set the display name
- *   /ui itemnbt lore add [index] "&lt;line&gt;"                 — append / insert a lore line
- *   /ui itemnbt lore set &lt;index&gt; "&lt;line&gt;"              — overwrite a lore line
- *   /ui itemnbt lore remove &lt;index&gt;                       — remove a lore line
- *   /ui itemnbt hide &lt;flag|all&gt;                           — hide tooltip data
- *   /ui itemnbt unbreakable &lt;true|false&gt;                  — make the item unbreakable
- *   /ui itemnbt repaircost &lt;value&gt;                       — set anvil repair cost
- *   /ui itemnbt equipment entities &lt;entity&gt; &lt;true|false&gt; — allow/deny equipping on an entity type
- *   /ui itemnbt equipment cameraoverlay &lt;key|clear&gt;        — camera overlay texture
- *   /ui itemnbt equipment dispensable &lt;true|false&gt;         — dispensable by dispenser
- *   /ui itemnbt equipment equipinteract &lt;true|false&gt;       — equippable on interact
- *   /ui itemnbt equipment equipsound &lt;sound|clear&gt;         — equip sound
- *   /ui itemnbt equipment slot &lt;slot&gt; &lt;true|false&gt;        — equip slot on/off
- *   /ui itemnbt food addeffect &lt;effect&gt; &lt;ticks|-1&gt; &lt;level 1-255&gt; &lt;true|false&gt;
- *   /ui itemnbt food removeeffect &lt;effect&gt;
- *   /ui itemnbt food animation &lt;type&gt;
- *   /ui itemnbt food canalwayseat &lt;true|false&gt;
- *   /ui itemnbt food clear
- *   /ui itemnbt food consumeparticles &lt;particle|true|false|clear&gt;
- *   /ui itemnbt food eatticks &lt;ticks&gt;
- *   /ui itemnbt food info
- *   /ui itemnbt food nutrition &lt;int&gt;
- *   /ui itemnbt food saturation &lt;int&gt;
- *   /ui itemnbt food sound &lt;sound|clear&gt;
+ *   /ui item nbt setname "&lt;miniMessage&gt;"                     — set the display name
+ *   /ui item nbt lore add [index] "&lt;line&gt;"                 — append / insert a lore line
+ *   /ui item nbt lore set &lt;index&gt; "&lt;line&gt;"              — overwrite a lore line
+ *   /ui item nbt lore remove &lt;index&gt;                       — remove a lore line
+ *   /ui item nbt hide &lt;flag|all&gt;                           — hide tooltip data
+ *   /ui item nbt unbreakable &lt;true|false&gt;                  — make the item unbreakable
+ *   /ui item nbt repaircost &lt;value&gt;                       — set anvil repair cost
+ *   /ui item nbt equipment entities &lt;entity&gt; &lt;true|false&gt; — allow/deny equipping on an entity type
+ *   /ui item nbt equipment cameraoverlay &lt;key|clear&gt;        — camera overlay texture
+ *   /ui item nbt equipment dispensable &lt;true|false&gt;         — dispensable by dispenser
+ *   /ui item nbt equipment equipinteract &lt;true|false&gt;       — equippable on interact
+ *   /ui item nbt equipment equipsound &lt;sound|clear&gt;         — equip sound
+ *   /ui item nbt equipment slot &lt;slot&gt; &lt;true|false&gt;        — equip slot on/off
+ *   /ui item nbt food addeffect &lt;effect&gt; &lt;ticks|-1&gt; &lt;level 1-255&gt; &lt;true|false&gt;
+ *   /ui item nbt food removeeffect &lt;effect&gt;
+ *   /ui item nbt food animation &lt;type&gt;
+ *   /ui item nbt food canalwayseat &lt;true|false&gt;
+ *   /ui item nbt food clear
+ *   /ui item nbt food consumeparticles &lt;particle|true|false|clear&gt;
+ *   /ui item nbt food eatticks &lt;ticks&gt;
+ *   /ui item nbt food info
+ *   /ui item nbt food nutrition &lt;int&gt;
+ *   /ui item nbt food saturation &lt;int&gt;
+ *   /ui item nbt food sound &lt;sound|clear&gt;
  * </pre>
  *
- * <p>Permission: {@code ui.command.itemnbt} (registered in {@code Permissions} — in code, not plugin.yml).</p>
+ * <p>Permission: {@code ui.command.item.nbt} (or the {@code ui.command.item} umbrella),
+ * registered in {@code Permissions} — in code, not plugin.yml.</p>
  */
-public final class ItemNbtSubcommand implements SubCommand {
+public final class ItemNbtSubcommand {
 
-    private static final String PERMISSION = "ui.command.itemnbt";
+    private static final String PERMISSION = Permissions.CMD_ITEM_NBT;
 
     private static final MiniMessage MM = MiniMessage.miniMessage();
 
     /** -1 duration means "infinity" — stored as the maximum tick count. */
     private static final int INFINITE_TICKS = Integer.MAX_VALUE;
 
-    @Override
     public String getName() {
-        return "itemnbt";
+        return "nbt";
     }
 
     // ══════════════════════════════════════════════════════════════
     // EXECUTE
     // ══════════════════════════════════════════════════════════════
 
-    @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(MessageUtil.parse("<red>❌ This command can only be used by players.</red>"));
             return true;
         }
-        if (!player.hasPermission(PERMISSION)) {
+        if (!player.hasPermission(PERMISSION) && !player.hasPermission(Permissions.CMD_ITEM)) {
             CommandErrors.noPermission(sender, PERMISSION);
             return true;
         }
@@ -167,7 +166,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             return true;
         }
 
-        // Optional target player: /ui itemnbt <ник> <subcommand> ...
+        // Optional target player: /ui item nbt <ник> <subcommand> ...
         // Without a nick the sender's own main-hand item is edited (backward compatible).
         Player target = player;
         String[] effArgs = args;
@@ -298,7 +297,7 @@ public final class ItemNbtSubcommand implements SubCommand {
     // NAME + LORE
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt setname "&lt;miniMessage&gt;" (or "clear" to remove the custom name). */
+    /** /ui item nbt setname "&lt;miniMessage&gt;" (or "clear" to remove the custom name). */
     private static boolean setName(Player p, ItemStack item, String[] args) {
         String text = joinFrom(args, 2);
         if (text.isEmpty() || text.equalsIgnoreCase("clear")) {
@@ -312,10 +311,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt lore add [index] "&lt;line&gt;" | set &lt;index&gt; "&lt;line&gt;" | remove &lt;index&gt; */
+    /** /ui item nbt lore add [index] "&lt;line&gt;" | set &lt;index&gt; "&lt;line&gt;" | remove &lt;index&gt; */
     private static boolean lore(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt lore add [index] \"<line>\" | set <index> \"<line>\" | remove <index></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt lore add [index] \"<line>\" | set <index> \"<line>\" | remove <index></white>"));
             return true;
         }
         return switch (args[2].toLowerCase(Locale.ROOT)) {
@@ -343,7 +342,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
         }
         if (textStart >= args.length) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt lore add [index] \"<line>\"</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt lore add [index] \"<line>\"</white>"));
             return true;
         }
 
@@ -363,7 +362,7 @@ public final class ItemNbtSubcommand implements SubCommand {
 
     private static boolean loreSet(Player p, ItemStack item, String[] args) {
         if (args.length < 5) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt lore set <index> \"<line>\"</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt lore set <index> \"<line>\"</white>"));
             return true;
         }
         Integer idx = parseInt(args[3]);
@@ -387,7 +386,7 @@ public final class ItemNbtSubcommand implements SubCommand {
 
     private static boolean loreRemove(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt lore remove <index></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt lore remove <index></white>"));
             return true;
         }
         Integer idx = parseInt(args[3]);
@@ -417,10 +416,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // HIDE / UNBREAKABLE / REPAIR COST
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt hide &lt;flag|all&gt; — adds an ItemFlag (hide tooltip data). */
+    /** /ui item nbt hide &lt;flag|all&gt; — adds an ItemFlag (hide tooltip data). */
     private static boolean hide(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt hide <flag|all></white>"
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt hide <flag|all></white>"
                     + "<gray> — armor_trim, attributes, destroys, dye, enchants, placed_on, stored_enchants, unbreakable, additional_tooltip</gray>"));
             return true;
         }
@@ -461,10 +460,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         };
     }
 
-    /** /ui itemnbt unbreakable &lt;true|false&gt; */
+    /** /ui item nbt unbreakable &lt;true|false&gt; */
     private static boolean unbreakable(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt unbreakable <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt unbreakable <true|false></white>"));
             return true;
         }
         Boolean value = parseBool(args[2]);
@@ -481,10 +480,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt repaircost &lt;value&gt; */
+    /** /ui item nbt repaircost &lt;value&gt; */
     private static boolean repairCost(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt repaircost <value></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt repaircost <value></white>"));
             return true;
         }
         Integer cost = parseInt(args[2]);
@@ -503,7 +502,7 @@ public final class ItemNbtSubcommand implements SubCommand {
 
     private static boolean equipment(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt equipment <entities|cameraoverlay|dispensable|equipinteract|equipsound|slot> ...</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt equipment <entities|cameraoverlay|dispensable|equipinteract|equipsound|slot> ...</white>"));
             return true;
         }
         return switch (args[2].toLowerCase(Locale.ROOT)) {
@@ -521,10 +520,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         };
     }
 
-    /** /ui itemnbt equipment entities &lt;entity&gt; &lt;true|false&gt; */
+    /** /ui item nbt equipment entities &lt;entity&gt; &lt;true|false&gt; */
     private static boolean equipmentEntities(Player p, ItemStack item, String[] args) {
         if (args.length < 5) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt equipment entities <entityType> <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt equipment entities <entityType> <true|false></white>"));
             return true;
         }
         EntityType type = resolveRegistry(Registry.ENTITY_TYPE, args[3]);
@@ -560,10 +559,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt equipment cameraoverlay &lt;key|clear&gt; */
+    /** /ui item nbt equipment cameraoverlay &lt;key|clear&gt; */
     private static boolean equipmentCameraOverlay(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt equipment cameraoverlay <textureKey|clear></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt equipment cameraoverlay <textureKey|clear></white>"));
             return true;
         }
         Equippable old = item.getData(DataComponentTypes.EQUIPPABLE);
@@ -588,10 +587,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt equipment dispensable &lt;true|false&gt; */
+    /** /ui item nbt equipment dispensable &lt;true|false&gt; */
     private static boolean equipmentDispensable(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt equipment dispensable <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt equipment dispensable <true|false></white>"));
             return true;
         }
         Boolean value = parseBool(args[3]);
@@ -606,10 +605,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt equipment equipinteract &lt;true|false&gt; */
+    /** /ui item nbt equipment equipinteract &lt;true|false&gt; */
     private static boolean equipmentEquipInteract(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt equipment equipinteract <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt equipment equipinteract <true|false></white>"));
             return true;
         }
         Boolean value = parseBool(args[3]);
@@ -624,10 +623,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt equipment equipsound &lt;sound|clear&gt; */
+    /** /ui item nbt equipment equipsound &lt;sound|clear&gt; */
     private static boolean equipmentEquipSound(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt equipment equipsound <sound|clear></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt equipment equipsound <sound|clear></white>"));
             return true;
         }
         Equippable old = item.getData(DataComponentTypes.EQUIPPABLE);
@@ -651,10 +650,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt equipment slot &lt;slot&gt; &lt;true|false&gt; */
+    /** /ui item nbt equipment slot &lt;slot&gt; &lt;true|false&gt; */
     private static boolean equipmentSlot(Player p, ItemStack item, String[] args) {
         if (args.length < 5) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt equipment slot <body|chest|feet|hand|head|legs|off_hand|saddle> <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt equipment slot <body|chest|feet|hand|head|legs|off_hand|saddle> <true|false></white>"));
             return true;
         }
         EquipmentSlot slot = parseSlot(args[3]);
@@ -706,7 +705,7 @@ public final class ItemNbtSubcommand implements SubCommand {
 
     private static boolean food(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt food <addeffect|animation|canalwayseat|clear|consumeparticles|eatticks|info|nutrition|removeeffect|saturation|sound> ...</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt food <addeffect|animation|canalwayseat|clear|consumeparticles|eatticks|info|nutrition|removeeffect|saturation|sound> ...</white>"));
             return true;
         }
         return switch (args[2].toLowerCase(Locale.ROOT)) {
@@ -729,10 +728,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         };
     }
 
-    /** /ui itemnbt food addeffect &lt;effect&gt; &lt;ticks|-1&gt; &lt;level 1-255&gt; &lt;particles true|false&gt; */
+    /** /ui item nbt food addeffect &lt;effect&gt; &lt;ticks|-1&gt; &lt;level 1-255&gt; &lt;particles true|false&gt; */
     private static boolean foodAddEffect(Player p, ItemStack item, String[] args) {
         if (args.length < 7) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt food addeffect <effect> <ticks|-1> <level 1-255> <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt food addeffect <effect> <ticks|-1> <level 1-255> <true|false></white>"));
             return true;
         }
         PotionEffectType type = resolveRegistry(Registry.POTION_EFFECT_TYPE, args[3]);
@@ -776,10 +775,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt food removeeffect &lt;effect&gt; */
+    /** /ui item nbt food removeeffect &lt;effect&gt; */
     private static boolean foodRemoveEffect(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt food removeeffect <effect></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt food removeeffect <effect></white>"));
             return true;
         }
         PotionEffectType type = resolveRegistry(Registry.POTION_EFFECT_TYPE, args[3]);
@@ -797,10 +796,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt food animation &lt;type&gt; */
+    /** /ui item nbt food animation &lt;type&gt; */
     private static boolean foodAnimation(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt food animation <block|bow|brush|crossbow|drink|eat|none|spear|spyglass|toot_horn></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt food animation <block|bow|brush|crossbow|drink|eat|none|spear|spyglass|toot_horn></white>"));
             return true;
         }
         ItemUseAnimation animation = parseAnimation(args[3]);
@@ -815,10 +814,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt food canalwayseat &lt;true|false&gt; */
+    /** /ui item nbt food canalwayseat &lt;true|false&gt; */
     private static boolean foodCanAlwaysEat(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt food canalwayseat <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt food canalwayseat <true|false></white>"));
             return true;
         }
         Boolean value = parseBool(args[3]);
@@ -831,17 +830,17 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt food clear — removes all consume effects and consume settings. */
+    /** /ui item nbt food clear — removes all consume effects and consume settings. */
     private static boolean foodClear(Player p, ItemStack item, String[] args) {
         item.resetData(DataComponentTypes.CONSUMABLE);
         p.sendMessage(MessageUtil.parse("<green>✔</green> <white>All food effects (and consume settings) cleared.</white>"));
         return true;
     }
 
-    /** /ui itemnbt food consumeparticles &lt;particle|true|false|clear&gt; */
+    /** /ui item nbt food consumeparticles &lt;particle|true|false|clear&gt; */
     private static boolean foodConsumeParticles(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt food consumeparticles <true|false|clear></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt food consumeparticles <true|false|clear></white>"));
             return true;
         }
         String raw = args[3].toLowerCase(Locale.ROOT);
@@ -859,10 +858,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt food eatticks &lt;ticks&gt; */
+    /** /ui item nbt food eatticks &lt;ticks&gt; */
     private static boolean foodEatTicks(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt food eatticks <ticks></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt food eatticks <ticks></white>"));
             return true;
         }
         Integer ticks = parseInt(args[3]);
@@ -876,7 +875,7 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt food info — prints the current food + consume data. */
+    /** /ui item nbt food info — prints the current food + consume data. */
     private static boolean foodInfo(Player p, ItemStack item, String[] args) {
         FoodProperties food = item.getData(DataComponentTypes.FOOD);
         Consumable consumable = item.getData(DataComponentTypes.CONSUMABLE);
@@ -930,10 +929,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt food nutrition &lt;int&gt; */
+    /** /ui item nbt food nutrition &lt;int&gt; */
     private static boolean foodNutrition(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt food nutrition <value></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt food nutrition <value></white>"));
             return true;
         }
         Integer value = parseInt(args[3]);
@@ -946,10 +945,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt food saturation &lt;int&gt; */
+    /** /ui item nbt food saturation &lt;int&gt; */
     private static boolean foodSaturation(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt food saturation <value></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt food saturation <value></white>"));
             return true;
         }
         Integer value = parseInt(args[3]);
@@ -962,10 +961,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt food sound &lt;sound|clear&gt; */
+    /** /ui item nbt food sound &lt;sound|clear&gt; */
     private static boolean foodSound(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt food sound <sound|clear></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt food sound <sound|clear></white>"));
             return true;
         }
         Consumable old = item.getData(DataComponentTypes.CONSUMABLE);
@@ -1002,10 +1001,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // MAX STACK SIZE / MAX DURABILITY
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt maxstacksize <value> */
+    /** /ui item nbt maxstacksize <value> */
     private static boolean maxStackSize(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt maxstacksize <1-99></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt maxstacksize <1-99></white>"));
             return true;
         }
         Integer value = parseInt(args[2]);
@@ -1018,10 +1017,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt maxdurability <value> */
+    /** /ui item nbt maxdurability <value> */
     private static boolean maxDurability(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt maxdurability <value></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt maxdurability <value></white>"));
             return true;
         }
         Integer value = parseInt(args[2]);
@@ -1043,10 +1042,10 @@ public final class ItemNbtSubcommand implements SubCommand {
             "in_fire", "campfire", "on_fire", "lava",
             "hot_floor", "sulfur_cube_hot", "unattributed_fireball", "fireball");
 
-    /** /ui itemnbt fireresistent <true|false> — fire/lava immunity via damage_resistant. */
+    /** /ui item nbt fireresistent <true|false> — fire/lava immunity via damage_resistant. */
     private static boolean fireResistant(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt fireresistent <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt fireresistent <true|false></white>"));
             return true;
         }
         Boolean value = parseBool(args[2]);
@@ -1068,10 +1067,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt glow <true|false> — enchant glint override. */
+    /** /ui item nbt glow <true|false> — enchant glint override. */
     private static boolean glow(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt glow <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt glow <true|false></white>"));
             return true;
         }
         Boolean value = parseBool(args[2]);
@@ -1084,10 +1083,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt glider <true|false> — elytra-like gliding. */
+    /** /ui item nbt glider <true|false> — elytra-like gliding. */
     private static boolean glider(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt glider <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt glider <true|false></white>"));
             return true;
         }
         Boolean value = parseBool(args[2]);
@@ -1104,10 +1103,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt rarity <common|uncommon|rare|epic> */
+    /** /ui item nbt rarity <common|uncommon|rare|epic> */
     private static boolean rarity(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt rarity <common|uncommon|rare|epic></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt rarity <common|uncommon|rare|epic></white>"));
             return true;
         }
         ItemRarity rarity = parseRarity(args[2]);
@@ -1121,10 +1120,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt amount <value> — set item stack amount. */
+    /** /ui item nbt amount <value> — set item stack amount. */
     private static boolean amount(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt amount <value></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt amount <value></white>"));
             return true;
         }
         Integer value = parseInt(args[2]);
@@ -1139,10 +1138,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt durability <value> — vanilla durability editing. */
+    /** /ui item nbt durability <value> — vanilla durability editing. */
     private static boolean durability(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt durability <value></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt durability <value></white>"));
             return true;
         }
         Integer value = parseInt(args[2]);
@@ -1168,10 +1167,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // BANNER
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt banner <add|set|remove|info> ... */
+    /** /ui item nbt banner <add|set|remove|info> ... */
     private static boolean banner(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt banner <add|set|remove|info> ...</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt banner <add|set|remove|info> ...</white>"));
             return true;
         }
         return switch (args[2].toLowerCase(Locale.ROOT)) {
@@ -1192,10 +1191,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return layers == null ? new ArrayList<>() : new ArrayList<>(layers.patterns());
     }
 
-    /** /ui itemnbt banner add <index> <pattern> <color> */
+    /** /ui item nbt banner add <index> <pattern> <color> */
     private static boolean bannerAdd(Player p, ItemStack item, String[] args) {
         if (args.length < 6) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt banner add <index> <pattern> <color></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt banner add <index> <pattern> <color></white>"));
             return true;
         }
         Integer idx = parseInt(args[3]);
@@ -1223,10 +1222,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt banner set <index> <pattern> <color> */
+    /** /ui item nbt banner set <index> <pattern> <color> */
     private static boolean bannerSet(Player p, ItemStack item, String[] args) {
         if (args.length < 6) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt banner set <index> <pattern> <color></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt banner set <index> <pattern> <color></white>"));
             return true;
         }
         Integer idx = parseInt(args[3]);
@@ -1257,10 +1256,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt banner remove <index> */
+    /** /ui item nbt banner remove <index> */
     private static boolean bannerRemove(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt banner remove <index></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt banner remove <index></white>"));
             return true;
         }
         Integer idx = parseInt(args[3]);
@@ -1285,7 +1284,7 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt banner info <all|index> */
+    /** /ui item nbt banner info <all|index> */
     private static boolean bannerInfo(Player p, ItemStack item, String[] args) {
         List<Pattern> patterns = bannerPatterns(item);
         if (patterns.isEmpty()) {
@@ -1322,10 +1321,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // COLOR / SKULL OWNER / FIREWORK POWER / POTION EFFECTS
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt color <R> <G> <B> — for leather, potions, tipped arrows, firework stars. */
+    /** /ui item nbt color <R> <G> <B> — for leather, potions, tipped arrows, firework stars. */
     private static boolean color(Player p, ItemStack item, String[] args) {
         if (args.length < 5) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt color <R> <G> <B> (0-255)</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt color <R> <G> <B> (0-255)</white>"));
             return true;
         }
         Integer r = parseInt(args[2]);
@@ -1371,10 +1370,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt skullowner <name> — set head owner profile. */
+    /** /ui item nbt skullowner <name> — set head owner profile. */
     private static boolean skullOwner(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt skullowner <playerName></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt skullowner <playerName></white>"));
             return true;
         }
         String name = args[2];
@@ -1384,10 +1383,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt fireworkpower <1-255> */
+    /** /ui item nbt fireworkpower <1-255> */
     private static boolean fireworkPower(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt fireworkpower <1-255></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt fireworkpower <1-255></white>"));
             return true;
         }
         Integer power = parseInt(args[2]);
@@ -1406,10 +1405,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // POTION EFFECTS
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt potioneffect <add|remove|reset> ... */
+    /** /ui item nbt potioneffect <add|remove|reset> ... */
     private static boolean potionEffect(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt potioneffect <add|remove|reset> ...</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt potioneffect <add|remove|reset> ...</white>"));
             return true;
         }
         return switch (args[2].toLowerCase(Locale.ROOT)) {
@@ -1424,10 +1423,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         };
     }
 
-    /** /ui itemnbt potioneffect add <effect> <duration ticks|-1> <power 1-255> */
+    /** /ui item nbt potioneffect add <effect> <duration ticks|-1> <power 1-255> */
     private static boolean potionEffectAdd(Player p, ItemStack item, String[] args) {
         if (args.length < 6) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt potioneffect add <effect> <duration|-1> <power 1-255></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt potioneffect add <effect> <duration|-1> <power 1-255></white>"));
             return true;
         }
         PotionEffectType type = resolveRegistry(Registry.POTION_EFFECT_TYPE, args[3]);
@@ -1470,10 +1469,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt potioneffect remove <effect> */
+    /** /ui item nbt potioneffect remove <effect> */
     private static boolean potionEffectRemove(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt potioneffect remove <effect></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt potioneffect remove <effect></white>"));
             return true;
         }
         PotionEffectType type = resolveRegistry(Registry.POTION_EFFECT_TYPE, args[3]);
@@ -1509,7 +1508,7 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt potioneffect reset — removes all custom effects, preserves potion type/color. */
+    /** /ui item nbt potioneffect reset — removes all custom effects, preserves potion type/color. */
     private static boolean potionEffectReset(Player p, ItemStack item, String[] args) {
         PotionContents old = item.getData(DataComponentTypes.POTION_CONTENTS);
         if (old == null || old.customEffects().isEmpty()) {
@@ -1529,10 +1528,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // BOOK AUTHOR / BOOK TYPE
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt bookauthor <name> — set the author of a written book. */
+    /** /ui item nbt bookauthor <name> — set the author of a written book. */
     private static boolean bookAuthor(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt bookauthor <author></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt bookauthor <author></white>"));
             return true;
         }
         WrittenBookContent old = item.getData(DataComponentTypes.WRITTEN_BOOK_CONTENT);
@@ -1552,10 +1551,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt booktype <original|copy_of_original|copy_of_copy|tattered> */
+    /** /ui item nbt booktype <original|copy_of_original|copy_of_copy|tattered> */
     private static boolean bookType(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt booktype <original|copy_of_original|copy_of_copy|tattered></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt booktype <original|copy_of_original|copy_of_copy|tattered></white>"));
             return true;
         }
         WrittenBookContent old = item.getData(DataComponentTypes.WRITTEN_BOOK_CONTENT);
@@ -1584,10 +1583,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // ATTRIBUTES
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt attribute <add|remove|reset> ... */
+    /** /ui item nbt attribute <add|remove|reset> ... */
     private static boolean attribute(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt attribute <add|remove|reset> ...</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt attribute <add|remove|reset> ...</white>"));
             return true;
         }
         return switch (args[2].toLowerCase(Locale.ROOT)) {
@@ -1602,10 +1601,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         };
     }
 
-    /** /ui itemnbt attribute add <attribute> <amount> <operation> <slotGroup> */
+    /** /ui item nbt attribute add <attribute> <amount> <operation> <slotGroup> */
     private static boolean attributeAdd(Player p, ItemStack item, String[] args) {
         if (args.length < 7) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt attribute add <attribute> <amount> <operation> <slotGroup></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt attribute add <attribute> <amount> <operation> <slotGroup></white>"));
             return true;
         }
         Attribute attribute = resolveRegistry(Registry.ATTRIBUTE, args[3]);
@@ -1653,10 +1652,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt attribute remove <ID> */
+    /** /ui item nbt attribute remove <ID> */
     private static boolean attributeRemove(Player p, ItemStack item, String[] args) {
         if (args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt attribute remove <ID></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt attribute remove <ID></white>"));
             return true;
         }
         Integer idx = parseInt(args[3]);
@@ -1690,7 +1689,7 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt attribute reset — removes all attributes. */
+    /** /ui item nbt attribute reset — removes all attributes. */
     private static boolean attributeReset(Player p, ItemStack item, String[] args) {
         ItemAttributeModifiers old = item.getData(DataComponentTypes.ATTRIBUTE_MODIFIERS);
         if (old == null || old.modifiers().isEmpty()) {
@@ -1706,10 +1705,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // CUSTOM MODEL DATA / ITEM MODEL / COMPASS
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt cmdata <value> — set CustomModelData (float). */
+    /** /ui item nbt cmdata <value> — set CustomModelData (float). */
     private static boolean cmData(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt cmdata <value></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt cmdata <value></white>"));
             return true;
         }
         Integer value = parseInt(args[2]);
@@ -1723,10 +1722,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt itemmodel <ns:key> — set the item model. */
+    /** /ui item nbt itemmodel <ns:key> — set the item model. */
     private static boolean itemModel(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt itemmodel <namespace:path></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt itemmodel <namespace:path></white>"));
             return true;
         }
         Key model = parseResourceKey(args[2]);
@@ -1740,10 +1739,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt compass <clear|set> <X> <Y> <Z> <world> — magnetizes a compass to a lodestone. */
+    /** /ui item nbt compass <clear|set> <X> <Y> <Z> <world> — magnetizes a compass to a lodestone. */
     private static boolean compass(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt compass <clear|set> [X] [Y] [Z] [world]</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt compass <clear|set> [X] [Y] [Z] [world]</white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -1757,7 +1756,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             return true;
         }
         if (args.length < 7) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt compass set <X> <Y> <Z> <world></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt compass set <X> <Y> <Z> <world></white>"));
             return true;
         }
         Integer x = parseInt(args[3]);
@@ -1783,10 +1782,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // AXOLOTL / GOAT HORN / ARMOR TRIM
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt axltype <blue|cyan|gold|lucy|wild> — axolotl variant in a bucket. */
+    /** /ui item nbt axltype <blue|cyan|gold|lucy|wild> — axolotl variant in a bucket. */
     private static boolean axolotlType(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt axltype <blue|cyan|gold|lucy|wild></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt axltype <blue|cyan|gold|lucy|wild></white>"));
             return true;
         }
         Axolotl.Variant variant = switch (args[2].toLowerCase(Locale.ROOT)) {
@@ -1807,10 +1806,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt ghsound <admire|call|dream|feel|ponder|seek|sing|yearn> — goat horn sound. */
+    /** /ui item nbt ghsound <admire|call|dream|feel|ponder|seek|sing|yearn> — goat horn sound. */
     private static boolean goatHornSound(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt ghsound <admire|call|dream|feel|ponder|seek|sing|yearn></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt ghsound <admire|call|dream|feel|ponder|seek|sing|yearn></white>"));
             return true;
         }
         MusicInstrument instrument = resolveRegistry(Registries.instrument(), args[2] + "_goat_horn");
@@ -1824,11 +1823,11 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt material <material> — set the item's material (e.g. iron_ingot). */
+    /** /ui item nbt material <material> — set the item's material (e.g. iron_ingot). */
     @SuppressWarnings("deprecation")
     private static boolean material(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt material <material></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt material <material></white>"));
             return true;
         }
         Material material = resolveRegistry(Registry.MATERIAL, args[2]);
@@ -1841,10 +1840,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt armortrim <clear|set> [material] [pattern] */
+    /** /ui item nbt armortrim <clear|set> [material] [pattern] */
     private static boolean armorTrim(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt armortrim <clear|set> [material] [pattern]</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt armortrim <clear|set> [material] [pattern]</white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -1853,7 +1852,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             return true;
         }
         if (!args[2].equalsIgnoreCase("set") || args.length < 5) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt armortrim set <material> <pattern></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt armortrim set <material> <pattern></white>"));
             return true;
         }
         TrimMaterial material = resolveRegistry(Registries.trimMaterial(), args[3]);
@@ -1877,10 +1876,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // TOOLTIP STYLE / ITEM NAME / HIDE TOOLTIP
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt tooltipstyle <ns:key|clear> — tooltip style (e.g. minecraft:missing, custom pack styles). */
+    /** /ui item nbt tooltipstyle <ns:key|clear> — tooltip style (e.g. minecraft:missing, custom pack styles). */
     private static boolean tooltipStyle(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt tooltipstyle <namespace:path|clear></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt tooltipstyle <namespace:path|clear></white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -1899,7 +1898,7 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt itemname "<miniMessage>"|clear — set the item name (grey, non-custom name). */
+    /** /ui item nbt itemname "<miniMessage>"|clear — set the item name (grey, non-custom name). */
     private static boolean itemName(Player p, ItemStack item, String[] args) {
         String text = joinFrom(args, 2);
         if (text.isEmpty() || text.equalsIgnoreCase("clear")) {
@@ -1913,10 +1912,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt hidetooltip <true|false> — hide the whole tooltip (including the item name). */
+    /** /ui item nbt hidetooltip <true|false> — hide the whole tooltip (including the item name). */
     private static boolean hideTooltip(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt hidetooltip <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt hidetooltip <true|false></white>"));
             return true;
         }
         Boolean value = parseBool(args[2]);
@@ -1938,10 +1937,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // USE COOLDOWN / USE REMAINDER
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt usecooldown <seconds> [group]|clear — set the use cooldown. */
+    /** /ui item nbt usecooldown <seconds> [group]|clear — set the use cooldown. */
     private static boolean useCooldown(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt usecooldown <seconds> [cooldownGroup|clear]</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt usecooldown <seconds> [cooldownGroup|clear]</white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -1976,10 +1975,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt useremainder <material> [amount]|clear — the item left after use. */
+    /** /ui item nbt useremainder <material> [amount]|clear — the item left after use. */
     private static boolean useRemainder(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt useremainder <material> [amount]|clear</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt useremainder <material> [amount]|clear</white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -2011,11 +2010,11 @@ public final class ItemNbtSubcommand implements SubCommand {
     // CAN BREAK / CAN PLACE ON
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt canbreak|canplaceon <add <block...>|clear|info> — adventure-mode block rules. */
+    /** /ui item nbt canbreak|canplaceon <add <block...>|clear|info> — adventure-mode block rules. */
     private static boolean canBreakPlace(Player p, ItemStack item, String[] args, boolean isBreak) {
         String cmd = isBreak ? "canbreak" : "canplaceon";
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt " + cmd + " <add <block...>|clear|info></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt " + cmd + " <add <block...>|clear|info></white>"));
             return true;
         }
         String action = args[2].toLowerCase(Locale.ROOT);
@@ -2042,7 +2041,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             return true;
         }
         if (!action.equals("add") || args.length < 4) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt " + cmd + " <add <block...>|clear|info></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt " + cmd + " <add <block...>|clear|info></white>"));
             return true;
         }
         List<BlockType> blockTypes = new ArrayList<>();
@@ -2077,10 +2076,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // ENCHANTABLE / MAP
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt enchantable <value>|clear — whether the item can be enchanted. */
+    /** /ui item nbt enchantable <value>|clear — whether the item can be enchanted. */
     private static boolean enchantable(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt enchantable <value>|clear</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt enchantable <value>|clear</white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -2098,10 +2097,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt mapid <id>|clear — set the filled-map ID. */
+    /** /ui item nbt mapid <id>|clear — set the filled-map ID. */
     private static boolean mapId(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt mapid <id>|clear</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt mapid <id>|clear</white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -2119,10 +2118,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt mappost <lock|scale|clear> — map post-processing. */
+    /** /ui item nbt mappost <lock|scale|clear> — map post-processing. */
     private static boolean mapPost(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt mappost <lock|scale|clear></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt mappost <lock|scale|clear></white>"));
             return true;
         }
         switch (args[2].toLowerCase(Locale.ROOT)) {
@@ -2146,10 +2145,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt mapdeco <add <name> <type> <x> <z> <rotation>|remove <name>|clear|info> — map markers. */
+    /** /ui item nbt mapdeco <add <name> <type> <x> <z> <rotation>|remove <name>|clear|info> — map markers. */
     private static boolean mapDeco(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt mapdeco <add <name> <type> <x> <z> <rotation>|remove <name>|clear|info></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt mapdeco <add <name> <type> <x> <z> <rotation>|remove <name>|clear|info></white>"));
             return true;
         }
         String action = args[2].toLowerCase(Locale.ROOT);
@@ -2197,7 +2196,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
             case "add" -> {
                 if (args.length < 8) {
-                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt mapdeco add <name> <type> <x> <z> <rotation></white>"));
+                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt mapdeco add <name> <type> <x> <z> <rotation></white>"));
                     return true;
                 }
                 MapCursor.Type type = resolveRegistry(Registry.MAP_DECORATION_TYPE, args[4]);
@@ -2230,10 +2229,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // WRITABLE BOOK / SUSPICIOUS STEW / DEATH PROTECTION
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt writablebook <addpage <text>|clearpages|info> — book & quill pages. */
+    /** /ui item nbt writablebook <addpage <text>|clearpages|info> — book & quill pages. */
     private static boolean writableBook(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt writablebook <addpage <text>|clearpages|info></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt writablebook <addpage <text>|clearpages|info></white>"));
             return true;
         }
         String action = args[2].toLowerCase(Locale.ROOT);
@@ -2281,10 +2280,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         }
     }
 
-    /** /ui itemnbt suspiciousstew <add <effect> <ticks>|remove <effect>|reset|info> — stew effects. */
+    /** /ui item nbt suspiciousstew <add <effect> <ticks>|remove <effect>|reset|info> — stew effects. */
     private static boolean suspiciousStew(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt suspiciousstew <add <effect> <ticks>|remove <effect>|reset|info></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt suspiciousstew <add <effect> <ticks>|remove <effect>|reset|info></white>"));
             return true;
         }
         String action = args[2].toLowerCase(Locale.ROOT);
@@ -2312,7 +2311,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
             case "add" -> {
                 if (args.length < 5) {
-                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt suspiciousstew add <effect> <ticks></white>"));
+                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt suspiciousstew add <effect> <ticks></white>"));
                     return true;
                 }
                 PotionEffectType type = resolveRegistry(Registry.POTION_EFFECT_TYPE, args[3]);
@@ -2333,7 +2332,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
             case "remove" -> {
                 if (args.length < 4) {
-                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt suspiciousstew remove <effect></white>"));
+                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt suspiciousstew remove <effect></white>"));
                     return true;
                 }
                 PotionEffectType type = resolveRegistry(Registry.POTION_EFFECT_TYPE, args[3]);
@@ -2362,10 +2361,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         }
     }
 
-    /** /ui itemnbt deathprotection <true|false> — totem-of-undying-style protection. */
+    /** /ui item nbt deathprotection <true|false> — totem-of-undying-style protection. */
     private static boolean deathProtection(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt deathprotection <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt deathprotection <true|false></white>"));
             return true;
         }
         Boolean value = parseBool(args[2]);
@@ -2393,10 +2392,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // JUKEBOX / NOTE BLOCK / BUNDLE / POT / LOOT
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt jukeboxplayable <song|clear> — make the item playable on a jukebox. */
+    /** /ui item nbt jukeboxplayable <song|clear> — make the item playable on a jukebox. */
     private static boolean jukeboxPlayable(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt jukeboxplayable <song|clear></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt jukeboxplayable <song|clear></white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -2416,10 +2415,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt noteblocksound <sound|clear> — the sound a note block plays from this item. */
+    /** /ui item nbt noteblocksound <sound|clear> — the sound a note block plays from this item. */
     private static boolean noteBlockSound(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt noteblocksound <sound|clear></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt noteblocksound <sound|clear></white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -2438,10 +2437,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt bundle <add <material> [amount]|clear|info> — bundle contents. */
+    /** /ui item nbt bundle <add <material> [amount]|clear|info> — bundle contents. */
     private static boolean bundle(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt bundle <add <material> [amount]|clear|info></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt bundle <add <material> [amount]|clear|info></white>"));
             return true;
         }
         String action = args[2].toLowerCase(Locale.ROOT);
@@ -2467,7 +2466,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
             case "add" -> {
                 if (args.length < 4) {
-                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt bundle add <material> [amount]</white>"));
+                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt bundle add <material> [amount]</white>"));
                     return true;
                 }
                 Material material = resolveRegistry(Registry.MATERIAL, args[3]);
@@ -2498,10 +2497,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         }
     }
 
-    /** /ui itemnbt potdecorations <back> <left> <right> <front>|clear — flower pot decorations. */
+    /** /ui item nbt potdecorations <back> <left> <right> <front>|clear — flower pot decorations. */
     private static boolean potDecorations(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt potdecorations <back> <left> <right> <front>|clear</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt potdecorations <back> <left> <right> <front>|clear</white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -2510,7 +2509,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             return true;
         }
         if (args.length < 6) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt potdecorations <back> <left> <right> <front></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt potdecorations <back> <left> <right> <front></white>"));
             return true;
         }
         ItemType back = resolveRegistry(Registry.ITEM, args[2]);
@@ -2526,10 +2525,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt containerloot <loottable> [seed]|clear — container loot table. */
+    /** /ui item nbt containerloot <loottable> [seed]|clear — container loot table. */
     private static boolean containerLoot(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt containerloot <loottable> [seed]|clear</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt containerloot <loottable> [seed]|clear</white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -2562,10 +2561,10 @@ public final class ItemNbtSubcommand implements SubCommand {
     // OMINOUS BOTTLE / INTANGIBLE / FIREWORK / CHARGED / CONTAINER / RECIPES / REPAIRABLE
     // ══════════════════════════════════════════════════════════════
 
-    /** /ui itemnbt ominousbottle <amplifier>|clear — ominous bottle amplifier. */
+    /** /ui item nbt ominousbottle <amplifier>|clear — ominous bottle amplifier. */
     private static boolean ominousBottle(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt ominousbottle <amplifier>|clear</white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt ominousbottle <amplifier>|clear</white>"));
             return true;
         }
         if (args[2].equalsIgnoreCase("clear")) {
@@ -2584,10 +2583,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt intangibleprojectile <true|false> — projectile passes through entities when fired. */
+    /** /ui item nbt intangibleprojectile <true|false> — projectile passes through entities when fired. */
     private static boolean intangibleProjectile(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt intangibleprojectile <true|false></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt intangibleprojectile <true|false></white>"));
             return true;
         }
         Boolean value = parseBool(args[2]);
@@ -2604,10 +2603,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         return true;
     }
 
-    /** /ui itemnbt firework <add <type> <r> <g> <b> [flicker] [trail]|remove <index>|clear|info> — firework rocket. */
+    /** /ui item nbt firework <add <type> <r> <g> <b> [flicker] [trail]|remove <index>|clear|info> — firework rocket. */
     private static boolean firework(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt firework <add <type> <R> <G> <B> [flicker] [trail]|remove <index>|clear|info></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt firework <add <type> <R> <G> <B> [flicker] [trail]|remove <index>|clear|info></white>"));
             return true;
         }
         String action = args[2].toLowerCase(Locale.ROOT);
@@ -2622,7 +2621,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
             case "info" -> {
                 if (effects.isEmpty()) {
-                    p.sendMessage(MessageUtil.parse("<gray>No firework effects. Use </gray><yellow>/ui itemnbt firework add ...</yellow>"));
+                    p.sendMessage(MessageUtil.parse("<gray>No firework effects. Use </gray><yellow>/ui item nbt firework add ...</yellow>"));
                 } else {
                     List<String> lines = new ArrayList<>();
                     for (int i = 0; i < effects.size(); i++) {
@@ -2638,7 +2637,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
             case "remove" -> {
                 if (args.length < 4) {
-                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt firework remove <index></white>"));
+                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt firework remove <index></white>"));
                     return true;
                 }
                 Integer idx = parseInt(args[3]);
@@ -2658,7 +2657,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
             case "add" -> {
                 if (args.length < 6) {
-                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt firework add <type> <R> <G> <B> [flicker] [trail]</white>"));
+                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt firework add <type> <R> <G> <B> [flicker] [trail]</white>"));
                     return true;
                 }
                 FireworkEffect.Type type;
@@ -2697,10 +2696,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         }
     }
 
-    /** /ui itemnbt chargedprojectiles <add <material> [amount]|clear|info> — crossbow-loaded projectiles. */
+    /** /ui item nbt chargedprojectiles <add <material> [amount]|clear|info> — crossbow-loaded projectiles. */
     private static boolean chargedProjectiles(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt chargedprojectiles <add <material> [amount]|clear|info></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt chargedprojectiles <add <material> [amount]|clear|info></white>"));
             return true;
         }
         String action = args[2].toLowerCase(Locale.ROOT);
@@ -2726,7 +2725,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
             case "add" -> {
                 if (args.length < 4) {
-                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt chargedprojectiles add <material> [amount]</white>"));
+                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt chargedprojectiles add <material> [amount]</white>"));
                     return true;
                 }
                 Material material = resolveRegistry(Registry.MATERIAL, args[3]);
@@ -2756,10 +2755,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         }
     }
 
-    /** /ui itemnbt container <add <material> [amount]|clear|info> — container (shulker) contents. */
+    /** /ui item nbt container <add <material> [amount]|clear|info> — container (shulker) contents. */
     private static boolean containerContents(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt container <add <material> [amount]|clear|info></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt container <add <material> [amount]|clear|info></white>"));
             return true;
         }
         String action = args[2].toLowerCase(Locale.ROOT);
@@ -2786,7 +2785,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
             case "add" -> {
                 if (args.length < 4) {
-                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt container add <material> [amount]</white>"));
+                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt container add <material> [amount]</white>"));
                     return true;
                 }
                 Material material = resolveRegistry(Registry.MATERIAL, args[3]);
@@ -2816,10 +2815,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         }
     }
 
-    /** /ui itemnbt recipes <add <key>|clear|info> — knowledge-book recipes. */
+    /** /ui item nbt recipes <add <key>|clear|info> — knowledge-book recipes. */
     private static boolean recipes(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt recipes <add <recipe-key>|clear|info></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt recipes <add <recipe-key>|clear|info></white>"));
             return true;
         }
         String action = args[2].toLowerCase(Locale.ROOT);
@@ -2843,7 +2842,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
             case "add" -> {
                 if (args.length < 4) {
-                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt recipes add <recipe-key></white>"));
+                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt recipes add <recipe-key></white>"));
                     return true;
                 }
                 Key key = parseResourceKey(args[3]);
@@ -2866,10 +2865,10 @@ public final class ItemNbtSubcommand implements SubCommand {
         }
     }
 
-    /** /ui itemnbt repairable <add <material...>|clear|info> — anvil repair materials. */
+    /** /ui item nbt repairable <add <material...>|clear|info> — anvil repair materials. */
     private static boolean repairable(Player p, ItemStack item, String[] args) {
         if (args.length < 3) {
-            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt repairable <add <material...>|clear|info></white>"));
+            p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt repairable <add <material...>|clear|info></white>"));
             return true;
         }
         String action = args[2].toLowerCase(Locale.ROOT);
@@ -2894,7 +2893,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             }
             case "add" -> {
                 if (args.length < 4) {
-                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui itemnbt repairable add <material...></white>"));
+                    p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui item nbt repairable add <material...></white>"));
                     return true;
                 }
                 List<ItemType> items = new ArrayList<>();
@@ -3136,62 +3135,62 @@ public final class ItemNbtSubcommand implements SubCommand {
     private static void sendUsage(Player p) {
         p.sendMessage(MessageUtil.parse(
                 "<yellow>Usage:</yellow>\n"
-                + "<gray>/ui itemnbt [player] <subcommand> ... — edits the main-hand item (default: your own)</gray>\n"
-                + "<white>/ui itemnbt setname \"<miniMessage>\"</white>\n"
-                + "<white>/ui itemnbt lore add [index] \"<line>\" | set <index> \"<line>\" | remove <index></white>\n"
-                + "<white>/ui itemnbt hide <armor_trim|attributes|destroys|dye|enchants|placed_on|stored_enchants|unbreakable|additional_tooltip|all></white>\n"
-                + "<white>/ui itemnbt unbreakable <true|false></white>\n"
-                + "<white>/ui itemnbt repaircost <value></white>\n"
-                + "<white>/ui itemnbt equipment <entities|cameraoverlay|dispensable|equipinteract|equipsound|slot> ...</white>\n"
-                + "<white>/ui itemnbt food <addeffect|removeeffect|animation|canalwayseat|clear|consumeparticles|eatticks|info|nutrition|saturation|sound> ...</white>\n"
-                + "<white>/ui itemnbt maxstacksize <1-99></white>\n"
-                + "<white>/ui itemnbt maxdurability <value></white>\n"
-                + "<white>/ui itemnbt fireresistent <true|false></white>\n"
-                + "<white>/ui itemnbt glow <true|false></white>\n"
-                + "<white>/ui itemnbt glider <true|false></white>\n"
-                + "<white>/ui itemnbt rarity <common|uncommon|rare|epic></white>\n"
-                + "<white>/ui itemnbt amount <value></white>\n"
-                + "<white>/ui itemnbt durability <value></white>\n"
-                + "<white>/ui itemnbt banner <add|set|remove|info> ...</white>\n"
-                + "<white>/ui itemnbt color <R> <G> <B> (0-255)</white>\n"
-                + "<white>/ui itemnbt skullowner <name></white>\n"
-                + "<white>/ui itemnbt fireworkpower <1-255></white>\n"
-                + "<white>/ui itemnbt potioneffect <add|remove|reset> ...</white>\n"
-                + "<white>/ui itemnbt bookauthor <author></white>\n"
-                + "<white>/ui itemnbt booktype <original|copy_of_original|copy_of_copy|tattered></white>\n"
-                + "<white>/ui itemnbt attribute <add|remove|reset> ...</white>\n"
-                + "<white>/ui itemnbt cmdata <value></white>\n"
-                + "<white>/ui itemnbt itemmodel <namespace:path></white>\n"
-                + "<white>/ui itemnbt compass <clear|set> [X] [Y] [Z] [world]</white>\n"
-                + "<white>/ui itemnbt axltype <blue|cyan|gold|lucy|wild></white>\n"
-                + "<white>/ui itemnbt ghsound <admire|call|dream|feel|ponder|seek|sing|yearn></white>\n"
-                + "<white>/ui itemnbt armortrim <clear|set> [material] [pattern]</white>\n"
-                + "<white>/ui itemnbt material <material></white>\n"
-                + "<white>/ui itemnbt tooltipstyle <namespace:path|clear></white>\n"
-                + "<white>/ui itemnbt itemname \"<miniMessage>\"|clear</white>\n"
-                + "<white>/ui itemnbt hidetooltip <true|false></white>\n"
-                + "<white>/ui itemnbt usecooldown <seconds> [group]|clear</white>\n"
-                + "<white>/ui itemnbt useremainder <material> [amount]|clear</white>\n"
-                + "<white>/ui itemnbt canbreak|canplaceon <add <block...>|clear|info></white>\n"
-                + "<white>/ui itemnbt enchantable <value>|clear</white>\n"
-                + "<white>/ui itemnbt mapid <id>|clear | mappost <lock|scale|clear></white>\n"
-                + "<white>/ui itemnbt mapdeco <add <name> <type> <x> <z> <rot>|remove <name>|clear|info></white>\n"
-                + "<white>/ui itemnbt writablebook <addpage <text>|clearpages|info></white>\n"
-                + "<white>/ui itemnbt suspiciousstew <add <effect> <ticks>|remove <effect>|reset|info></white>\n"
-                + "<white>/ui itemnbt deathprotection <true|false></white>\n"
-                + "<white>/ui itemnbt jukeboxplayable <song|clear></white>\n"
-                + "<white>/ui itemnbt noteblocksound <sound|clear></white>\n"
-                + "<white>/ui itemnbt bundle <add <material> [amount]|clear|info></white>\n"
-                + "<white>/ui itemnbt potdecorations <back> <left> <right> <front>|clear</white>\n"
-                + "<white>/ui itemnbt containerloot <loottable> [seed]|clear</white>\n"
-                + "<white>/ui itemnbt ominousbottle <amplifier>|clear</white>\n"
-                + "<white>/ui itemnbt intangibleprojectile <true|false></white>\n"
-                + "<white>/ui itemnbt firework <add <type> <R> <G> <B> [flicker] [trail]|remove <idx>|clear|info></white>\n"
-                + "<white>/ui itemnbt chargedprojectiles <add <material> [amount]|clear|info></white>\n"
-                + "<white>/ui itemnbt container <add <material> [amount]|clear|info></white>\n"
-                + "<white>/ui itemnbt recipes <add <key>|clear|info></white>\n"
-                + "<white>/ui itemnbt repairable <add <material...>|clear|info></white>\n"
-                + "<gray>Edits the item in the target's main hand (online or offline .dat). Run /ui itemnbt food info for details.</gray>"));
+                + "<gray>/ui item nbt [player] <subcommand> ... — edits the main-hand item (default: your own)</gray>\n"
+                + "<white>/ui item nbt setname \"<miniMessage>\"</white>\n"
+                + "<white>/ui item nbt lore add [index] \"<line>\" | set <index> \"<line>\" | remove <index></white>\n"
+                + "<white>/ui item nbt hide <armor_trim|attributes|destroys|dye|enchants|placed_on|stored_enchants|unbreakable|additional_tooltip|all></white>\n"
+                + "<white>/ui item nbt unbreakable <true|false></white>\n"
+                + "<white>/ui item nbt repaircost <value></white>\n"
+                + "<white>/ui item nbt equipment <entities|cameraoverlay|dispensable|equipinteract|equipsound|slot> ...</white>\n"
+                + "<white>/ui item nbt food <addeffect|removeeffect|animation|canalwayseat|clear|consumeparticles|eatticks|info|nutrition|saturation|sound> ...</white>\n"
+                + "<white>/ui item nbt maxstacksize <1-99></white>\n"
+                + "<white>/ui item nbt maxdurability <value></white>\n"
+                + "<white>/ui item nbt fireresistent <true|false></white>\n"
+                + "<white>/ui item nbt glow <true|false></white>\n"
+                + "<white>/ui item nbt glider <true|false></white>\n"
+                + "<white>/ui item nbt rarity <common|uncommon|rare|epic></white>\n"
+                + "<white>/ui item nbt amount <value></white>\n"
+                + "<white>/ui item nbt durability <value></white>\n"
+                + "<white>/ui item nbt banner <add|set|remove|info> ...</white>\n"
+                + "<white>/ui item nbt color <R> <G> <B> (0-255)</white>\n"
+                + "<white>/ui item nbt skullowner <name></white>\n"
+                + "<white>/ui item nbt fireworkpower <1-255></white>\n"
+                + "<white>/ui item nbt potioneffect <add|remove|reset> ...</white>\n"
+                + "<white>/ui item nbt bookauthor <author></white>\n"
+                + "<white>/ui item nbt booktype <original|copy_of_original|copy_of_copy|tattered></white>\n"
+                + "<white>/ui item nbt attribute <add|remove|reset> ...</white>\n"
+                + "<white>/ui item nbt cmdata <value></white>\n"
+                + "<white>/ui item nbt itemmodel <namespace:path></white>\n"
+                + "<white>/ui item nbt compass <clear|set> [X] [Y] [Z] [world]</white>\n"
+                + "<white>/ui item nbt axltype <blue|cyan|gold|lucy|wild></white>\n"
+                + "<white>/ui item nbt ghsound <admire|call|dream|feel|ponder|seek|sing|yearn></white>\n"
+                + "<white>/ui item nbt armortrim <clear|set> [material] [pattern]</white>\n"
+                + "<white>/ui item nbt material <material></white>\n"
+                + "<white>/ui item nbt tooltipstyle <namespace:path|clear></white>\n"
+                + "<white>/ui item nbt itemname \"<miniMessage>\"|clear</white>\n"
+                + "<white>/ui item nbt hidetooltip <true|false></white>\n"
+                + "<white>/ui item nbt usecooldown <seconds> [group]|clear</white>\n"
+                + "<white>/ui item nbt useremainder <material> [amount]|clear</white>\n"
+                + "<white>/ui item nbt canbreak|canplaceon <add <block...>|clear|info></white>\n"
+                + "<white>/ui item nbt enchantable <value>|clear</white>\n"
+                + "<white>/ui item nbt mapid <id>|clear | mappost <lock|scale|clear></white>\n"
+                + "<white>/ui item nbt mapdeco <add <name> <type> <x> <z> <rot>|remove <name>|clear|info></white>\n"
+                + "<white>/ui item nbt writablebook <addpage <text>|clearpages|info></white>\n"
+                + "<white>/ui item nbt suspiciousstew <add <effect> <ticks>|remove <effect>|reset|info></white>\n"
+                + "<white>/ui item nbt deathprotection <true|false></white>\n"
+                + "<white>/ui item nbt jukeboxplayable <song|clear></white>\n"
+                + "<white>/ui item nbt noteblocksound <sound|clear></white>\n"
+                + "<white>/ui item nbt bundle <add <material> [amount]|clear|info></white>\n"
+                + "<white>/ui item nbt potdecorations <back> <left> <right> <front>|clear</white>\n"
+                + "<white>/ui item nbt containerloot <loottable> [seed]|clear</white>\n"
+                + "<white>/ui item nbt ominousbottle <amplifier>|clear</white>\n"
+                + "<white>/ui item nbt intangibleprojectile <true|false></white>\n"
+                + "<white>/ui item nbt firework <add <type> <R> <G> <B> [flicker] [trail]|remove <idx>|clear|info></white>\n"
+                + "<white>/ui item nbt chargedprojectiles <add <material> [amount]|clear|info></white>\n"
+                + "<white>/ui item nbt container <add <material> [amount]|clear|info></white>\n"
+                + "<white>/ui item nbt recipes <add <key>|clear|info></white>\n"
+                + "<white>/ui item nbt repairable <add <material...>|clear|info></white>\n"
+                + "<gray>Edits the item in the target's main hand (online or offline .dat). Run /ui item nbt food info for details.</gray>"));
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -3210,12 +3209,11 @@ public final class ItemNbtSubcommand implements SubCommand {
             "bundle", "potdecorations", "containerloot", "ominousbottle", "intangibleprojectile",
             "firework", "chargedprojectiles", "container", "recipes", "repairable");
 
-    @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         List<String> result = new ArrayList<>();
         if (args.length < 2) return result;
 
-        // Optional target player: /ui itemnbt <ник> <subcommand> ...
+        // Optional target player: /ui item nbt <ник> <subcommand> ...
         boolean hasNick = false;
         if (args.length >= 3) {
             @SuppressWarnings("deprecation")

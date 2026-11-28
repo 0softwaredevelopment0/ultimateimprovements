@@ -76,7 +76,7 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
         // plugin file (absent in some dev/exploded layouts), and a missing
         // /ui autorestart is silent otherwise.
         registry.register(new AutorestartSubcommand());
-        registry.register(new ItemNbtSubcommand());
+        registry.register(new ItemSubcommand()); // /ui item durability|nbt|view
         registry.register(new ClanSubcommand());
         registry.register(new ClearSubcommand()); // /ui clear <chat|attributes>
         registry.register(new ChatChannelSubcommand());
@@ -98,9 +98,6 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
 
         // ── Legacy adapters (simple static calls) ──
         registry.register(LegacySubCommandAdapter.of("changedimmension", ChgDimSubcommand::execute));
-        // ── /ui durability — held-item durability scaling (mechanics + raw variants) ──
-        registry.register(LegacySubCommandAdapter.of("durability", DuraSubcommand::execute,
-                tc((s, a) -> DuraSubcommand.tabComplete(s, a))));
         // ── /ui auth is registered by the UI-Auth addon ──
         registry.register(LegacySubCommandAdapter.of("power", PowerSubcommand::execute));
         registry.register(LegacySubCommandAdapter.of("modules", ModulesSubcommand::execute));

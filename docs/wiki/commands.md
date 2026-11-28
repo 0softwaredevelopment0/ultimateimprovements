@@ -115,7 +115,9 @@ Offline \`invsee\`/ \`endersee\` edits touch the player data file and make a bac
 | \`/ui enchant check <player> [page]\` | Inspect item enchantments |
 | \`/ui showcraft <namespace:key\|item name>\` | Show the station, ingredients and parameters of a recipe (asks which recipe when the item has several) |
 | \`/ui craftrecipe <namespace:key\|item name>\` | Free-craft a recipe without resources; asks which recipe when the item has several |
-| \`/ui durability multiply\|divide [raw] <value>\` | Scale the held item's vanilla durability |
+| \`/ui item durability [raw] multiply\|divide <value>\` | Scale the held item's vanilla durability |
+| \`/ui item nbt ...\` | Edit item data components (NBT-level) |
+| \`/ui item view <player> [slot]\` | Read-only full item data viewer (name, lore, enchants, components, PDC, NBT) |
 | \`/ui pdc ...\` | Inspect/edit item PersistentDataContainer |
 | \`/ui advancement start <woodcutter\|teleport>\` | Start a timed challenge |
 | \`/ui advancement stop\` | Stop the active challenge |

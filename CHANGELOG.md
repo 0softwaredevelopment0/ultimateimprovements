@@ -3,6 +3,25 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.17.0-alpha.1] - 2026-11-28
+
+### Changed
+- **Item commands moved under `/ui item`.** `/ui itemnbt` is now
+  `/ui item nbt` and `/ui durability` is now `/ui item durability`; the old
+  top-level paths no longer exist. Permissions moved with them:
+  `ui.command.itemnbt` → `ui.command.item.nbt` and
+  `ui.command.durability` → `ui.command.item.durability`. The new
+  `ui.command.item` umbrella grants every item subcommand.
+
+### Added
+- **New `/ui item view <player> [slot]` — full item-data viewer.** Read-only:
+  prints the custom/display name, lore, enchantments and stored enchantments,
+  durability, every set data component, all PersistentDataContainer tags and the
+  complete vanilla NBT as SNBT. Slots mirror `/ui enchant` (`mainhand` by
+  default, `offhand`, `bothhand`, `cursor`, `hotbar`, `armor`, `inventory`,
+  `all`) plus individual armor pieces and raw inventory numbers 0-40. Open to
+  every player by default through `ui.command.item.view`.
+
 ## [1.16.0-alpha.1] - 2026-11-28
 
 ### Added

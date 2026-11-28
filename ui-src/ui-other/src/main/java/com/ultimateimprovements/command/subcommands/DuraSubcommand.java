@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * /ui durability — durability scaling on the held item.
+ * /ui item durability — durability scaling on the held item.
  * <p>
  * Every operation works on the <b>vanilla</b> {@code damage} component (the old
  * percentage-based integrity system was removed long ago). Two variants for
@@ -29,7 +29,8 @@ import java.util.Locale;
  * </ul>
  * All user-facing texts live in the composite config under
  * {@code messages.durability.*} (RU) and {@code messages_en.durability.*} (EN).
- * Permission: {@code ui.command.durability} (default FALSE).
+ * Permission: {@code ui.command.item.durability} (or the {@code ui.command.item}
+ * umbrella), default FALSE.
  */
 public final class DuraSubcommand {
 
@@ -41,7 +42,11 @@ public final class DuraSubcommand {
                     "<dark_red>❌ <red>Only a player can use this command!</red>")));
             return true;
         }
-        if (!player.hasPermission(Permissions.CMD_DURABILITY)) { CommandErrors.noPermission(player, Permissions.CMD_DURABILITY); return true; }
+        if (!player.hasPermission(Permissions.CMD_ITEM_DURABILITY)
+                && !player.hasPermission(Permissions.CMD_ITEM)) {
+            CommandErrors.noPermission(player, Permissions.CMD_ITEM_DURABILITY);
+            return true;
+        }
 
         String op = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "info";
         switch (op) {
@@ -182,7 +187,7 @@ public final class DuraSubcommand {
 
         player.sendMessage(MessageUtil.parse("<gold>═══════════════════════"));
         player.sendMessage(MessageUtil.parse(msg("durability.info_title",
-                "<gold>  ✦ <white>Item durability <gray>(/ui durability)</gray>")));
+                "<gold>  ✦ <white>Item durability <gray>(/ui item durability)</gray>")));
         player.sendMessage(MessageUtil.parse("<gold>═══════════════════════"));
         player.sendMessage(MessageUtil.parse(msg("durability.info_remaining",
                         "<gray>Remaining: <green>%remaining%</green><gray>/%max% "
@@ -206,15 +211,15 @@ public final class DuraSubcommand {
     private static void sendUsage(Player player) {
         player.sendMessage(MessageUtil.parse(msg("durability.usage_header", "<dark_red>❌ <red>Usage:</red>")));
         player.sendMessage(MessageUtil.parse(msg("durability.usage_info",
-                "<white>/ui durability <gray>— information")));
+                "<white>/ui item durability <gray>— information")));
         player.sendMessage(MessageUtil.parse(msg("durability.usage_multiply",
-                "<white>/ui durability multiply <gray><factor> <dark_gray>— remaining × factor (with gates)")));
+                "<white>/ui item durability multiply <gray><factor> <dark_gray>— remaining × factor (with gates)")));
         player.sendMessage(MessageUtil.parse(msg("durability.usage_divide",
-                "<white>/ui durability divide <gray><divisor> <dark_gray>— remaining ÷ divisor (with gates)")));
+                "<white>/ui item durability divide <gray><divisor> <dark_gray>— remaining ÷ divisor (with gates)")));
         player.sendMessage(MessageUtil.parse(msg("durability.usage_raw_multiply",
-                "<white>/ui durability raw multiply <gray><factor> <dark_gray>— no gates")));
+                "<white>/ui item durability raw multiply <gray><factor> <dark_gray>— no gates")));
         player.sendMessage(MessageUtil.parse(msg("durability.usage_raw_divide",
-                "<white>/ui durability raw divide <gray><divisor> <dark_gray>— no gates")));
+                "<white>/ui item durability raw divide <gray><divisor> <dark_gray>— no gates")));
     }
 
     public static List<String> tabComplete(CommandSender sender, String[] args) {
