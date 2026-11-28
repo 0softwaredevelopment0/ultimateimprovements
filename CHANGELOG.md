@@ -3,6 +3,16 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.15.0-alpha.1] - 2026-11-28
+
+### Added
+- **`auth.clear_stale_invulnerability` (default `false`)** — gates the join-time
+  `Invulnerable` NBT reset that the auth system used to run unconditionally.
+  An existing flag may be intentional (for example a staff member made immortal
+  with `/ui god`), so a relog no longer silently drops it. Enable the option to
+  keep the old defensive behaviour against "immortal player" leftovers from an
+  interrupted authentication freeze.
+
 ## [1.14.0-alpha.4] - 2026-11-28
 
 ### Fixed

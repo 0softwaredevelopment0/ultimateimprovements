@@ -69,8 +69,12 @@ public class AuthListener implements Listener {
             authenticator.recoverPersistedPlayerState(player);
             // A previous build could persist the frozen/creative invulnerability as
             // the player's real state, leaving him immortal (no damage, no knockback)
-            // forever. Clear it before the snapshot for this session is taken.
-            authenticator.clearStaleInvulnerability(player);
+            // forever. Clear it before the snapshot for this session is taken — but
+            // only when explicitly enabled: an Invulnerable flag can be intentional
+            // (e.g. /ui god), so the default must not touch it.
+            if (AuthConfig.isClearStaleInvulnerabilityEnabled()) {
+                authenticator.clearStaleInvulnerability(player);
+            }
         }
 
         if (!AuthConfig.isEnabled()) return;

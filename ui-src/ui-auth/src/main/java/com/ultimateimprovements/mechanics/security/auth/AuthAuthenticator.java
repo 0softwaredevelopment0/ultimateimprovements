@@ -169,6 +169,10 @@ public class AuthAuthenticator {
      * Must run at join time, after
      * {@link #recoverPersistedPlayerState(Player)} and before
      * {@link #freezePlayer(Player)}.
+     * <p>
+     * Callers invoke this only when {@code auth.clear_stale_invulnerability} is
+     * enabled (default {@code false}): an existing flag may be a deliberate
+     * {@code /ui god} grant that must survive a relog.
      */
     public void clearStaleInvulnerability(Player player) {
         if (player == null || !player.isMarkedInvulnerable()) return;
