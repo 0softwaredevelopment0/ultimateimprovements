@@ -37,7 +37,8 @@ class PermissionDefaultsTest {
             Permissions.CMD_AUTORESTART_STATUS,
             Permissions.CMD_METEOR_STATUS,
             Permissions.CMD_NETHERPORTAL_STATUS,
-            Permissions.CMD_LANGUAGE);
+            Permissions.CMD_LANGUAGE,
+            Permissions.CMD_ITEM_VIEW);
 
     private static Map<String, PermissionDefault> defaultsByName() {
         return Permissions.buildPermissions().stream()

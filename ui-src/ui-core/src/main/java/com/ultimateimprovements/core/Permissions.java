@@ -199,7 +199,14 @@ public final class Permissions {
     public static final String CMD_CODEPANE_KEY_MODIFY = "ui.command.codepane.key.modify";
     public static final String CMD_CHANGEDIMMENSION = "ui.command.changedimmension";
     public static final String CMD_CHANGEDIMMENSION_ALL = "ui.command.changedimmension.*";
-    public static final String CMD_DURABILITY = "ui.command.durability";
+    /** Umbrella node for the whole /ui item command tree. */
+    public static final String CMD_ITEM = "ui.command.item";
+    /** /ui item durability — held-item durability scaling. */
+    public static final String CMD_ITEM_DURABILITY = "ui.command.item.durability";
+    /** /ui item nbt — edit item data components (NBT-level). */
+    public static final String CMD_ITEM_NBT = "ui.command.item.nbt";
+    /** /ui item view — read-only full item data viewer (open to everyone by default). */
+    public static final String CMD_ITEM_VIEW = "ui.command.item.view";
     public static final String CMD_ENCHANT = "ui.command.enchant";
     public static final String CMD_SETRAD = "ui.command.setrad";
     public static final String CMD_METEOR_SPAWN = "ui.command.meteor.spawn";
@@ -245,7 +252,6 @@ public final class Permissions {
     public static final String CMD_VOTE_STATS = "ui.command.vote.stats";
     public static final String CMD_VOTE_BYPASS = "ui.command.vote.bypass";
     public static final String CMD_PDC = "ui.command.pdc";
-    public static final String CMD_ITEMNBT = "ui.command.itemnbt";
     public static final String CMD_CLAN = "ui.command.clan";
     public static final String CMD_SPACE = "ui.command.space";
     public static final String CMD_CLAN_REMOVE = "ui.command.clan.remove";
@@ -528,8 +534,10 @@ public final class Permissions {
                 new Permission(CMD_KIT_GLOBALCD_BYPASS, "Ignore the server-wide kit cooldown when receiving a kit", PermissionDefault.FALSE),
                 new Permission(CMD_KIT_RESETCD, "Reset a player's kit cooldowns (/ui kit resetcd)", PermissionDefault.FALSE),
                 new Permission(CMD_KIT_RESETGLOBALCD, "Reset a kit's running global cooldown (/ui kit resetglobalcd)", PermissionDefault.FALSE),
-                new Permission(CMD_ITEMNBT, "Edit item data components / NBT (name, lore, hide flags, unbreakable, equipment, food, repair cost)", PermissionDefault.FALSE),
-                new Permission(CMD_DURABILITY, "Scale the held item's durability (/ui durability multiply|divide [raw])", PermissionDefault.FALSE),
+                new Permission(CMD_ITEM, "Use the whole /ui item command tree (umbrella for durability, nbt and view)", PermissionDefault.FALSE),
+                new Permission(CMD_ITEM_DURABILITY, "Scale the held item's durability (/ui item durability multiply|divide [raw])", PermissionDefault.FALSE),
+                new Permission(CMD_ITEM_NBT, "Edit item data components / NBT (/ui item nbt …)", PermissionDefault.FALSE),
+                new Permission(CMD_ITEM_VIEW, "View the full data/NBT of an item (/ui item view <player> [slot]) — read-only, open to everyone", PermissionDefault.TRUE),
                 new Permission(CMD_ENCHANT, "Enchant items", PermissionDefault.FALSE),
                 new Permission(CMD_SETRAD, "Set radiation levels", PermissionDefault.FALSE),
                 new Permission(CMD_METEOR_SPAWN, "Spawn meteors (/ui meteor spawn)", PermissionDefault.OP),
@@ -564,7 +572,6 @@ public final class Permissions {
                 new Permission(CMD_VOTE_STATS, "View vote statistics", PermissionDefault.FALSE),
                 new Permission(CMD_VOTE_BYPASS, "Bypass vote restrictions", PermissionDefault.FALSE),
                 new Permission(CMD_PDC, "Manage PersistentDataContainer on items (add/modify/remove/list/clear/container)", PermissionDefault.FALSE),
-                new Permission(CMD_ITEMNBT, "Edit item data components / NBT (name, lore, hide flags, unbreakable, equipment, food, repair cost)", PermissionDefault.FALSE),
                 new Permission(CMD_CLAN, "Use the clan system (create/disband/manage/home/requests)", PermissionDefault.TRUE),
                 new Permission(CMD_CLAN_REMOVE, "Remove any clan by name (admin)", PermissionDefault.FALSE),
                 new Permission(CMD_CLAN_HOME_BYPASS, "Bypass the clan home teleport cooldown", PermissionDefault.FALSE),

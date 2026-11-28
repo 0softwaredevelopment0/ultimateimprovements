@@ -115,7 +115,6 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.crash`
 - `ui.command.delhome`
 - `ui.command.deop`
-- `ui.command.durability`
 - `ui.command.enchant`
 - `ui.command.endersee`
 - `ui.command.execchat`
@@ -134,7 +133,10 @@ The current core source contains 204 permission-string declarations representing
 - `ui.command.home`
 - `ui.command.inv.edit`
 - `ui.command.invsee`
-- `ui.command.itemnbt`
+- `ui.command.item`
+- `ui.command.item.durability`
+- `ui.command.item.nbt`
+- `ui.command.item.view`
 - `ui.command.kit`
 - `ui.command.kit.cooldown`
 - `ui.command.kit.cooldown.bypass`

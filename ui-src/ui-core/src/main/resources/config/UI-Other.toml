@@ -1870,7 +1870,7 @@ collect_success = "<green>✔</green> <white>Received <yellow>%xp%</yellow> XP f
 bottle_empty = "<red>❌ This flask holds no experience!</red>"
 
 # Durability command messages (ru).
-# /ui durability scales the VANILLA damage component of the held item.
+# /ui item durability scales the VANILLA damage component of the held item.
 # Placeholders: %value%, %op%, %before%, %after%, %max%, %percent%, %level%, %saved%, %expected%
 [messages.durability]
 player_only = "<dark_red>❌ <red>Только игрок может использовать эту команду!</red>"
@@ -1885,17 +1885,17 @@ scaled = "<green>✔ <white>Прочность: <yellow>%before%</yellow><gray> 
 raw_suffix = " <dark_gray>[без гейтов]"
 unbreakable_blocked = "<gray>Предмет <aqua>неломаемый</aqua><gray> — износ заблокирован.</gray>"
 unbreaking_saved = "<gray>Прочность <yellow>%level%</yellow> спасла <green>%saved%</green><gray> очк. (без неё осталось бы <white>%expected%</white><gray>).</gray>"
-info_title = "<gold>  ✦ <white>Прочность предмета <gray>(/ui durability)</gray>"
+info_title = "<gold>  ✦ <white>Прочность предмета <gray>(/ui item durability)</gray>"
 info_remaining = "<gray>Осталось: <green>%remaining%</green><gray>/%max% <gray>(<white>%percent%%<gray>)</gray>"
 info_unbreakable = "<gray>Неломаемый: <white>%value%</white>"
 info_unbreaking = "<gray>Прочность (чар): <white>%level%</white>"
 info_variants = "<gray>Варианты: <white>multiply|divide <gray>(гейты) / <white>raw multiply|divide <gray>(без)</gray>"
 usage_header = "<dark_red>❌ <red>Использование:</red>"
-usage_info = "<white>/ui durability <gray>— информация"
-usage_multiply = "<white>/ui durability multiply <gray><фактор> <dark_gray>— остаток × фактор (с гейтами)"
-usage_divide = "<white>/ui durability divide <gray><делитель> <dark_gray>— остаток ÷ делитель (с гейтами)"
-usage_raw_multiply = "<white>/ui durability raw multiply <gray><фактор> <dark_gray>— без гейтов"
-usage_raw_divide = "<white>/ui durability raw divide <gray><делитель> <dark_gray>— без гейтов"
+usage_info = "<white>/ui item durability <gray>— информация"
+usage_multiply = "<white>/ui item durability multiply <gray><фактор> <dark_gray>— остаток × фактор (с гейтами)"
+usage_divide = "<white>/ui item durability divide <gray><делитель> <dark_gray>— остаток ÷ делитель (с гейтами)"
+usage_raw_multiply = "<white>/ui item durability raw multiply <gray><фактор> <dark_gray>— без гейтов"
+usage_raw_divide = "<white>/ui item durability raw divide <gray><делитель> <dark_gray>— без гейтов"
 
 # Showcraft messages (ru).
 # /ui showcraft <namespace:key | item name> explains how a recipe is made.
@@ -1953,17 +1953,17 @@ scaled = "<green>✔ <white>Durability: <yellow>%before%</yellow><gray> → </gr
 raw_suffix = " <dark_gray>[no gates]"
 unbreakable_blocked = "<gray>The item is <aqua>unbreakable</aqua><gray> — wear was blocked.</gray>"
 unbreaking_saved = "<gray>Unbreaking <yellow>%level%</yellow> saved <green>%saved%</green><gray> point(s) (without it <white>%expected%</white><gray> would remain).</gray>"
-info_title = "<gold>  ✦ <white>Item durability <gray>(/ui durability)</gray>"
+info_title = "<gold>  ✦ <white>Item durability <gray>(/ui item durability)</gray>"
 info_remaining = "<gray>Remaining: <green>%remaining%</green><gray>/%max% <gray>(<white>%percent%%<gray>)</gray>"
 info_unbreakable = "<gray>Unbreakable: <white>%value%</white>"
 info_unbreaking = "<gray>Unbreaking level: <white>%level%</white>"
 info_variants = "<gray>Variants: <white>multiply|divide <gray>(gates) / <white>raw multiply|divide <gray>(no gates)</gray>"
 usage_header = "<dark_red>❌ <red>Usage:</red>"
-usage_info = "<white>/ui durability <gray>— information"
-usage_multiply = "<white>/ui durability multiply <gray><factor> <dark_gray>— remaining × factor (with gates)"
-usage_divide = "<white>/ui durability divide <gray><divisor> <dark_gray>— remaining ÷ divisor (with gates)"
-usage_raw_multiply = "<white>/ui durability raw multiply <gray><factor> <dark_gray>— no gates"
-usage_raw_divide = "<white>/ui durability raw divide <gray><divisor> <dark_gray>— no gates"
+usage_info = "<white>/ui item durability <gray>— information"
+usage_multiply = "<white>/ui item durability multiply <gray><factor> <dark_gray>— remaining × factor (with gates)"
+usage_divide = "<white>/ui item durability divide <gray><divisor> <dark_gray>— remaining ÷ divisor (with gates)"
+usage_raw_multiply = "<white>/ui item durability raw multiply <gray><factor> <dark_gray>— no gates"
+usage_raw_divide = "<white>/ui item durability raw divide <gray><divisor> <dark_gray>— no gates"
 
 # Showcraft messages (en).
 [messages_en.showcraft]
