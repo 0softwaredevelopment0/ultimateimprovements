@@ -3,6 +3,17 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.17.0-alpha.3] - 2026-11-28
+
+### Fixed
+- **`/ui item view` resolves translatable component keys.** Components such as
+  `minecraft:item_name` could still fall back to the raw translation key
+  (`item.minecraft.diamond_pickaxe`) or a `<lang:…>` tag. The viewer now looks
+  the key up in the server's vanilla language table (NMS `Language`), fills in
+  component arguments recursively and only then renders plain text. Unknown
+  keys fall back to a title-cased last path segment, so an item name reads
+  `Diamond Pickaxe` instead of `item.minecraft.diamond_pickaxe`.
+
 ## [1.17.0-alpha.2] - 2026-11-28
 
 ### Fixed

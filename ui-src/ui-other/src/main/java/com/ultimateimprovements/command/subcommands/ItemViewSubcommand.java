@@ -9,8 +9,12 @@ import io.papermc.paper.datacomponent.item.ItemEnchantments;
 import io.papermc.paper.datacomponent.item.ItemLore;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.minecraft.locale.Language;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
@@ -325,14 +329,82 @@ final class ItemViewSubcommand {
     }
 
     /**
-     * Components are shown as plain text. Serializing them back to MiniMessage
-     * would expose internal translation/hover plumbing of vanilla item names
-     * (e.g. {@code <hover:show_item:bread:54><lang:item.minecraft.bread>}),
-     * which is unreadable; the complete machine-readable form is already in
-     * the full NBT dump below.
+     * Renders a component as readable plain text.
+     *
+     * <p>Adventure's MiniMessage serializer turns a translatable vanilla
+     * component into a {@code <lang:item.minecraft.diamond_pickaxe>} tag, and
+     * the plain serializer may fall back to the raw key. Both are unreadable,
+     * so translatable nodes are resolved through the server's own vanilla
+     * language table (NMS {@link Language}) and their arguments are filled in
+     * recursively. The full machine-readable form stays in the SNBT dump.</p>
      */
     private static String formatComponent(Component component) {
-        return PlainTextComponentSerializer.plainText().serialize(component);
+        StringBuilder out = new StringBuilder();
+        appendPlain(component, out);
+        return out.toString();
+    }
+
+    private static void appendPlain(Component component, StringBuilder out) {
+        if (component instanceof TextComponent text) {
+            out.append(text.content());
+        } else if (component instanceof TranslatableComponent translatable) {
+            out.append(renderTranslatable(translatable));
+        } else {
+            // Score / selector / keybind / NBT components: the plain serializer
+            // already produces a readable representation, including children.
+            out.append(PlainTextComponentSerializer.plainText().serialize(component));
+            return;
+        }
+
+        for (Component child : component.children()) {
+            appendPlain(child, out);
+        }
+    }
+
+    private static String renderTranslatable(TranslatableComponent translatable) {
+        String key = translatable.key();
+        String pattern = null;
+        try {
+            pattern = Language.getInstance().getOrDefault(key, null);
+        } catch (Throwable ignored) {
+            // Language is unavailable (early init / tests) — use the fallback.
+        }
+        if (pattern == null || pattern.isBlank() || pattern.equals(key)) {
+            pattern = translatable.fallback();
+        }
+        if (pattern == null || pattern.isBlank()) {
+            pattern = prettifyTranslationKey(key);
+        }
+        return applyArguments(pattern, translatable.arguments());
+    }
+
+    private static String applyArguments(String pattern, List<TranslationArgument> arguments) {
+        if (arguments.isEmpty()) return pattern;
+
+        Object[] values = new Object[arguments.size()];
+        for (int i = 0; i < arguments.size(); i++) {
+            Object value = arguments.get(i).value();
+            values[i] = value instanceof Component component ? formatComponent(component) : String.valueOf(value);
+        }
+        try {
+            return String.format(Locale.ROOT, pattern, values);
+        } catch (IllegalArgumentException invalidFormat) {
+            return pattern + " " + Arrays.toString(values);
+        }
+    }
+
+    /** {@code item.minecraft.diamond_pickaxe} → {@code Diamond Pickaxe}. */
+    private static String prettifyTranslationKey(String key) {
+        int lastDot = key.lastIndexOf('.');
+        String tail = lastDot >= 0 ? key.substring(lastDot + 1) : key;
+        String[] words = tail.split("_");
+        StringBuilder out = new StringBuilder(tail.length());
+        for (String word : words) {
+            if (word.isEmpty()) continue;
+            if (!out.isEmpty()) out.append(' ');
+            out.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return out.isEmpty() ? key : out.toString();
     }
 
     // ══════════════════════════════════════════════════════════════
