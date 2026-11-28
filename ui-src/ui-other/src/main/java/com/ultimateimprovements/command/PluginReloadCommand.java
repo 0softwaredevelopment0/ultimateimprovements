@@ -173,7 +173,10 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
         // ── Subcommands with additional logic ──
         // ── /ui menu is registered by the UI-Items addon ──
         registry.register(LegacySubCommandAdapter.of("suicide", (s, a) -> {
-            if (!(s instanceof Player p)) return false;
+            if (!(s instanceof Player p)) {
+                CommandErrors.playerOnly(s);
+                return true;
+            }
             if (!p.hasPermission("ui.command.suicide")) {
                 CommandErrors.noPermission(p, "ui.command.suicide");
                 return true;
@@ -182,21 +185,36 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
             return true;
         }));
         registry.register(LegacySubCommandAdapter.of("forcesuicide", (s, a) -> {
-            if (!(s instanceof Player p)) return false;
-            if (!p.hasPermission("ui.command.forcesuicide")) { CommandErrors.noPermission(p, "ui.command.forcesuicide"); return false; }
-            if (a.length < 2) return false;
+            // Console-capable: the ordinary form only ever needed a player to run
+            // the countdown on, and the target is named explicitly.
+            if (!s.hasPermission("ui.command.forcesuicide")) {
+                CommandErrors.noPermission(s, "ui.command.forcesuicide");
+                return true;
+            }
+            if (a.length < 2) {
+                s.sendMessage(MessageUtil.parse(
+                        "<red>❌ Usage: </red><white>/ui forcesuicide <player></white>"));
+                return true;
+            }
             Player target = Bukkit.getPlayerExact(a[1]);
-            if (target == null) return false;
-            SuicideCommand.forceExecute(target, p);
-            p.sendMessage(com.ultimateimprovements.util.MessageUtil.parse("<green>✔ <white>Player <yellow>" + target.getName() + " <white>has been force-suicided."));
+            if (target == null) {
+                s.sendMessage(MessageUtil.parse(
+                        "<red>❌ Player </red><yellow>" + a[1] + "</yellow><red> is not online!</red>"));
+                return true;
+            }
+            SuicideCommand.forceExecute(target, s.getName());
+            s.sendMessage(MessageUtil.parse("<green>✔ <white>Player <yellow>" + target.getName() + " <white>has been force-suicided."));
             return true;
         }));
 
         // ── /ui protection is registered by the UI-Protection addon ──
         // ── /ui op, /ui deop, /ui oplist are registered by the UI-Admin addon ──
         registry.register(LegacySubCommandAdapter.of("dont_run_this_command", (s, a) -> {
-            if (!(s instanceof Player p)) return false;
-            if (!p.hasPermission("ui.command.dont_run_this_command")) { CommandErrors.noPermission(p, "ui.command.dont_run_this_command"); return false; }
+            if (!(s instanceof Player p)) {
+                CommandErrors.playerOnly(s);
+                return true;
+            }
+            if (!p.hasPermission("ui.command.dont_run_this_command")) { CommandErrors.noPermission(p, "ui.command.dont_run_this_command"); return true; }
             String sub = a.length >= 2 ? a[1].toLowerCase() : "";
             switch (sub) {
                 case "cancel" -> p.sendMessage(MessageUtil.parse(
@@ -237,10 +255,13 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
 
         // ── /ui cmdblocklist and /ui advancement are registered by the UI-World addon ──
         registry.register(LegacySubCommandAdapter.of("unlock", (s, a) -> {
-            if (!(s instanceof Player p)) return false;
+            if (!(s instanceof Player p)) {
+                CommandErrors.playerOnly(s);
+                return true;
+            }
             if (a.length < 2) {
                 p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui unlock <book|sign></white>"));
-                return false;
+                return true;
             }
             boolean handled = switch (a[1].toLowerCase()) {
                 case "book" -> { MiscSubcommand.unlockBook(s); yield true; }
@@ -250,7 +271,7 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
             if (!handled) {
                 p.sendMessage(MessageUtil.parse("<red>❌ Usage: </red><white>/ui unlock <book|sign></white>"));
             }
-            return handled;
+            return true;
         }, tc((s, a) -> {
             if (a.length == 2) return List.of("book", "sign");
             // Empty suggestion so the dispatcher does not fall back to player names.
@@ -258,7 +279,10 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
         })));
         // ── AskPos: dialog-based coordinate request (formerly askcords; accept/decline removed — all in dialogs) ──
         registry.register(LegacySubCommandAdapter.of("askpos", (s, a) -> {
-            if (!(s instanceof Player p)) return false;
+            if (!(s instanceof Player p)) {
+                CommandErrors.playerOnly(s);
+                return true;
+            }
             if (!p.hasPermission("ui.command.askpos")) {
                 CommandErrors.noPermission(p, "ui.command.askpos");
                 return true;
@@ -269,8 +293,11 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
 
         // ── /ui enchant is registered by the UI-Enchant addon (it owns the subcommand) ──
         registry.register(LegacySubCommandAdapter.of("vote", (s, a) -> {
-            if (!(s instanceof Player p)) return false;
-            if (!p.hasPermission("ui.command.vote")) { CommandErrors.noPermission(p, "ui.command.vote"); return false; }
+            if (!(s instanceof Player p)) {
+                CommandErrors.playerOnly(s);
+                return true;
+            }
+            if (!p.hasPermission("ui.command.vote")) { CommandErrors.noPermission(p, "ui.command.vote"); return true; }
             if (a.length < 2) {
                 VoteManager.list(p);
                 return true;
@@ -278,25 +305,37 @@ public class PluginReloadCommand implements CommandExecutor, TabCompleter {
             String vs = a[1].toLowerCase();
             return switch (vs) {
                 case "create" -> {
-                    if (!p.hasPermission("ui.command.vote.create")) { CommandErrors.noPermission(p, "ui.command.vote.create"); yield false; }
-                    if (a.length < 5) yield false;
+                    if (!p.hasPermission("ui.command.vote.create")) { CommandErrors.noPermission(p, "ui.command.vote.create"); yield true; }
+                    // parseCreate prints its own usage when parameters are missing.
                     VoteManager.parseCreate(p, a, 2);
                     yield true;
                 }
                 case "delete" -> {
-                    if (a.length < 3) yield false;
+                    if (a.length < 3) {
+                        p.sendMessage(MessageUtil.parse(
+                                "<red>❌ Usage: </red><white>/ui vote delete <name></white>"));
+                        yield true;
+                    }
                     VoteManager.delete(p, a[2]);
                     yield true;
                 }
                 case "change" -> {
-                    if (!p.hasPermission("ui.command.vote.change")) { CommandErrors.noPermission(p, "ui.command.vote.change"); yield false; }
-                    if (a.length < 4) yield false;
+                    if (!p.hasPermission("ui.command.vote.change")) { CommandErrors.noPermission(p, "ui.command.vote.change"); yield true; }
+                    if (a.length < 3) {
+                        p.sendMessage(MessageUtil.parse(
+                                "<red>❌ Usage: </red><white>/ui vote change <name> [parameters]</white>"));
+                        yield true;
+                    }
                     VoteManager.change(p, a[2], a, 3);
                     yield true;
                 }
                 case "stats" -> {
-                    if (!p.hasPermission("ui.command.vote.stats")) { CommandErrors.noPermission(p, "ui.command.vote.stats"); yield false; }
-                    if (a.length < 3) yield false;
+                    if (!p.hasPermission("ui.command.vote.stats")) { CommandErrors.noPermission(p, "ui.command.vote.stats"); yield true; }
+                    if (a.length < 3) {
+                        p.sendMessage(MessageUtil.parse(
+                                "<red>❌ Usage: </red><white>/ui vote stats <name></white>"));
+                        yield true;
+                    }
                     VoteManager.view(p, a[2]);
                     yield true;
                 }

@@ -3,6 +3,31 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.14.0-alpha.2] - 2026-11-28
+
+### Fixed
+- **Player-only `/ui` subcommands no longer finish silently from the console.**
+  Eight legacy executors bailed out with a bare `return false` (or an
+  unhandled `false`) for non-player senders, and the `/ui` dispatcher has no
+  Bukkit-style usage fallback, so `menu`, `advancement`, `suicide`,
+  `forcesuicide`, `unlock`, `askpos`, `vote` and `dont_run_this_command`
+  produced no reply at all in the server console. Player-only commands now
+  answer with error `004` (`Only players…`), and any subcommand that still
+  returns "not handled" gets error `001` from the dispatcher instead of total
+  silence.
+- **`/ui forcesuicide <player>` works from the console.** The command only
+  needed a player to start the target's countdown; it now takes the executor's
+  display name for the notification and reports missing arguments and unknown
+  players instead of returning nothing.
+- **`/ui vote create|delete|change|stats` with missing arguments prints a
+  usage line** instead of ending silently; a denied vote sub-permission also
+  stops with the `002` reply.
+- **`/ui rep history <player>` is usable from the console.** The staff check
+  used `!(sender instanceof Player) || !hasPermission(...)`, which turned the
+  console into a "no permission" branch that `CommandErrors.noPermission`
+  deliberately keeps quiet for non-players; the permission check now only
+  applies to players.
+
 ## [1.14.0-alpha.1] - 2026-11-27
 
 ### Added

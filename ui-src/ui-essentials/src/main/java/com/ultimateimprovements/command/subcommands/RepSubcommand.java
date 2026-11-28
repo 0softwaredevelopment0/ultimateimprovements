@@ -290,8 +290,8 @@ public final class RepSubcommand {
         String name;
         String uuidStr;
         if (args.length >= 3) {
-            // other player — staff only
-            if (!(sender instanceof Player p) || !p.hasPermission(PERM_HISTORY_OTHER)) {
+            // other player — staff only (the console is always allowed)
+            if (sender instanceof Player p && !p.hasPermission(PERM_HISTORY_OTHER)) {
                 CommandErrors.noPermission(sender, PERM_HISTORY_OTHER);
                 return;
             }

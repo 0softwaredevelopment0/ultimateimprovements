@@ -153,6 +153,11 @@ public class SuicideCommand {
     // FORCE SUICIDE (by another player)
     // =========================
     public static void forceExecute(Player target, Player sender) {
+        forceExecute(target, sender.getName());
+    }
+
+    /** Same as {@link #forceExecute(Player, Player)} for the server console / RCON. */
+    public static void forceExecute(Player target, String senderName) {
         FileConfiguration cfg = Main.getInstance().getConfig();
         int countdownDuration = cfg.getInt("suicide.countdown_duration", 10);
         int cooldownSeconds = cfg.getInt("suicide.cooldown_seconds", 10);
@@ -165,7 +170,7 @@ public class SuicideCommand {
         target.sendMessage(MessageUtil.parse("<dark_gray>┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"));
         target.sendMessage(MessageUtil.parse("<dark_gray>┃   " + MessagesManager.getString("suicide.messages.forced_title", "<dark_red>☠</dark_red> <red>FORCE SUICIDE!</red>")));
         target.sendMessage(MessageUtil.parse("<dark_gray>┃"));
-        target.sendMessage(MessageUtil.parse("<dark_gray>┃   " + MessagesManager.getString("suicide.messages.forced_body", "<gray>Player </gray><white>%sender%</white><gray> is force-suiciding you.</gray>").replace("%sender%", sender.getName())));
+        target.sendMessage(MessageUtil.parse("<dark_gray>┃   " + MessagesManager.getString("suicide.messages.forced_body", "<gray>Player </gray><white>%sender%</white><gray> is force-suiciding you.</gray>").replace("%sender%", senderName)));
         target.sendMessage(MessageUtil.parse("<dark_gray>┃   " + MessagesManager.getString("suicide.messages.forced_nocancel", "<red>Cannot be cancelled!</red>")));
         target.sendMessage(MessageUtil.parse("<dark_gray>┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"));
         target.sendMessage("");

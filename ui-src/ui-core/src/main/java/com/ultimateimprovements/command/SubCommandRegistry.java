@@ -126,8 +126,14 @@ public class SubCommandRegistry {
 
         boolean handled = cmd.execute(sender, args);
         // A subcommand returning false means "not handled" — wrong usage,
-        // missing target, etc. Report it as a failed outcome.
-        if (!handled) CommandOutcomeTracker.markFailed(sender, "invalid usage or wrong arguments");
+        // missing target, etc. Report it as a failed outcome AND make sure the
+        // sender sees a reply: a legacy executor returning false made Bukkit
+        // print its usage line, but the /ui dispatcher has no such fallback, so
+        // console (and RCON) invocations used to finish silently.
+        if (!handled) {
+            CommandOutcomeTracker.markFailed(sender, "invalid usage or wrong arguments");
+            CommandErrors.syntaxError(sender);
+        }
         return handled;
     }
 
