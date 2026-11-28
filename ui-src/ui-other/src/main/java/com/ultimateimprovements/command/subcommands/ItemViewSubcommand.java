@@ -10,7 +10,6 @@ import io.papermc.paper.datacomponent.item.ItemLore;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -47,8 +46,6 @@ import java.util.function.Supplier;
  * boots and raw numbers 0-40 for the underlying player inventory.</p>
  */
 final class ItemViewSubcommand {
-
-    private static final MiniMessage MM = MiniMessage.miniMessage();
 
     private static final int MAX_NBT_CHARS = 200_000;
     private static final int CHUNK_CHARS = 1_600;
@@ -327,14 +324,15 @@ final class ItemViewSubcommand {
         return String.valueOf(value);
     }
 
+    /**
+     * Components are shown as plain text. Serializing them back to MiniMessage
+     * would expose internal translation/hover plumbing of vanilla item names
+     * (e.g. {@code <hover:show_item:bread:54><lang:item.minecraft.bread>}),
+     * which is unreadable; the complete machine-readable form is already in
+     * the full NBT dump below.
+     */
     private static String formatComponent(Component component) {
-        String plain = PlainTextComponentSerializer.plainText().serialize(component);
-        try {
-            String mini = MM.serialize(component);
-            return mini.equals(plain) ? plain : plain + " [MM: " + mini + "]";
-        } catch (Throwable ignored) {
-            return plain;
-        }
+        return PlainTextComponentSerializer.plainText().serialize(component);
     }
 
     // ══════════════════════════════════════════════════════════════
