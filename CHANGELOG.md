@@ -3,7 +3,7 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
-## [1.15.0-alpha.1] - 2026-11-28
+## [1.15.0-release.1] - 2026-11-28
 
 ### Added
 - **`auth.clear_stale_invulnerability` (default `false`)** — gates the join-time
