@@ -3,6 +3,22 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.16.0-alpha.1] - 2026-11-28
+
+### Added
+- **`/ui showcraft` and `/ui craftrecipe` accept an item name and ask which
+  recipe to use when several recipes make the same result.** Both commands used
+  to require an exact `namespace:key` and silently showed/crafted that one
+  recipe, which is impossible to guess for results with variants (e.g. planks
+  from logs vs. wood, sticks from planks vs. bamboo, custom items sharing a
+  vanilla base material). Now the argument may also be the result item — a
+  material name (`cherry_planks`) or a custom item name (`lead_ingot`; spaces
+  work too: `lead ingot`). If the result is produced by more than one recipe,
+  the command stops, lists every matching recipe with its station as clickable
+  entries and nothing is shown or crafted until one is picked. Exact
+  `namespace:key` addressing keeps working unchanged, and tab-complete now
+  suggests both keys and result item names.
+
 ## [1.15.0-release.1] - 2026-11-28
 
 ### Added

@@ -113,7 +113,8 @@ Offline \`invsee\`/ \`endersee\` edits touch the player data file and make a bac
 | \`/ui enchant give <player\|all> <enchantment> <level> [slot]\` | Apply an enchantment to a player or everyone |
 | \`/ui enchant take <player\|all> <enchantment> <level> [slot]\` | Remove an enchantment |
 | \`/ui enchant check <player> [page]\` | Inspect item enchantments |
-| \`/ui showcraft <namespace:key>\` | Show the station, ingredients and parameters of a recipe |
+| \`/ui showcraft <namespace:key\|item name>\` | Show the station, ingredients and parameters of a recipe (asks which recipe when the item has several) |
+| \`/ui craftrecipe <namespace:key\|item name>\` | Free-craft a recipe without resources; asks which recipe when the item has several |
 | \`/ui durability multiply\|divide [raw] <value>\` | Scale the held item's vanilla durability |
 | \`/ui pdc ...\` | Inspect/edit item PersistentDataContainer |
 | \`/ui advancement start <woodcutter\|teleport>\` | Start a timed challenge |

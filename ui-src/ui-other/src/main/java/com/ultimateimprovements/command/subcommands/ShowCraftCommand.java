@@ -11,10 +11,7 @@ import org.bukkit.Keyed;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
-import org.bukkit.inventory.BlastingRecipe;
-import org.bukkit.inventory.CampfireRecipe;
 import org.bukkit.inventory.CookingRecipe;
-import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.RecipeChoice;
@@ -22,24 +19,25 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.SmithingTransformRecipe;
 import org.bukkit.inventory.SmithingTrimRecipe;
-import org.bukkit.inventory.SmokingRecipe;
 import org.bukkit.inventory.StonecuttingRecipe;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 /**
- * /ui showcraft &lt;namespace:key&gt; — explains how a recipe is made.
+ * /ui showcraft &lt;namespace:key | item name&gt; — explains how a recipe is made.
  * <p>
  * Shows the result, the station (crafting table, furnace, blast furnace,
  * smoker, campfire, stonecutter, smithing table or the custom Crafter), the
  * ingredient grid/list and the station parameters (e.g. cooking time and
  * experience for a furnace).
  * <p>
- * The recipe must be addressed as {@code namespace:key}; tab-complete lists
- * every registered recipe in that form.
+ * The recipe can be addressed by its exact {@code namespace:key}, or by the item
+ * it produces (a material name such as {@code cherry_planks} or a custom item
+ * name such as {@code lead_ingot}). A result can be produced by several recipes,
+ * so an ambiguous request is never guessed: the command stops and lists every
+ * candidate as a clickable entry. Tab-complete suggests both keys and item names.
  * <p>
  * Permission: {@code ui.command.showcraft} (default OP).
  */
@@ -54,18 +52,38 @@ public final class ShowCraftCommand {
         }
         if (args.length < 2) {
             sender.sendMessage(MessageUtil.parse(msg("showcraft.usage",
-                    "<red>❌ Usage: </red><white>/ui showcraft <namespace:key></white>"
+                    "<red>❌ Usage: </red><white>/ui showcraft <namespace:key | item name></white>"
                             + " <gray>(tab-complete lists all)</gray>")));
             return true;
         }
 
-        String input = args[1].toLowerCase(Locale.ROOT);
-        NamespacedKey key = parseKey(input);
-        Recipe recipe = key == null ? null : Bukkit.getRecipe(key);
+        String input = RecipeLookup.selector(args, 1);
+        NamespacedKey key;
+        Recipe direct = RecipeLookup.byKey(input);
+        if (direct != null && direct instanceof Keyed keyed) {
+            key = keyed.getKey();
+        } else {
+            List<RecipeLookup.Entry> matches = RecipeLookup.byResult(input);
+            if (matches.isEmpty()) {
+                sender.sendMessage(MessageUtil.parse(msg("showcraft.not_found",
+                                "<red>❌ Recipe not found: </red><white>%recipe%</white>"
+                                        + " <gray>(use namespace:key or an item name; tab-complete lists all)</gray>")
+                        .replace("%recipe%", input)));
+                return true;
+            }
+            if (matches.size() > 1) {
+                // Ambiguous result: show every recipe that makes it and wait for a pick.
+                RecipeLookup.sendChooser(sender, "showcraft", "showcraft", input, matches);
+                return true;
+            }
+            key = matches.get(0).key();
+        }
+
+        Recipe recipe = Bukkit.getRecipe(key);
         if (recipe == null) {
             sender.sendMessage(MessageUtil.parse(msg("showcraft.not_found",
                             "<red>❌ Recipe not found: </red><white>%recipe%</white>"
-                                    + " <gray>(use namespace:key; tab-complete lists all)</gray>")
+                                    + " <gray>(use namespace:key or an item name; tab-complete lists all)</gray>")
                     .replace("%recipe%", input)));
             return true;
         }
@@ -92,7 +110,7 @@ public final class ShowCraftCommand {
 
         sender.sendMessage(MessageUtil.parse(msg("showcraft.station",
                         "<gray>Crafted in: <yellow>%station%</yellow>")
-                .replace("%station%", station(recipe, custom))));
+                .replace("%station%", RecipeLookup.station(recipe))));
         if (custom) {
             sender.sendMessage(MessageUtil.parse(msg("showcraft.crafter_only",
                     "<gray>Custom item: <red>Crafter block only</red>"
@@ -101,26 +119,6 @@ public final class ShowCraftCommand {
 
         renderContent(sender, recipe);
         return true;
-    }
-
-    // =========================
-    // STATION
-    // =========================
-
-    private static String station(Recipe recipe, boolean custom) {
-        if (custom) return "Crafter";
-        if (recipe instanceof FurnaceRecipe) return "Furnace";
-        if (recipe instanceof BlastingRecipe) return "Blast Furnace";
-        if (recipe instanceof SmokingRecipe) return "Smoker";
-        if (recipe instanceof CampfireRecipe) return "Campfire";
-        if (recipe instanceof StonecuttingRecipe) return "Stonecutter";
-        if (recipe instanceof SmithingTransformRecipe || recipe instanceof SmithingTrimRecipe) {
-            return "Smithing Table";
-        }
-        if (recipe instanceof ShapedRecipe || recipe instanceof ShapelessRecipe) {
-            return "Crafting Table";
-        }
-        return recipe.getClass().getSimpleName();
     }
 
     // =========================
@@ -214,15 +212,6 @@ public final class ShowCraftCommand {
     // HELPERS
     // =========================
 
-    private static NamespacedKey parseKey(String input) {
-        if (!input.contains(":")) return null;
-        try {
-            return NamespacedKey.fromString(input);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-
     /** Display name of an ingredient choice: a stack, one material or a small list of alternatives. */
     private static String choiceName(RecipeChoice choice) {
         if (choice == null) return msg("showcraft.empty_cell", "<dark_gray>·</dark_gray>");
@@ -282,18 +271,13 @@ public final class ShowCraftCommand {
     // TAB-COMPLETE
     // =========================
 
-    /** Every registered recipe as {@code namespace:key}. */
+    /**
+     * Suggests exact recipe keys ({@code namespace:key}) and result selectors
+     * (material or custom item names) so an ambiguous result can be picked from
+     * the chooser.
+     */
     public static List<String> tabComplete(String[] args) {
         if (args.length != 2) return List.of();
-        String partial = args[1].toLowerCase(Locale.ROOT);
-
-        List<String> out = new ArrayList<>();
-        Bukkit.recipeIterator().forEachRemaining(recipe -> {
-            if (recipe instanceof Keyed keyed) {
-                String key = keyed.getKey().toString();
-                if (key.startsWith(partial) && !out.contains(key)) out.add(key);
-            }
-        });
-        return out;
+        return RecipeLookup.suggest(args[1]);
     }
 }

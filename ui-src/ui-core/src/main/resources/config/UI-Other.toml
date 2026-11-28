@@ -1898,11 +1898,12 @@ usage_raw_multiply = "<white>/ui durability raw multiply <gray><фактор> <d
 usage_raw_divide = "<white>/ui durability raw divide <gray><делитель> <dark_gray>— без гейтов"
 
 # Showcraft messages (ru).
-# /ui showcraft <namespace:key> explains how a recipe is made.
-# Placeholders: %recipe%, %item%, %amount%, %station%, %seconds%, %ticks%, %xp%
+# /ui showcraft <namespace:key | item name> explains how a recipe is made.
+# Placeholders: %recipe%, %item%, %amount%, %station%, %seconds%, %ticks%, %xp%,
+#               %count%, %index%, %command%
 [messages.showcraft]
-usage = "<red>❌ Использование: </red><white>/ui showcraft <namespace:key></white> <gray>(tab-complete показывает все)</gray>"
-not_found = "<red>❌ Рецепт не найден: </red><white>%recipe%</white> <gray>(используйте namespace:key)</gray>"
+usage = "<red>❌ Использование: </red><white>/ui showcraft <namespace:key | название предмета></white> <gray>(tab-complete показывает все)</gray>"
+not_found = "<red>❌ Рецепт не найден: </red><white>%recipe%</white> <gray>(используйте namespace:key или название предмета)</gray>"
 no_result = "<red>❌ У этого рецепта нет результата.</red>"
 header = "<gold>  ✦ <white>Рецепт </white><dark_gray>%recipe%</dark_gray>"
 result = "<gray>Результат: <white>%item%</white> <gray>×</gray><yellow>%amount%</yellow>"
@@ -1919,16 +1920,24 @@ base = "<gray> ▪ Основа: </gray><white>%item%</white>"
 addition = "<gray> ▪ Добавка: </gray><white>%item%</white>"
 empty_cell = "<dark_gray>·</dark_gray>"
 grid_hint = "<dark_gray>Каждая строка — ряд сетки крафта (3 слота в ряду).</dark_gray>"
+choose_header = "<gold>  ✦ </gold><white>Найдено рецептов: </white><yellow>%count%</yellow><white> для </white><yellow>%item%</yellow><white> — выберите:</white>"
+choose_entry = "<gray> [%index%] </gray><white>%recipe%</white> <dark_gray>— %station%</dark_gray>"
+choose_hover = "<gray>Нажмите, чтобы показать этот рецепт</gray>"
+choose_hint = "<dark_gray>Нажмите на рецепт или выполните </dark_gray><white>/ui %command% <namespace:key></white>"
 
 # Craftrecipe messages (ru).
-# /ui craftrecipe <namespace:key> gives the recipe result for free.
-# Placeholders: %recipe%, %item%, %amount%, %given%, %total%
+# /ui craftrecipe <namespace:key | item name> gives the recipe result for free.
+# Placeholders: %recipe%, %item%, %amount%, %given%, %total%, %count%, %index%, %command%
 [messages.craftrecipe]
-usage = "<red>❌ Использование: </red><white>/ui craftrecipe <namespace:key></white> <gray>(tab-complete показывает все)</gray>"
-not_found = "<red>❌ Рецепт не найден: </red><white>%recipe%</white> <gray>(используйте namespace:key)</gray>"
+usage = "<red>❌ Использование: </red><white>/ui craftrecipe <namespace:key | название предмета></white> <gray>(tab-complete показывает все)</gray>"
+not_found = "<red>❌ Рецепт не найден: </red><white>%recipe%</white> <gray>(используйте namespace:key или название предмета)</gray>"
 no_result = "<red>❌ У этого рецепта нет результата.</red>"
 success = "<green>✔</green> <white>Создано </white><yellow>%item%</yellow><white> ×%amount% (без затрат ресурсов).</white>"
 inventory_full = "<yellow>⚠ Инвентарь полон! Поместилось только</yellow> <white>%given%/%total%</white> <yellow>— ничего не выброшено.</yellow>"
+choose_header = "<gold>  ✦ </gold><white>Найдено рецептов: </white><yellow>%count%</yellow><white> для </white><yellow>%item%</yellow><white> — выберите:</white>"
+choose_entry = "<gray> [%index%] </gray><white>%recipe%</white> <dark_gray>— %station%</dark_gray>"
+choose_hover = "<gray>Нажмите, чтобы создать по этому рецепту</gray>"
+choose_hint = "<dark_gray>Нажмите на рецепт или выполните </dark_gray><white>/ui %command% <namespace:key></white>"
 
 # Durability command messages (en).
 [messages_en.durability]
@@ -1958,8 +1967,8 @@ usage_raw_divide = "<white>/ui durability raw divide <gray><divisor> <dark_gray>
 
 # Showcraft messages (en).
 [messages_en.showcraft]
-usage = "<red>❌ Usage: </red><white>/ui showcraft <namespace:key></white> <gray>(tab-complete lists all)</gray>"
-not_found = "<red>❌ Recipe not found: </red><white>%recipe%</white> <gray>(use namespace:key)</gray>"
+usage = "<red>❌ Usage: </red><white>/ui showcraft <namespace:key | item name></white> <gray>(tab-complete lists all)</gray>"
+not_found = "<red>❌ Recipe not found: </red><white>%recipe%</white> <gray>(use namespace:key or an item name)</gray>"
 no_result = "<red>❌ This recipe has no craftable result.</red>"
 header = "<gold>  ✦ <white>Recipe </white><dark_gray>%recipe%</dark_gray>"
 result = "<gray>Result: <white>%item%</white> <gray>×</gray><yellow>%amount%</yellow>"
@@ -1976,11 +1985,19 @@ base = "<gray> ▪ Base: </gray><white>%item%</white>"
 addition = "<gray> ▪ Addition: </gray><white>%item%</white>"
 empty_cell = "<dark_gray>·</dark_gray>"
 grid_hint = "<dark_gray>Each row is a crafting-grid row (3 slots per row).</dark_gray>"
+choose_header = "<gold>  ✦ </gold><white>%count% recipes make </white><yellow>%item%</yellow><white> — choose one:</white>"
+choose_entry = "<gray> [%index%] </gray><white>%recipe%</white> <dark_gray>— %station%</dark_gray>"
+choose_hover = "<gray>Click to show this recipe</gray>"
+choose_hint = "<dark_gray>Click an entry or run </dark_gray><white>/ui %command% <namespace:key></white>"
 
 # Craftrecipe messages (en).
 [messages_en.craftrecipe]
-usage = "<red>❌ Usage: </red><white>/ui craftrecipe <namespace:key></white> <gray>(tab-complete lists all)</gray>"
-not_found = "<red>❌ Recipe not found: </red><white>%recipe%</white> <gray>(use namespace:key)</gray>"
+usage = "<red>❌ Usage: </red><white>/ui craftrecipe <namespace:key | item name></white> <gray>(tab-complete lists all)</gray>"
+not_found = "<red>❌ Recipe not found: </red><white>%recipe%</white> <gray>(use namespace:key or an item name)</gray>"
 no_result = "<red>❌ This recipe has no craftable result.</red>"
 success = "<green>✔</green> <white>Crafted </white><yellow>%item%</yellow><white> ×%amount% (no resources used).</white>"
 inventory_full = "<yellow>⚠ Inventory full! Only</yellow> <white>%given%/%total%</white> <yellow>fit — nothing was dropped.</yellow>"
+choose_header = "<gold>  ✦ </gold><white>%count% recipes make </white><yellow>%item%</yellow><white> — choose one:</white>"
+choose_entry = "<gray> [%index%] </gray><white>%recipe%</white> <dark_gray>— %station%</dark_gray>"
+choose_hover = "<gray>Click to craft with this recipe</gray>"
+choose_hint = "<dark_gray>Click an entry or run </dark_gray><white>/ui %command% <namespace:key></white>"
