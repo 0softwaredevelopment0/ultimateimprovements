@@ -3,6 +3,7 @@ package com.ultimateimprovements.command.subcommands;
 import com.ultimateimprovements.command.CommandErrors;
 import com.ultimateimprovements.config.MessagesManager;
 import com.ultimateimprovements.util.MessageUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.Material;
@@ -12,22 +13,23 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * /ui craftrecipe &lt;namespace:key&gt; — admin free-craft.
+ * /ui craftrecipe &lt;namespace:key | item name&gt; — admin free-craft.
  * <p>
- * "Crafts" the given registered recipe without consuming any resources and puts
- * the result straight into the player's inventory. If the inventory cannot fit
- * the result, the command says so and drops nothing (nothing is lost).
+ * "Crafts" the requested recipe without consuming any resources and puts the
+ * result straight into the player's inventory. If the inventory cannot fit the
+ * result, the command says so and drops nothing (nothing is lost).
  * <p>
- * The recipe must be addressed as {@code namespace:key} (e.g.
- * {@code minecraft:diamond_sword}, {@code ui:lead_ingot}). Tab-complete lists
- * EVERY registered recipe in that form — including custom UI recipes that are
- * hidden from the vanilla recipe book (Crafter-only ones included).
+ * The recipe can be addressed by its exact {@code namespace:key} (e.g.
+ * {@code minecraft:diamond_sword}, {@code ui:lead_ingot}) or by the item it
+ * produces (a material name such as {@code cherry_planks} or a custom item name
+ * such as {@code lead_ingot}). One item can be produced by several recipes, so
+ * an ambiguous request is never guessed: the command stops, lists every matching
+ * recipe and waits for the player to pick one. Tab-complete lists every
+ * registered recipe and every result item name.
  * <p>
  * Permission: {@code ui.command.craftrecipe} (admin-only, default OP).
  */
@@ -49,26 +51,32 @@ public final class CraftRecipeSubcommand {
         if (args.length < 2) {
             player.sendMessage(MessageUtil.parse(MessagesManager.getString(
                     "craftrecipe.usage",
-                    "<red>❌ Usage: </red><white>/ui craftrecipe <namespace:key></white> <gray>(tab-complete lists all)</gray>")));
+                    "<red>❌ Usage: </red><white>/ui craftrecipe <namespace:key | item name></white> <gray>(tab-complete lists all)</gray>")));
             return true;
         }
 
-        String input = args[1].toLowerCase();
-        NamespacedKey key = resolveKey(input);
-        if (key == null) {
-            player.sendMessage(MessageUtil.parse(MessagesManager.getString(
-                            "craftrecipe.not_found",
-                            "<red>❌ Recipe not found: </red><white>%recipe%</white> <gray>(tab-complete lists all)</gray>")
-                    .replace("%recipe%", input)));
-            return true;
+        String input = RecipeLookup.selector(args, 1);
+        NamespacedKey key;
+        Recipe direct = RecipeLookup.byKey(input);
+        if (direct != null && direct instanceof Keyed keyed) {
+            key = keyed.getKey();
+        } else {
+            List<RecipeLookup.Entry> matches = RecipeLookup.byResult(input);
+            if (matches.isEmpty()) {
+                player.sendMessage(notFound(input));
+                return true;
+            }
+            if (matches.size() > 1) {
+                // Ambiguous result: show every recipe that makes it and wait for a pick.
+                RecipeLookup.sendChooser(player, "craftrecipe", "craftrecipe", input, matches);
+                return true;
+            }
+            key = matches.get(0).key();
         }
 
         Recipe recipe = Bukkit.getRecipe(key);
         if (recipe == null) {
-            player.sendMessage(MessageUtil.parse(MessagesManager.getString(
-                            "craftrecipe.not_found",
-                            "<red>❌ Recipe not found: </red><white>%recipe%</white> <gray>(tab-complete lists all)</gray>")
-                    .replace("%recipe%", input)));
+            player.sendMessage(notFound(input));
             return true;
         }
 
@@ -100,33 +108,17 @@ public final class CraftRecipeSubcommand {
         return true;
     }
 
-    /**
-     * Resolves user input to a {@link NamespacedKey}. The input MUST carry an
-     * explicit namespace ({@code namespace:key}); bare names are rejected so the
-     * command cannot silently pick one of several recipes with the same path.
-     */
-    private static NamespacedKey resolveKey(String input) {
-        if (!input.contains(":")) return null;
-        try {
-            return NamespacedKey.fromString(input);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    private static Component notFound(String input) {
+        return MessageUtil.parse(MessagesManager.getString(
+                        "craftrecipe.not_found",
+                        "<red>❌ Recipe not found: </red><white>%recipe%</white> <gray>(use namespace:key or an item name; tab-complete lists all)</gray>")
+                .replace("%recipe%", input));
     }
 
-    /** Tab-complete: EVERY registered recipe as {@code namespace:key}. */
+    /** Tab-complete: every registered recipe key and every result item name. */
     public static List<String> tabComplete(String[] args) {
         if (args.length != 2) return List.of();
-        String partial = args[1].toLowerCase();
-
-        List<String> out = new ArrayList<>();
-        Bukkit.recipeIterator().forEachRemaining(recipe -> {
-            if (recipe instanceof Keyed keyed) {
-                String key = keyed.getKey().toString();
-                if (key.startsWith(partial) && !out.contains(key)) out.add(key);
-            }
-        });
-        return out;
+        return RecipeLookup.suggest(args[1]);
     }
 
     private static String prettify(Material material) {

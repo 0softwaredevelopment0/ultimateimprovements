@@ -194,7 +194,7 @@ public class HelpSubCommand implements SubCommand {
                 .u("clear", "remove all keys")
                 .u("container", "inspect the container PDC");
         cmd("showcraft", "Show how a recipe is made")
-                .u("<namespace:key>", "station, ingredients and parameters (e.g. cook time)")
+                .u("<namespace:key|item>", "station, ingredients and parameters; asks which recipe when the item has several")
                 .perm("ui.command.showcraft");
         cmd("durability", "Scale the held item's durability")
                 .u("", "show the current vanilla durability")
@@ -411,7 +411,7 @@ public class HelpSubCommand implements SubCommand {
         cmd("pingsound", "Toggle the chat ping sound").u("<on|off>", "");
         cmd("wirelessbind", "Wireless redstone bind mode").u("<on|off>", "default: off");
         cmd("craftrecipe", "Free-craft any recipe (admin)")
-                .u("<namespace:key>", "result goes to your inventory, no resources");
+                .u("<namespace:key|item>", "result goes to your inventory, no resources; asks which recipe when the item has several");
         cmd("radview", "Admin radiation view").u("on|off", "overrides the dosimeter readout, marks it with *");
 
         // ── World / structures ──
