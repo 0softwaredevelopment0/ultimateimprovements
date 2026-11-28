@@ -42,6 +42,18 @@ public class AuthConfig {
         return getBool("auth.check_duplicate_name.enabled", true);
     }
 
+    /**
+     * Drop a stale {@code Invulnerable} NBT flag when a player joins.
+     * <p>
+     * Disabled by default: the flag may be intentional (for example a staff
+     * member made immortal with {@code /ui god}), and clearing it silently
+     * would break that. Enable it to defend against the "immortal player"
+     * leftovers of an interrupted authentication freeze.
+     */
+    public static boolean isClearStaleInvulnerabilityEnabled() {
+        return getBool("auth.clear_stale_invulnerability", false);
+    }
+
     // =========================
     // INT GETTERS
     // =========================

@@ -32,6 +32,12 @@ max_accounts_per_ip = 3
 # Keep disabled for direct localhost testing; enable when loopback addresses must never authenticate.
 # Default: false
 reject_loopback_ips = false
+# Clear a stale Invulnerable NBT flag when a player joins.
+# The flag may be intentional (for example /ui god on a staff member), so this
+# is off by default. Enable it only to defend against "immortal player"
+# leftovers of an interrupted authentication freeze.
+# Default: false
+clear_stale_invulnerability = false
 
 # "Request a force login" button on the login dialog.
 # The button only asks staff for help (/ui auth forcelogin <nick>) — it never

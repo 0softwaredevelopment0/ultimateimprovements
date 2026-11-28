@@ -27,6 +27,10 @@ The administrative console form of **/ui auth chgpass** accepts a password argum
 
 Incorrect login attempts can lock both the account and the associated IP. Lockout state is persisted in the database, so reconnecting or restarting does not erase it. The penalty increases according to the configured backoff multiplier and is capped by the configured maximum duration. The implementation serializes password checks for an account/IP to prevent parallel submit bursts from bypassing the attempt limit.
 
+### Invulnerable flag on join
+
+An `Invulnerable` NBT flag can be intentional, for example a staff member made immortal with `/ui god`. The auth system therefore leaves it alone by default. **auth.clear_stale_invulnerability = true** restores the old defensive behaviour and clears the flag on every join, which also removes leftovers of an interrupted authentication freeze that would otherwise keep a player immortal across relogs.
+
 ### Proxy-aware IP detection
 
 The implementation reads the proxy-aware client address from Paper's player connection API. With Velocity, configure forwarding correctly so the backend receives the real client address.
