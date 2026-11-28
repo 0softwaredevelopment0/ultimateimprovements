@@ -288,7 +288,14 @@ public final class OpSelfSubcommand {
     }
 
     private static String msg(String key) {
-        return MessagesManager.getString(MSG_PREFIX + key, "");
+        String value = MessagesManager.getString(MSG_PREFIX + key, "");
+        // Never answer with an empty chat line: a missing/blank key would make
+        // the command look like it did nothing. The diagnostic is shown in-game
+        // and names the exact key to add to UI-Admin.toml.
+        if (value == null || value.isBlank()) {
+            return "<red>❌ Missing message: </red><white>" + MSG_PREFIX + key + "</white>";
+        }
+        return value;
     }
 
     // ════════════════════════════════════════

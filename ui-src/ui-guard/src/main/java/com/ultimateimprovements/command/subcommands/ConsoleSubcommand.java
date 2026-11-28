@@ -95,6 +95,11 @@ public final class ConsoleSubcommand {
                 return true;
             }
             manager.enable();
+            if (!(sender instanceof org.bukkit.entity.Player)) {
+                sender.sendMessage(MessageUtil.parse(
+                        "<green>✔</green> <white>Console lockdown </white><green>ENABLED</green>"
+                                + "<gray> — all console commands are cancelled.</gray>"));
+            }
         }
         return true;
     }
@@ -116,6 +121,11 @@ public final class ConsoleSubcommand {
                 return true;
             }
             manager.disable();
+            if (!(sender instanceof org.bukkit.entity.Player)) {
+                sender.sendMessage(MessageUtil.parse(
+                        "<green>✔</green> <white>Console lockdown </white><red>DISABLED</red>"
+                                + "<gray> — console commands work again.</gray>"));
+            }
         }
         return true;
     }

@@ -101,6 +101,11 @@ public final class ServerSubcommand {
                 return true;
             }
             manager.enable();
+            if (!(sender instanceof org.bukkit.entity.Player)) {
+                sender.sendMessage(MessageUtil.parse(
+                        "<green>✔</green> <white>Server lockdown </white><green>ENABLED</green>"
+                                + "<gray> — new connections are blocked.</gray>"));
+            }
         }
         return true;
     }
@@ -122,6 +127,11 @@ public final class ServerSubcommand {
                 return true;
             }
             manager.disable();
+            if (!(sender instanceof org.bukkit.entity.Player)) {
+                sender.sendMessage(MessageUtil.parse(
+                        "<green>✔</green> <white>Server lockdown </white><red>DISABLED</red>"
+                                + "<gray> — new connections are allowed again.</gray>"));
+            }
         }
         return true;
     }

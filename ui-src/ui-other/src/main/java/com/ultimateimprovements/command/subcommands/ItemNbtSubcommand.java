@@ -3301,7 +3301,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             case "skullowner" -> {
                 if (args.length == 3) {
                     String partial = args[2].toLowerCase(Locale.ROOT);
-                    for (Player player : ((Player) sender).getServer().getOnlinePlayers()) {
+                    for (Player player : Bukkit.getOnlinePlayers()) {
                         if (player.getName().toLowerCase(Locale.ROOT).startsWith(partial)) result.add(player.getName());
                     }
                 }
@@ -3310,7 +3310,7 @@ public final class ItemNbtSubcommand implements SubCommand {
             case "bookauthor" -> {
                 if (args.length == 3) {
                     String partial = args[2].toLowerCase(Locale.ROOT);
-                    for (Player player : ((Player) sender).getServer().getOnlinePlayers()) {
+                    for (Player player : Bukkit.getOnlinePlayers()) {
                         if (player.getName().toLowerCase(Locale.ROOT).startsWith(partial)) result.add(player.getName());
                     }
                 }
@@ -3737,7 +3737,7 @@ public final class ItemNbtSubcommand implements SubCommand {
         if (args[2].equalsIgnoreCase("set")) {
             if (args.length == 7) {
                 String partial = args[6].toLowerCase(Locale.ROOT);
-                for (World world : ((Player) sender).getServer().getWorlds()) {
+                for (World world : Bukkit.getWorlds()) {
                     if (world.getName().toLowerCase(Locale.ROOT).startsWith(partial)) result.add(world.getName());
                 }
             } else {

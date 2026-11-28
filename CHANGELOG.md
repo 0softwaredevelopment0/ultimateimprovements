@@ -3,6 +3,25 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.14.0-alpha.4] - 2026-11-28
+
+### Fixed
+- **`/ui itemnbt` tab-complete no longer throws for console senders.** The
+  `skullowner`/`bookauthor`/`compass set` suggestion paths cast the sender to
+  `Player` to reach the server; the console produced a `ClassCastException`
+  inside the suggestion provider and got no suggestions. They now use
+  `Bukkit.getOnlinePlayers()` / `Bukkit.getWorlds()`.
+- **Remaining silent failure paths:**
+  - `/ui reports remove <id>` from the console now reports a failed queue
+    removal instead of returning silently when the database write fails;
+  - `/ui clan info|show` answers "Failed to load clan data" when the
+    existence check passed but the row could not be read;
+  - `/ui opself` no longer answers with an empty line when a message key is
+    missing/blank in `UI-Admin.toml` — it names the missing key instead;
+  - `/ui console lockdown on|off` and `/ui lockdown on|off` (server lockdown)
+    now confirm the immediate state change directly to the console; the
+    admin broadcast alone only reached players.
+
 ## [1.14.0-alpha.3] - 2026-11-28
 
 ### Fixed
