@@ -217,7 +217,10 @@ public final class ClanSubcommand implements SubCommand {
             return true;
         }
         ClanDatabase.ClanData clan = ClanDatabase.getClan(key);
-        if (clan == null) return true;
+        if (clan == null) {
+            player.sendMessage(MessageUtil.parse("<red>❌ <white>Failed to load clan data — try again.</white>"));
+            return true;
+        }
         String ownerName = ClanDatabase.getMemberName(key, clan.ownerUuid());
         int members = ClanDatabase.countMembers(key);
         String mainKey = ClanDatabase.getMainClan(key);
@@ -787,7 +790,10 @@ public final class ClanSubcommand implements SubCommand {
         String key = ClanDatabase.getClanKeyByPlayer(uuid.toString());
         if (key == null) { player.sendMessage(MessageUtil.parse("<red>❌ <white>You are not in a clan.</white>")); return true; }
         ClanDatabase.ClanData clan = ClanDatabase.getClan(key);
-        if (clan == null) return true;
+        if (clan == null) {
+            player.sendMessage(MessageUtil.parse("<red>❌ <white>Failed to load clan data — try again.</white>"));
+            return true;
+        }
         String ownerName = ClanDatabase.getMemberName(key, clan.ownerUuid());
         int members = ClanDatabase.countMembers(key);
 

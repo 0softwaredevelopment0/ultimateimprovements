@@ -211,6 +211,9 @@ public final class ReportsSubcommand {
             if (ReportManager.removeFromModQueue(reportId)) {
                 sender.sendMessage(MessageUtil.parse(
                         "<green>✔</green> <white>Report #" + reportId + " removed from moderation queue.</white>"));
+            } else {
+                sender.sendMessage(MessageUtil.parse(
+                        "<red>❌ Failed to remove report #" + reportId + " from the moderation queue.</red>"));
             }
         }
 
