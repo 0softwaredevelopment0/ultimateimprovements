@@ -3,6 +3,15 @@
 All notable changes to the UltimateImprovements plugin family are documented
 in this file.
 
+## [1.17.0-alpha.2] - 2026-11-28
+
+### Fixed
+- **`/ui item view` no longer prints vanilla component plumbing.** The name,
+  lore and component sections are rendered as plain text; the previous
+  MiniMessage serialization appended raw hover/translate internals such as
+  `<hover:show_item:bread:54><lang:item.minecraft.bread>` to every item name.
+  The full machine-readable form is still available in the SNBT dump.
+
 ## [1.17.0-alpha.1] - 2026-11-28
 
 ### Changed
