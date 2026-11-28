@@ -87,7 +87,10 @@ public class UIItems extends JavaPlugin {
         try {
             SubCommandRegistry registry = SubCommandRegistry.getInstance();
             registry.register(LegacySubCommandAdapter.of("menu", (s, a) -> {
-                if (!(s instanceof Player p)) return false;
+                if (!(s instanceof Player p)) {
+                    CommandErrors.playerOnly(s);
+                    return true;
+                }
                 if (!p.hasPermission("ui.command.menu")) {
                     CommandErrors.noPermission(p, "ui.command.menu");
                     return true;

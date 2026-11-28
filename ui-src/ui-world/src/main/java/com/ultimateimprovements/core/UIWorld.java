@@ -1,5 +1,6 @@
 package com.ultimateimprovements.core;
 
+import com.ultimateimprovements.command.CommandErrors;
 import com.ultimateimprovements.command.SubCommandRegistry;
 import com.ultimateimprovements.command.subcommands.LegacySubCommandAdapter;
 import com.ultimateimprovements.mechanics.features.netherportal.NetherPortalSubcommand;
@@ -97,7 +98,10 @@ public class UIWorld extends JavaPlugin {
                     SculkSubcommand::execute, SculkSubcommand::tabComplete));
             registry.register(new NetherPortalSubcommand());
             registry.register(LegacySubCommandAdapter.of("advancement", (s, a) -> {
-                if (!(s instanceof Player p)) return false;
+                if (!(s instanceof Player p)) {
+                    CommandErrors.playerOnly(s);
+                    return true;
+                }
                 if (a.length < 2) {
                     p.sendMessage(MessageUtil.parse("<red>Использование: <white>/ui advancement start <название></white>"));
                     return true;
